@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">LibraryApp</string>
+    <string name="hello">Hey there, </string>
+    <string name="create_account">Create an Account </string>
+    <string name="welcome">Welcome Back</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="email">email</string>
+    <string name="password">password</string>
+    <string name="login">Login</string>
+</resources>
