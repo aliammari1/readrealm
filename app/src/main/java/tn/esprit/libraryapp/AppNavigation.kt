@@ -1,5 +1,8 @@
 package tn.esprit.libraryapp
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavHostController
 
 class AppNavigation {
@@ -24,11 +27,11 @@ enum class Screen {
     RESET_PASSWORD
 }
 
-sealed class NavigationItem(val route: String) {
-    object Register : NavigationItem(Screen.REGISTER.name)
-    object Login : NavigationItem(Screen.LOGIN.name)
-    object ForgotPassword : NavigationItem(Screen.FORGOT_PASSWORD.name)
-    object OTP : NavigationItem(Screen.OTP.name)
-    object Home : NavigationItem(Screen.HOME.name)
-    object ResetPassword : NavigationItem(Screen.RESET_PASSWORD.name)
+sealed class NavigationItem(val route: String, val icon: ImageVector, val title: String) {
+    object Home : NavigationItem("home", Icons.Filled.Home, "Home")
+    object Login : NavigationItem("login", Icons.Filled.MailOutline, "Login")
+    object Register : NavigationItem("register", Icons.Filled.Add, "Register")
+    object ForgotPassword : NavigationItem("forgot_password", Icons.Filled.Lock, "Forgot Password")
+    object OTP : NavigationItem("otp", Icons.Filled.Check, "OTP")
+    object ResetPassword : NavigationItem("reset_password", Icons.Filled.Refresh, "Reset Password")
 }
