@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+} from '@nestjs/common';
 import { BookService } from './book.service';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
@@ -15,6 +23,27 @@ export class BookController {
   @Get()
   findAll() {
     return this.bookService.findAll();
+  }
+
+  @Get('all')
+  findAllGenres() {
+    return this.bookService.findAllGenres();
+  }
+
+
+  @Get('action')
+  findAllAction() {
+    return this.bookService.findAllAction();
+  }
+
+  @Get('adventure')
+  findAllAdventure() {
+    return this.bookService.findAllAdventure();
+  }
+
+  @Get('fantasy')
+  findAllFantasy() {
+    return this.bookService.findAllFantasy();
   }
 
   @Get(':id')

@@ -170,7 +170,6 @@ export class AuthService {
   }
 
   async generateEmailVerificationByEmailAddress(email: string) {
-    console.log();
     const user = await this.userService.findByEmail(email);
     if (!user) {
       throw new NotFoundException('User not found');
