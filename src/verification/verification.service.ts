@@ -16,7 +16,7 @@ export class VerificationService {
     @InjectModel(Verification.name)
     private VerificationModel: Model<Verification>,
     private readonly userService: UserService,
-  ) {}
+  ) { }
 
   async generateOtp(userId: number, size = 6): Promise<string> {
     const now = new Date();
@@ -56,7 +56,7 @@ export class VerificationService {
 
   async validateOtp(email: string, token: string): Promise<boolean> {
     const user = await this.userService.findByEmail(email);
-    console.log(user);
+    // // console.log(user);
     const validToken = await this.VerificationModel.findOne({
       userId: user.id,
       expiresAt: { $gt: new Date() },

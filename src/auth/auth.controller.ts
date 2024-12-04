@@ -73,6 +73,6 @@ export class AuthController {
     @Body('email') email: string,
     @Body('password') password: string,
   ) {
-    return this.authService.forgotPassword(email,password);
+    return this.authService.forgotPassword(email, password);
   }
 }

@@ -26,7 +26,7 @@ export class AuthService {
     private readonly verificationService: VerificationService,
     @InjectModel('RefreshToken')
     private readonly refreshTokenModel: Model<RefreshToken>, // Inject Mongoose model
-  ) {}
+  ) { }
 
   async signup(signupData: SignupDto) {
     const { email, password, username } = signupData;
@@ -45,7 +45,6 @@ export class AuthService {
 
     return {
       message: 'User registered successfully',
-      user: { email: newUser.email },
     };
   }
 

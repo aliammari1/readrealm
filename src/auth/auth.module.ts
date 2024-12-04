@@ -23,7 +23,7 @@ import { VerificationModule } from 'src/verification/verification.module';
       { name: 'RefreshToken', schema: RefreshTokenSchema },
     ]),
     UserModule,
-    VerificationModule
+    VerificationModule,
   ],
   providers: [AuthService, MailService],
   controllers: [AuthController],

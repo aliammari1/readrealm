@@ -10,4 +10,20 @@ export default () => ({
     user: process.env.MAIL_USER,
     pass: process.env.MAIL_PASS,
   },
+  azure: {
+    tts: {
+      key: process.env.AZURE_API_TTS_KEY,
+      endpoint: process.env.AZURE_API_TTS_ENDPOINT,
+      model: process.env.AZURE_API_TTS_MODEL,
+    },
+    realtime: {
+      key: process.env.AZURE_API_REALTIME_KEY,
+      endpoint: process.env.AZURE_API_REALTIME_ENDPOINT,
+      model: process.env.AZURE_API_REALTIME_MODEL,
+    },
+  },
+  gemini: {
+    key: process.env.GEMINI_API_KEY,
+    model: process.env.GEMINI_API_MODEL,
+  },
 });

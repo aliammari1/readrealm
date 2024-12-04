@@ -1,12 +1,39 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { randomInt } from 'crypto';
-import { HydratedDocument, Types } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
+
+@Schema({ _id: false })
+class Review {
+  @Prop({ required: true })
+  userId: string;
+
+  @Prop({ required: true })
+  comment: string;
+
+  @Prop({ required: true })
+  rating: number;
+
+  @Prop({ required: true })
+  date: Date;
+}
+
+@Schema({ _id: false })
+class Bookmark {
+  @Prop({ required: true })
+  userId: string;
+
+  @Prop({ required: true })
+  dateAdded: Date;
+
+  @Prop()
+  note?: string;
+}
 
 export type BookDocument = HydratedDocument<Book>;
 
 @Schema()
 export class Book {
-  id: number = randomInt(0,1000000);
+  @Prop({ required: true, unique: true })
+  id: number;
 
   @Prop({ required: true })
   author: string;
@@ -25,6 +52,22 @@ export class Book {
 
   @Prop({ required: true })
   genre: String;
+
+  @Prop({ type: [Review], default: [] })
+  reviews: Review[];
+
+  @Prop({ default: 0 })
+  totalRating: number;
+
+  @Prop({ default: 0 })
+  numberOfRatings: number;
+
+  @Prop({ type: [Bookmark], default: [] })
+  bookmarks: Bookmark[];
+
+  public getAverageRating(): number {
+    return this.numberOfRatings > 0 ? this.totalRating / this.numberOfRatings : 0;
+  }
 }
 
-export const UserSchema = SchemaFactory.createForClass(Book);
+export const BookSchema = SchemaFactory.createForClass(Book);
