@@ -1,12 +1,11 @@
 package tn.esprit.libraryapp.models
 
-import tn.esprit.libraryapp.enums.Genre
-
 data class Book(
+    val id: Int,
     val author: String,
     val title: String,
-    val publicationDate: String,
+    val publicationDate: Int,
     val numOfPages: Int,
-    val coverImage: String,
-    val genre: String
+    val coverImage: String? = null,
+    val genre: String    // Keep as String to match the JSON response
 )

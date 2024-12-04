@@ -3,8 +3,10 @@ package tn.esprit.libraryapp
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import tn.esprit.libraryapp.screens.*
 
 @Composable
@@ -14,9 +16,7 @@ fun AppNavHost(
     startDestination: String = NavigationItem.Home.route
 ) {
     NavHost(
-        modifier = modifier,
-        navController = navController,
-        startDestination = startDestination
+        modifier = modifier, navController = navController, startDestination = startDestination
     ) {
         composable(NavigationItem.Home.route) {
             HomeScreen(navController = navController)
@@ -33,13 +33,31 @@ fun AppNavHost(
         composable(NavigationItem.OTP.route + "/{email}") {
             val email = it.arguments?.getString("email")
             OtpScreen(
-                navController = navController,
-                email = email ?: ""
+                navController = navController, email = email ?: ""
             )
         }
         composable(NavigationItem.ResetPassword.route + "/{email}") {
             val email = it.arguments?.getString("email")
             ResetPasswordScreen(navController = navController, email = email ?: "")
+        }
+        composable(route = NavigationItem.BookDetails.route + "/{bookId}",
+            arguments = listOf(navArgument("bookId") {
+                type = NavType.IntType  // Change to StringType to handle alphanumeric IDs
+            })) {
+            val bookId = it.arguments?.getInt("bookId") ?: 0
+            BookDetailsScreen(navController = navController, bookId = bookId)
+        }
+        composable(route = "book_details/{bookId}", arguments = listOf(navArgument("bookId") {
+            type = NavType.IntType  // Change to StringType to handle alphanumeric IDs
+        })) {
+            val bookId = it.arguments?.getInt("bookId") ?: 0
+            BookDetailsScreen(navController = navController, bookId = bookId)
+        }
+        composable(route = "ebook/{bookId}", arguments = listOf(navArgument("bookId") {
+            type = NavType.IntType  // Change to StringType to match book_details
+        })) {
+            val bookId = it.arguments?.getInt("bookId") ?: 0
+            EbookScreen(navController = navController, bookId = bookId)
         }
     }
 }
