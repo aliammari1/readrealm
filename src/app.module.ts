@@ -5,12 +5,10 @@ import { AuthModule } from './auth/auth.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { RolesModule } from './roles/roles.module';
 import { LoggerMiddleware } from './logger/logger.middleware';
 import { BookModule } from './book/book.module';
 import config from './config/config';
 import { SpeechRealtimeModule } from './speech-realtime/speech-realtime.module';
-import { SocketGateway } from './speech-realtime/socket.gateway';
 
 @Module({
   imports: [
@@ -35,7 +33,6 @@ import { SocketGateway } from './speech-realtime/socket.gateway';
       inject: [ConfigService],
     }),
     AuthModule,
-    RolesModule,
     BookModule,
     SpeechRealtimeModule,
   ],

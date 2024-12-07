@@ -28,7 +28,7 @@ export class AuthService {
     private readonly refreshTokenModel: Model<RefreshToken>, // Inject Mongoose model
   ) { }
 
-  async signup(signupData: SignupDto) {
+  async register(signupData: SignupDto) {
     const { email, password, username } = signupData;
 
     const emailInUse = await this.userService.findByEmail(email);

@@ -14,9 +14,6 @@ import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signupDto';
 import { AuthGaurd } from 'src/guards/authentification.guards';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { Roles } from 'src/decorators/permissions.decorator';
-import { Role } from 'src/roles/enums/role.enum';
-import { RoleGaurd } from 'src/guards/roles.gaurd';
 import { loginDto } from './dto/loginDto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 
@@ -27,8 +24,8 @@ export class AuthController {
   @Post('register')
   // @UseGuards(RoleGaurd)
   // @Roles(Role.Admin)
-  async signup(@Body() signupDto: SignupDto) {
-    return this.authService.signup(signupDto);
+  async register(@Body() signupDto: SignupDto) {
+    return this.authService.register(signupDto);
   }
 
   @Post('login')

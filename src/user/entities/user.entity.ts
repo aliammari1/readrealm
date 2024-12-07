@@ -14,8 +14,8 @@ export class User {
   @Prop({ required: true })
   password: string;
 
-  @Prop({ required: false, type: SchemaTypes.ObjectId })
-  roleId: Types.ObjectId;
+  @Prop({ required: true, default: 'user' })
+  role: string;
 
   @Prop({ required: false })
   emailVerifiedAt?: Date;
