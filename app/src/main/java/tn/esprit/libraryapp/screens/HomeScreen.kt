@@ -44,6 +44,8 @@ import coil3.request.crossfade
 import tn.esprit.libraryapp.enums.Genre
 import tn.esprit.libraryapp.models.Book
 import tn.esprit.libraryapp.viewModel.BookViewModel
+import android.net.Uri
+import com.google.gson.Gson
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -400,8 +402,13 @@ fun BookCard(
             .height(280.dp)
             .padding(end = 16.dp)
             .clickable {
-                // Use the book's ID directly without modifying it
-                navController.navigate("book_details/${book.id}")
+                try {
+                    val bookJson = Uri.encode(Gson().toJson(book))
+                    navController.navigate("book_details/${book.id}/$bookJson")
+                } catch (e: Exception) {
+                    // Handle navigation error
+                    e.printStackTrace()
+                }
             },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(12.dp),

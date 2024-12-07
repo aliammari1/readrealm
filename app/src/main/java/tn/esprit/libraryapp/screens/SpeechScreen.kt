@@ -34,7 +34,7 @@ fun SpeechScreen(speechViewModel: SpeechViewModel = viewModel()) {
     val isRecording by speechViewModel.isRecording
     val transcript by speechViewModel.transcript
     val context = LocalContext.current
-    var systemMessage by remember { mutableStateOf("speak") }
+    var systemMessage by remember { mutableStateOf("speak tunisian arabic dialect") }
     var temperature by remember { mutableStateOf("0.7") }
     val errorState = speechViewModel.errorMessages.collectAsState(initial = null)
 

@@ -40,18 +40,18 @@ fun AppNavHost(
             val email = it.arguments?.getString("email")
             ResetPasswordScreen(navController = navController, email = email ?: "")
         }
-        composable(route = NavigationItem.BookDetails.route + "/{bookId}",
-            arguments = listOf(navArgument("bookId") {
-                type = NavType.IntType  // Change to StringType to handle alphanumeric IDs
-            })) {
-            val bookId = it.arguments?.getInt("bookId") ?: 0
-            BookDetailsScreen(navController = navController, bookId = bookId)
-        }
-        composable(route = "book_details/{bookId}", arguments = listOf(navArgument("bookId") {
-            type = NavType.IntType  // Change to StringType to handle alphanumeric IDs
-        })) {
-            val bookId = it.arguments?.getInt("bookId") ?: 0
-            BookDetailsScreen(navController = navController, bookId = bookId)
+        composable(
+            "book_details/{bookId}/{bookJson}",
+            arguments = listOf(
+                navArgument("bookId") { type = NavType.IntType },
+                navArgument("bookJson") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            BookDetailsScreen(
+                navController = navController,
+                bookId = backStackEntry.arguments?.getInt("bookId") ?: 0,
+                bookJson = backStackEntry.arguments?.getString("bookJson") ?: ""
+            )
         }
         composable(route = "ebook/{bookId}", arguments = listOf(navArgument("bookId") {
             type = NavType.IntType  // Change to StringType to match book_details

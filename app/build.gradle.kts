@@ -40,6 +40,11 @@ android {
 }
 
 dependencies {
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.media3.exoplayer.v111)
+    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.accompanist.systemuicontroller)
+    implementation(libs.lottie.compose)
     implementation(libs.media3.exoplayer)
     implementation(libs.androidx.media3.exoplayer.dash)
     implementation(libs.androidx.media3.ui)

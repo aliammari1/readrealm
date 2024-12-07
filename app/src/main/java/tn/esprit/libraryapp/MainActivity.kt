@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import tn.esprit.libraryapp.screens.SpeechScreen
 import tn.esprit.libraryapp.ui.theme.LibraryAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -36,6 +37,7 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             LibraryAppTheme {
+//                SpeechScreen()
                 val navController = rememberNavController()
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),

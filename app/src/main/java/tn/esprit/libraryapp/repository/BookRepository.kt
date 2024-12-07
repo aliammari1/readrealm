@@ -1,5 +1,6 @@
 package tn.esprit.libraryapp.repository
 
+import okhttp3.ResponseBody
 import tn.esprit.libraryapp.api.RetrofitService
 import tn.esprit.libraryapp.enums.Genre
 import tn.esprit.libraryapp.models.Book
@@ -17,6 +18,10 @@ class BookRepository {
 
     suspend fun searchBooks(query: String): List<Book> {
         return bookService.searchBooks(query)
+    }
+
+    suspend fun streamAudioBookByTitle(title: String): ResponseBody {
+        return bookService.streamAudioBookByTitle(title)
     }
 }
 
