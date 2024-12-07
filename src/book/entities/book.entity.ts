@@ -65,9 +65,16 @@ export class Book {
   @Prop({ type: [Bookmark], default: [] })
   bookmarks: Bookmark[];
 
+  @Prop()
+  textData: string;
+
   public getAverageRating(): number {
     return this.numberOfRatings > 0 ? this.totalRating / this.numberOfRatings : 0;
   }
 }
 
 export const BookSchema = SchemaFactory.createForClass(Book);
+
+BookSchema.methods.getAverageRating = function() {
+  return this.numberOfRatings ? this.totalRating / this.numberOfRatings : 0;
+};

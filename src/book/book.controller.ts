@@ -7,10 +7,12 @@ import {
   Param,
   Delete,
   Query,
+  Res,
 } from '@nestjs/common';
 import { BookService } from './book.service';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
+import { Response } from 'express';
 
 @Controller('book')
 export class BookController {
@@ -36,9 +38,9 @@ export class BookController {
     return this.bookService.getBookDetails(id);
   }
 
-  @Post('summary')
-  async getBookSummary(@Body() createBookDto: CreateBookDto) {
-    const response = await this.bookService.getBookSummary(createBookDto);
+  @Get('summary/:title')
+  async getBookSummary(@Param('title') title: string) {
+    const response = await this.bookService.getBookSummary(title);
     return response;
   }
 
@@ -47,6 +49,45 @@ export class BookController {
     if (createBookDto.textData == '') createBookDto = new CreateBookDto();
     const response = await this.bookService.getBookTTS(createBookDto);
     return response;
+  }
+
+  @Get('tts/stream/:title')
+  async streamBookTTSByTitle(
+    @Param('title') title: string,
+    @Res() response: Response
+  ) {
+    try {
+      const audioStream = await this.bookService.getBookTTSByTitle(title);
+      
+      if (!audioStream) {
+        throw new Error('Failed to generate audio stream');
+      }
+
+      response.setHeader('Content-Type', 'audio/mpeg');
+      response.setHeader('Transfer-Encoding', 'chunked');
+      response.setHeader('Cache-Control', 'no-cache');
+      response.setHeader('Content-Disposition', 'inline');
+      
+      audioStream.pipe(response);
+      
+      audioStream.on('end', () => {
+        response.end();
+      });
+
+      audioStream.on('error', (error) => {
+        console.error('Stream error:', error);
+        if (!response.headersSent) {
+          response.status(500).json({ error: 'Stream error occurred' });
+        }
+      });
+    } catch (error) {
+      console.error('Streaming error:', error);
+      if (!response.headersSent) {
+        response.status(error.status || 500).json({ 
+          error: error.message || 'An unexpected error occurred' 
+        });
+      }
+    }
   }
 
   @Get('genre/:genre')

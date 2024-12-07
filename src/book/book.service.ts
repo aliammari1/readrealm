@@ -5,7 +5,7 @@ import { UpdateBookDto } from './dto/update-book.dto';
 import { HttpService } from '@nestjs/axios';
 import { map, mergeMap } from 'rxjs/operators';
 import { Book, BookDocument } from './entities/book.entity';
-import { forkJoin, merge, of, from } from 'rxjs';
+import { forkJoin, merge, of, from, firstValueFrom } from 'rxjs';
 import { randomInt } from 'crypto';
 import { HfInference } from '@huggingface/inference';
 import { GoogleGenerativeAI } from '@google/generative-ai';
@@ -81,7 +81,7 @@ export class BookService {
           let book = new Book();
           book.id = Number(bookDetails.key.split('/')[2].replace('OL', '').replace('W', ''));
           book.title = bookDetails.title;
-          book.author = bookDetails.author_name[0];
+          book.author = bookDetails.author_name?.[0];
           book.publicationDate = bookDetails.first_publish_year;
           book.numOfPages = bookDetails.number_of_pages_median;
           book.coverImage = `${this.OPEN_LIBRARY_COVER_ENDPOINT}/b/id/${bookDetails.cover_id}-M.jpg`;
@@ -144,106 +144,135 @@ export class BookService {
       );
     return books;
   }
-  getBookByTitle(title: string) {
+
+  async getBookByTitle(title: string) {
     const encodedTitle = encodeURIComponent(title);
     const url = `${this.GUTEDEX_API_ENDPOINT}/books?search=${encodedTitle}`;
-    let booktext = '';
-    return this.httpService.get(url).pipe(
-      mergeMap((response) => {
-        const books = response.data.results;
-        const bookObservables = books.map((bookData) => {
-          const book = new Book();
-          book.id = bookData.id;
-          book.title = bookData.title;
-          book.author =
-            bookData.authors.length > 0 ? bookData.authors[0].name : 'Unknown';
-          book.publicationDate = bookData.download_count;
-          book.coverImage = bookData.formats['image/jpeg'];
-          book.genre =
-            bookData.subjects.length > 0 ? bookData.subjects[0] : 'Unknown';
 
-          const textUrl =
-            bookData.formats['text/plain; charset=utf-8'] ||
-            bookData.formats['text/plain; charset=us-ascii'] ||
-            bookData.formats['text/plain'];
-          if (textUrl) {
-            return this.httpService.get(textUrl, { responseType: 'text' }).pipe(
-              map((textResponse) => {
-                booktext = textResponse.data;
-                return book;
-              }),
-            );
-          } else {
-            booktext = 'Text not available';
-            return of(book);
-          }
-        });
-        return forkJoin(bookObservables);
-      }),
-    );
+    try {
+      const response = await firstValueFrom(this.httpService.get(url));
+      const books = response.data.results;
+
+      if (!books || books.length === 0) {
+        throw new NotFoundException(`No books found with title: ${title}`);
+      }
+
+      const bookData = books[0];
+      const book = new Book();
+      book.id = bookData.id;
+      book.title = bookData.title;
+      book.author = bookData.authors.length > 0 ? bookData.authors[0].name : 'Unknown';
+      book.publicationDate = bookData.download_count;
+      book.coverImage = bookData.formats['image/jpeg'];
+      book.genre = bookData.subjects.length > 0 ? bookData.subjects[0] : 'Unknown';
+
+      const textUrl = bookData.formats['text/plain; charset=utf-8'] ||
+        bookData.formats['text/plain; charset=us-ascii'] ||
+        bookData.formats['text/plain'];
+
+      if (!textUrl) {
+        book.textData = '';
+        return [book];
+      }
+
+      try {
+        const textResponse = await firstValueFrom(
+          this.httpService.get(textUrl, { responseType: 'text' })
+        );
+        console.log(`Fetched text data for book: ${book.title}`);
+        book.textData = textResponse.data;
+        return [book];
+      } catch (error) {
+        console.error(`Error fetching text for book ${book.title}:`, error);
+        book.textData = '';
+        return [book];
+      }
+    } catch (error) {
+      throw new NotFoundException(`Error fetching books: ${error.message}`);
+    }
   }
 
-  async getBookSummary(data: CreateBookDto) {
+  async getBookSummary(title: string) {
     // data = new CreateBookDto();
-    if (!data.textData) {
+    if (title == "") {
       return 'No text data provided';
     }
-    data.textData = data.textData.replace(/(\r\n|\n|\r)/gm, ' ');
-    data.textData = data.textData.replace(/ +(?= )/g, '');
+    let book = await this.getBookByTitle(title);
+    if (!book || book.length == 0) {
+      return 'Book not found';
+    }
+    let textData = book[0].textData;
+    textData = textData.replace(/(\r\n|\n|\r)/gm, ' ');
+    textData = textData.replace(/ +(?= )/g, '');
     const genAI = new GoogleGenerativeAI(this.geminiApiKey);
     const model = genAI.getGenerativeModel({ model: this.geminiModel });
-    const prompt = 'summaize this book: ' + data.textData;
+    const prompt = 'summarize this book in 100 lines: ' + textData;
 
     const result = await model.generateContent(prompt);
-    // console.log(result.response.text());
-
-    return result;
+    const response = result.response.text();
+    console.log(response);
+    return response;
   }
 
   async getBookTTS(data: CreateBookDto) {
     if (!data.textData) {
-      return 'No text data provided';
+      throw new NotFoundException('No text data provided');
     }
 
-    data.textData = data.textData.replace(/(\r\n|\n|\r)/gm, ' ');
-    data.textData = data.textData.replace(/ +(?= )/g, '');
+    // Clean up text
+    data.textData = data.textData.replace(/(\r\n|\n|\r)/gm, ' ').replace(/ +(?= )/g, '');
+
     const endpoint = this.azureTtsEndpoint || '';
     const apiKey = this.azureTtsKey || '';
-    const speechFilePath = 'audio.mp3';
-
-    // Required Azure OpenAI deployment name and API version
     const deploymentName = this.azureTtsModel;
     const apiVersion = '2024-08-01-preview';
 
-    const maxLength = 4096;
-    const chunks = [];
-    for (let i = 0; i < data.textData.length; i += maxLength) {
-      chunks.push(data.textData.substring(i, i + maxLength));
-    }
     const client = new AzureOpenAI({
       endpoint,
       apiKey,
       apiVersion,
       deployment: deploymentName,
     });
-    let streamToRead;
-    for (const chunk of chunks) {
-      const response = await client.audio.speech.create({
-        model: deploymentName,
-        voice: 'alloy',
-        input: chunk,
-      });
-      if (response.ok) streamToRead = response.body;
-      else
-        throw new Error(
-          `Failed to generate audio stream: ${response.statusText}`,
-        );
 
-      // console.log(`Streaming response to ${speechFilePath}`);
-      await writeFile(speechFilePath, streamToRead);
-      // console.log('Finished streaming chunk');
+    const maxLength = 4096;
+    const chunks = [];
+    for (let i = 0; i < data.textData.length; i += maxLength) {
+      chunks.push(data.textData.substring(i, i + maxLength));
     }
-    return '';
+
+    // TODO: Implement handling of multiple chunks
+    const response = await client.audio.speech.create({
+      model: deploymentName,
+      voice: 'alloy',
+      input: chunks[0],
+      response_format: 'mp3'
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to generate audio stream: ${response.statusText}`);
+    }
+
+    return response.body;
+  }
+
+  async getBookTTSByTitle(title: string) {
+    const decodedTitle = decodeURIComponent(title);
+    console.log(`Getting TTS for book: ${decodedTitle}`);
+    const bookData = await this.getBookByTitle(title) as any;
+
+    if (!bookData || !Array.isArray(bookData) || bookData.length === 0) {
+      throw new NotFoundException('Book not found');
+    }
+
+    const bookText = bookData[0].textData;
+    if (!bookText) {
+      throw new NotFoundException('No text content available for this book');
+    }
+
+    const createBookDto = new CreateBookDto();
+    createBookDto.textData = bookText;
+
+    return this.getBookTTS(createBookDto);
   }
 
   addReview(bookId: number, userId: string, comment: string, rating: number) {
@@ -253,7 +282,7 @@ export class BookService {
         mergeMap(async (response) => {
           const bookData = response.data;
           const book = await this.bookModel.findOne({ id: bookId });
-          
+
           const review = {
             userId,
             comment,
@@ -304,38 +333,62 @@ export class BookService {
     );
   }
 
-  addBookmark(bookId: number, userId: string, note?: string) {
+  async addBookmark(bookId: number, userId: string, note?: string) {
+    if (!bookId || !userId) {
+      throw new NotFoundException('Book ID and User ID are required');
+    }
+
     return this.httpService
       .get(`${this.OPEN_LIBRARY_API_ENDPOINT}/works/OL${bookId}W.json`)
       .pipe(
         mergeMap(async (response) => {
           const bookData = response.data;
-          const book = await this.bookModel.findOne({ id: bookId });
-          
+          let book = await this.bookModel.findOne({ id: bookId });
+
+          // Check if bookmark already exists
+          if (book?.bookmarks?.some(bookmark => bookmark.userId === userId)) {
+            return {
+              success: false,
+              message: 'Bookmark already exists for this user'
+            };
+          }
+
           const bookmark = {
             userId,
             dateAdded: new Date(),
-            note
+            note: note || '',
+            page: 0,
+            lastAccessedDate: new Date(),
+            status: 'active'
           };
 
           if (!book) {
             // Create new book if it doesn't exist
-            const newBook = new this.bookModel({
+            book = new this.bookModel({
               id: bookId,
               title: bookData.title,
-              author: bookData.author_name?.[0],
-              // ...other book properties...
+              author: bookData.authors?.name || bookData.author_name?.[0],
+              publicationDate: bookData.first_publish_year,
+              coverImage: bookData.covers ?
+                `${this.OPEN_LIBRARY_COVER_ENDPOINT}/b/id/${bookData.covers[0]}-M.jpg` :
+                null,
               bookmarks: [bookmark]
             });
-            await newBook.save();
-            return { success: true, bookmark };
+          } else {
+            // Update existing book
+            book.bookmarks.push(bookmark);
           }
 
-          // Update existing book
-          book.bookmarks.push(bookmark);
-          await book.save();
-
-          return { success: true, bookmark };
+          try {
+            await book.save();
+            return {
+              success: true,
+              bookmark,
+              message: 'Bookmark added successfully'
+            };
+          } catch (error) {
+            throw new Error('Failed to save bookmark: ' + error.message);
+          }
         })
       );
   }
