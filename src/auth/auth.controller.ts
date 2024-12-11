@@ -21,16 +21,16 @@ import { VerifyEmailDto } from './dto/verify-email.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('register')
+  @Post('signup')
   // @UseGuards(RoleGaurd)
   // @Roles(Role.Admin)
-  async register(@Body() signupDto: SignupDto) {
-    return this.authService.register(signupDto);
+  async register(@Body() credentials: SignupDto) {
+    return this.authService.register(credentials);
   }
 
   @Post('login')
-  async login(@Body() cordinalite: loginDto) {
-    return this.authService.login(cordinalite);
+  async login(@Body() credentials: loginDto) {
+    return this.authService.login(credentials);
   }
 
   // change password

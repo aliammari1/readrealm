@@ -2,43 +2,27 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
 @Schema({ _id: false })
-class Review {
+export class Bookmark {
   @Prop({ required: true })
   userId: string;
 
-  @Prop({ required: true })
-  comment: string;
-
-  @Prop({ required: true })
-  rating: number;
-
-  @Prop({ required: true })
-  date: Date;
-}
-
-@Schema({ _id: false })
-class Bookmark {
-  @Prop({ required: true })
-  userId: string;
-
-  @Prop({ required: true })
+  @Prop({ required: true, default: Date.now })
   dateAdded: Date;
-
-  @Prop()
-  note?: string;
 }
 
-export type BookDocument = HydratedDocument<Book>;
-
-@Schema()
+@Schema({
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+})
 export class Book {
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true, unique: true, index: true })
   id: number;
 
-  @Prop({ required: true })
+  @Prop({ required: true, index: true })
   author: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, index: true })
   title: string;
 
   @Prop({ required: true })
@@ -48,33 +32,17 @@ export class Book {
   numOfPages: number;
 
   @Prop({ required: true })
-  coverImage: String;
+  coverImage: string;
 
-  @Prop({ required: true })
-  genre: String;
-
-  @Prop({ type: [Review], default: [] })
-  reviews: Review[];
-
-  @Prop({ default: 0 })
-  totalRating: number;
-
-  @Prop({ default: 0 })
-  numberOfRatings: number;
-
-  @Prop({ type: [Bookmark], default: [] })
-  bookmarks: Bookmark[];
+  @Prop({ required: true, index: true })
+  genre: string;
 
   @Prop()
   textData: string;
 
-  public getAverageRating(): number {
-    return this.numberOfRatings > 0 ? this.totalRating / this.numberOfRatings : 0;
-  }
+  @Prop({ type: [Bookmark], default: [] })
+  bookmarks: Bookmark[];
 }
 
+export type BookDocument = HydratedDocument<Book>;
 export const BookSchema = SchemaFactory.createForClass(Book);
-
-BookSchema.methods.getAverageRating = function() {
-  return this.numberOfRatings ? this.totalRating / this.numberOfRatings : 0;
-};

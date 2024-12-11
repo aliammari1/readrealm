@@ -19,19 +19,21 @@ export class UserService {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new this.UserModel({
-      username,
-      email,
-      password: hashedPassword,
-    });
-
-    newUser.save();
+    const newUser = await this.addUser(
+      { username, email: email.toLowerCase(), password: hashedPassword }
+    )
 
     return {
       message: 'User registered successfully',
       user: { email: newUser.email },
     };
   }
+
+  async addUser(user: CreateUserDto) {
+    const newUser = new this.UserModel(user);
+    return newUser.save();
+  }
+
   async findAll(): Promise<User[]> {
     return this.UserModel.find().exec();
   }

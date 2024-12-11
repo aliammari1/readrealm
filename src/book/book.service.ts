@@ -39,15 +39,41 @@ export class BookService {
     this.geminiModel = configService.get<string>('gemini.model');
   }
 
-  create(createBookDto: CreateBookDto) {
-    return 'This action adds a new book';
+  async create(createBookDto: CreateBookDto): Promise<Book> {
+    const createdBook = new this.bookModel(createBookDto);
+    return await createdBook.save();
   }
 
-  findAll() {
-    let books = this.httpService
-      .get(`${this.OPEN_LIBRARY_API_ENDPOINT}/subjects/adventure.json`)
-      .pipe(map((response) => response.data));
-    return books;
+  async findAll(): Promise<Book[]> {
+    return await this.bookModel.find().exec();
+  }
+
+  async findOne(id: number): Promise<Book> {
+    const book = await this.bookModel.findOne({ id }).exec();
+    if (!book) {
+      throw new NotFoundException(`Book with ID ${id} not found`);
+    }
+    return book;
+  }
+
+  async update(id: number, updateBookDto: UpdateBookDto): Promise<Book> {
+    const updatedBook = await this.bookModel.findOneAndUpdate(
+      { id },
+      updateBookDto,
+      { new: true },
+    ).exec();
+    if (!updatedBook) {
+      throw new NotFoundException(`Book with ID ${id} not found`);
+    }
+    return updatedBook;
+  }
+
+  async remove(id: number): Promise<{ deleted: boolean }> {
+    const result = await this.bookModel.deleteOne({ id }).exec();
+    if (result.deletedCount === 0) {
+      throw new NotFoundException(`Book with ID ${id} not found`);
+    }
+    return { deleted: true };
   }
 
   searchBooks(title: string) {
@@ -56,14 +82,13 @@ export class BookService {
     let books = this.httpService.get(searchUrl).pipe(
       map((searchResponse) => {
         return searchResponse.data.docs.map((searchResult) => {
-          let book = new Book();
-          book.title = searchResult.title;
-          book.author = searchResult.author_name[0];
-          book.publicationDate = searchResult.first_publish_year;
-          book.numOfPages = searchResult.number_of_pages_median;
-          book.coverImage = `${this.OPEN_LIBRARY_COVER_ENDPOINT}/b/id/${searchResult.cover_i}-M.jpg`;
-          // Add availability information
-          // book.availability = searchResult.availability;
+          const book = {
+            title: searchResult.title,
+            author: searchResult.author_name[0],
+            publicationDate: searchResult.first_publish_year,
+            numOfPages: searchResult.number_of_pages_median,
+            coverImage: `${this.OPEN_LIBRARY_COVER_ENDPOINT}/b/id/${searchResult.cover_i}-M.jpg`,
+          };
           return book;
         });
       }),
@@ -78,14 +103,15 @@ export class BookService {
       .pipe(
         map((response) => {
           let bookDetails = response.data;
-          let book = new Book();
-          book.id = Number(bookDetails.key.split('/')[2].replace('OL', '').replace('W', ''));
-          book.title = bookDetails.title;
-          book.author = bookDetails.author_name?.[0];
-          book.publicationDate = bookDetails.first_publish_year;
-          book.numOfPages = bookDetails.number_of_pages_median;
-          book.coverImage = `${this.OPEN_LIBRARY_COVER_ENDPOINT}/b/id/${bookDetails.cover_id}-M.jpg`;
-          book.genre = bookDetails.subjects ? bookDetails.subjects.join(', ') : 'Unknown';
+          const book = {
+            id: Number(bookDetails.key.split('/')[2].replace('OL', '').replace('W', '')),
+            title: bookDetails.title,
+            author: bookDetails.author_name?.[0],
+            publicationDate: bookDetails.first_publish_year,
+            numOfPages: bookDetails.number_of_pages_median,
+            coverImage: `${this.OPEN_LIBRARY_COVER_ENDPOINT}/b/id/${bookDetails.cover_id}-M.jpg`,
+            genre: bookDetails.subjects ? bookDetails.subjects.join(', ') : 'Unknown',
+          };
           return book;
         }),
       );
@@ -125,16 +151,15 @@ export class BookService {
             return this.httpService.get(searchUrl).pipe(
               map((searchResponse) => {
                 let searchResult = searchResponse.data.docs[0];
-                let book = new Book();
-                book.id = Number(searchResult.key.split('/')[2].replace('OL', '').replace('W', ''));
-                book.title = work.title;
-                book.author = searchResult.author_name[0];
-                book.publicationDate = searchResult.first_publish_year;
-                book.numOfPages = searchResult.number_of_pages_median;
-                book.coverImage = `${this.OPEN_LIBRARY_COVER_ENDPOINT}/b/id/${work.cover_id}-M.jpg`;
-                book.genre = genre.charAt(0).toUpperCase() + genre.slice(1);
-                // Add availability information
-                // book.availability = searchResult.availability;
+                const book = {
+                  id: Number(searchResult.key.split('/')[2].replace('OL', '').replace('W', '')),
+                  title: work.title,
+                  author: searchResult.author_name[0],
+                  publicationDate: searchResult.first_publish_year,
+                  numOfPages: searchResult.number_of_pages_median,
+                  coverImage: `${this.OPEN_LIBRARY_COVER_ENDPOINT}/b/id/${work.cover_id}-M.jpg`,
+                  genre: genre.charAt(0).toUpperCase() + genre.slice(1),
+                };
                 return book;
               }),
             );
@@ -158,13 +183,15 @@ export class BookService {
       }
 
       const bookData = books[0];
-      const book = new Book();
-      book.id = bookData.id;
-      book.title = bookData.title;
-      book.author = bookData.authors.length > 0 ? bookData.authors[0].name : 'Unknown';
-      book.publicationDate = bookData.download_count;
-      book.coverImage = bookData.formats['image/jpeg'];
-      book.genre = bookData.subjects.length > 0 ? bookData.subjects[0] : 'Unknown';
+      const book = {
+        id: bookData.id,
+        title: bookData.title,
+        author: bookData.authors.length > 0 ? bookData.authors[0].name : 'Unknown',
+        publicationDate: bookData.download_count,
+        coverImage: bookData.formats['image/jpeg'],
+        genre: bookData.subjects.length > 0 ? bookData.subjects[0] : 'Unknown',
+        textData: '',
+      };
 
       const textUrl = bookData.formats['text/plain; charset=utf-8'] ||
         bookData.formats['text/plain; charset=us-ascii'] ||
@@ -275,149 +302,45 @@ export class BookService {
     return this.getBookTTS(createBookDto);
   }
 
-  addReview(bookId: number, userId: string, comment: string, rating: number) {
-    return this.httpService
-      .get(`${this.OPEN_LIBRARY_API_ENDPOINT}/works/OL${bookId}W.json`)
-      .pipe(
-        mergeMap(async (response) => {
-          const bookData = response.data;
-          const book = await this.bookModel.findOne({ id: bookId });
+  async toggleBookmark(userId: string, createBookDto: CreateBookDto): Promise<Book> {
+    let { id } = createBookDto;
 
-          const review = {
-            userId,
-            comment,
-            rating,
-            date: new Date()
-          };
-
-          if (!book) {
-            // Create new book if it doesn't exist
-            const newBook = new this.bookModel({
-              id: bookId,
-              title: bookData.title,
-              author: bookData.author_name?.[0],
-              // ...other book properties...
-              reviews: [review],
-              totalRating: rating,
-              numberOfRatings: 1
-            });
-            await newBook.save();
-            return { success: true, review, averageRating: rating };
-          }
-
-          // Update existing book
-          book.reviews.push(review);
-          book.totalRating = (book.totalRating || 0) + rating;
-          book.numberOfRatings = (book.numberOfRatings || 0) + 1;
-          await book.save();
-
-          return {
-            success: true,
-            averageRating: book.getAverageRating(),
-            review
-          };
-        })
-      );
-  }
-
-  getBookRating(bookId: number) {
-    return from(this.bookModel.findOne({ id: bookId })).pipe(
-      map(book => {
-        if (!book) return { averageRating: 0, numberOfRatings: 0, reviews: [] };
-        return {
-          averageRating: book.getAverageRating(),
-          numberOfRatings: book.numberOfRatings || 0,
-          reviews: book.reviews || []
-        };
-      })
-    );
-  }
-
-  async addBookmark(bookId: number, userId: string, note?: string) {
-    if (!bookId || !userId) {
-      throw new NotFoundException('Book ID and User ID are required');
+    if (!id || id === 0) {
+      // Generate a new unique ID for the book
+      const newId = await this.generateNewBookId();
+      createBookDto.id = newId;
+      id = newId;
     }
 
-    return this.httpService
-      .get(`${this.OPEN_LIBRARY_API_ENDPOINT}/works/OL${bookId}W.json`)
-      .pipe(
-        mergeMap(async (response) => {
-          const bookData = response.data;
-          let book = await this.bookModel.findOne({ id: bookId });
+    let book = await this.bookModel.findOne({ id });
 
-          // Check if bookmark already exists
-          if (book?.bookmarks?.some(bookmark => bookmark.userId === userId)) {
-            return {
-              success: false,
-              message: 'Bookmark already exists for this user'
-            };
-          }
+    if (!book) {
+      // Book does not exist, create it
+      const createdBook = new this.bookModel(createBookDto);
+      book = await createdBook.save();
+    }
 
-          const bookmark = {
-            userId,
-            dateAdded: new Date(),
-            note: note || '',
-            page: 0,
-            lastAccessedDate: new Date(),
-            status: 'active'
-          };
-
-          if (!book) {
-            // Create new book if it doesn't exist
-            book = new this.bookModel({
-              id: bookId,
-              title: bookData.title,
-              author: bookData.authors?.name || bookData.author_name?.[0],
-              publicationDate: bookData.first_publish_year,
-              coverImage: bookData.covers ?
-                `${this.OPEN_LIBRARY_COVER_ENDPOINT}/b/id/${bookData.covers[0]}-M.jpg` :
-                null,
-              bookmarks: [bookmark]
-            });
-          } else {
-            // Update existing book
-            book.bookmarks.push(bookmark);
-          }
-
-          try {
-            await book.save();
-            return {
-              success: true,
-              bookmark,
-              message: 'Bookmark added successfully'
-            };
-          } catch (error) {
-            throw new Error('Failed to save bookmark: ' + error.message);
-          }
-        })
-      );
-  }
-
-  removeBookmark(bookId: number, userId: string) {
-    return from(this.bookModel.findOneAndUpdate(
-      { id: bookId },
-      { $pull: { bookmarks: { userId } } },
-      { new: true }
-    )).pipe(
-      map(book => ({ success: true }))
+    // Check if the bookmark already exists
+    const bookmarkIndex = book.bookmarks.findIndex(
+      (bookmark) => bookmark.userId === userId,
     );
+
+    if (bookmarkIndex !== -1) {
+      // Bookmark exists, remove it
+      book.bookmarks.splice(bookmarkIndex, 1);
+    } else {
+      // Bookmark doesn't exist, add it
+      book.bookmarks.push({ userId, dateAdded: new Date() });
+    }
+
+    await book.save();
+    return book;
   }
 
-  getUserBookmarks(userId: string) {
-    return from(this.bookModel.find({
-      'bookmarks.userId': userId
-    }));
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} book`;
-  }
-
-  update(id: number, updateBookDto: UpdateBookDto) {
-    return `This action updates a #${id} book`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} book`;
+  private async generateNewBookId(): Promise<number> {
+    // Generate a new unique ID by finding the current max ID and incrementing it
+    const maxBook = await this.bookModel.findOne().sort({ id: -1 }).select('id').exec();
+    const newId = maxBook ? maxBook.id + 1 : 1;
+    return newId;
   }
 }

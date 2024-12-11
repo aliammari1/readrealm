@@ -31,15 +31,16 @@ export class AuthService {
   async register(signupData: SignupDto) {
     const { email, password, username } = signupData;
 
-    const emailInUse = await this.userService.findByEmail(email);
+    const emailInUse = await this.userService.findByEmail(email.toLowerCase());
     if (emailInUse) {
       throw new BadRequestException('Email already in use');
     }
+    
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await this.userService.create({
+    const newUser = await this.userService.addUser({
       username,
-      email,
+      email: email.toLowerCase(),
       password: hashedPassword,
     });
 
@@ -51,7 +52,7 @@ export class AuthService {
   async login(credentiales: loginDto) {
     const { email, password } = credentiales;
 
-    const user = await this.userService.findByEmail(email);
+    const user = await this.userService.findByEmail(email.toLowerCase());
     if (!user) {
       throw new UnauthorizedException('Wrong credentials');
     }
