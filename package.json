@@ -53,6 +53,7 @@
     "reflect-metadata": "^0.2.2",
     "rt-client": "https://github.com/Azure-Samples/aoai-realtime-audio-sdk/releases/download/js/v0.5.0/rt-client-0.5.0.tgz",
     "rxjs": "^7.8.1",
+    "sentiment": "^5.0.2",
     "socket.io": "^4.8.1",
     "uuid": "^10.0.0"
   },

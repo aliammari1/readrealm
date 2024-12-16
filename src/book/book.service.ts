@@ -5,15 +5,15 @@ import { UpdateBookDto } from './dto/update-book.dto';
 import { HttpService } from '@nestjs/axios';
 import { map, mergeMap } from 'rxjs/operators';
 import { Book, BookDocument } from './entities/book.entity';
-import { forkJoin, merge, of, from, firstValueFrom } from 'rxjs';
-import { randomInt } from 'crypto';
-import { HfInference } from '@huggingface/inference';
+import { forkJoin, firstValueFrom } from 'rxjs';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { writeFile } from 'fs/promises';
 import { AzureOpenAI } from 'openai';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { Review } from './entities/review.entity';
+import { CreateReviewDto } from './dto/create-review.dto';
+import * as Sentiment from 'sentiment';
 
 @Injectable()
 export class BookService {
@@ -29,6 +29,7 @@ export class BookService {
 
   constructor(
     @InjectModel(Book.name) private bookModel: Model<BookDocument>,
+    @InjectModel(Review.name) private reviewModel: Model<Review>,
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
   ) {
@@ -118,11 +119,54 @@ export class BookService {
     return book;
   }
 
+  private genreCache = new Map<string, any>();
+  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+  findBooksByGenre(genre: string) {
+    if (genre.toLowerCase() === 'all') {
+      return this.findAllGenres();
+    }
+
+    // Check cache first
+    const cachedData = this.genreCache.get(genre);
+    if (cachedData && (Date.now() - cachedData.timestamp < this.CACHE_DURATION)) {
+      return cachedData.books;
+    }
+
+    // If not in cache or expired, fetch from API
+    const books = this.httpService
+      .get(`${this.OPEN_LIBRARY_API_ENDPOINT}/subjects/${genre}.json?limit=10&details=true`)
+      .pipe(
+        map((response) => {
+          const works = response.data.works;
+          return works.map((work) => ({
+            id: Number(work.key.split('/')[2].replace('OL', '').replace('W', '')),
+            title: work.title,
+            author: work.authors?.[0]?.name || 'Unknown',
+            publicationDate: work.first_publish_year,
+            coverImage: work.cover_id ?
+              `${this.OPEN_LIBRARY_COVER_ENDPOINT}/b/id/${work.cover_id}-M.jpg` : null,
+            genre: genre.charAt(0).toUpperCase() + genre.slice(1),
+          }));
+        }),
+        map((books) => {
+          // Update cache
+          this.genreCache.set(genre, {
+            books,
+            timestamp: Date.now()
+          });
+          return books;
+        })
+      );
+    return books;
+  }
+
   findAllGenres() {
     const actionBooks = this.findBooksByGenre('action');
     const adventureBooks = this.findBooksByGenre('adventure');
     const fantasyBooks = this.findBooksByGenre('fantasy');
-    let books = forkJoin({
+
+    return forkJoin({
       actionBooks,
       adventureBooks,
       fantasyBooks,
@@ -133,41 +177,6 @@ export class BookService {
         ...(booksObj.fantasyBooks as any),
       ]),
     );
-    return books;
-  }
-
-  findBooksByGenre(genre: string) {
-    if (genre.toLowerCase() === 'all') {
-      return this.findAllGenres();
-    }
-    let books = this.httpService
-      .get(`${this.OPEN_LIBRARY_API_ENDPOINT}/subjects/${genre}.json?limit=10`)
-      .pipe(
-        mergeMap((response) => {
-          let works = response.data.works;
-          let bookObservables = works.map((work) => {
-            let titleEncoded = encodeURIComponent(work.title);
-            let searchUrl = `${this.OPEN_LIBRARY_API_ENDPOINT}/search.json?q=${titleEncoded}&fields=*,availability&limit=1&lang=en`;
-            return this.httpService.get(searchUrl).pipe(
-              map((searchResponse) => {
-                let searchResult = searchResponse.data.docs[0];
-                const book = {
-                  id: Number(searchResult.key.split('/')[2].replace('OL', '').replace('W', '')),
-                  title: work.title,
-                  author: searchResult.author_name[0],
-                  publicationDate: searchResult.first_publish_year,
-                  numOfPages: searchResult.number_of_pages_median,
-                  coverImage: `${this.OPEN_LIBRARY_COVER_ENDPOINT}/b/id/${work.cover_id}-M.jpg`,
-                  genre: genre.charAt(0).toUpperCase() + genre.slice(1),
-                };
-                return book;
-              }),
-            );
-          });
-          return forkJoin(bookObservables);
-        }),
-      );
-    return books;
   }
 
   async getBookByTitle(title: string) {
@@ -302,45 +311,169 @@ export class BookService {
     return this.getBookTTS(createBookDto);
   }
 
-  async toggleBookmark(userId: string, createBookDto: CreateBookDto): Promise<Book> {
-    let { id } = createBookDto;
-
-    if (!id || id === 0) {
-      // Generate a new unique ID for the book
-      const newId = await this.generateNewBookId();
-      createBookDto.id = newId;
-      id = newId;
-    }
-
-    let book = await this.bookModel.findOne({ id });
+  private async ensureBookExists(bookId: number): Promise<BookDocument> {
+    let book = await this.bookModel.findOne({ id: bookId }).exec();
 
     if (!book) {
-      // Book does not exist, create it
-      const createdBook = new this.bookModel(createBookDto);
-      book = await createdBook.save();
+      const bookDetailsObs = await this.getBookDetails(bookId);
+      const bookDetails = await firstValueFrom(bookDetailsObs);
+      if (!bookDetails) {
+        throw new NotFoundException(`Book with ID ${bookId} not found in external API`);
+      }
+
+      book = await this.bookModel.create({
+        id: bookId,
+        author: bookDetails.author,
+        title: bookDetails.title,
+        publicationDate: bookDetails.publicationDate,
+        numOfPages: bookDetails.numOfPages,
+        coverImage: bookDetails.coverImage,
+        genre: bookDetails.genre,
+        textData: '',
+        bookmarks: []
+      });
     }
 
-    // Check if the bookmark already exists
-    const bookmarkIndex = book.bookmarks.findIndex(
-      (bookmark) => bookmark.userId === userId,
-    );
-
-    if (bookmarkIndex !== -1) {
-      // Bookmark exists, remove it
-      book.bookmarks.splice(bookmarkIndex, 1);
-    } else {
-      // Bookmark doesn't exist, add it
-      book.bookmarks.push({ userId, dateAdded: new Date() });
-    }
-
-    await book.save();
     return book;
   }
 
-  private async generateNewBookId(): Promise<number> {
-    // Generate a new unique ID by finding the current max ID and incrementing it
-    const maxBook = await this.bookModel.findOne().sort({ id: -1 }).select('id').exec();
-    const newId = maxBook ? maxBook.id + 1 : 1;
-    return newId;
+  async toggleBookmark(bookId: number, userId: string): Promise<BookDocument> {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    const book = await this.ensureBookExists(bookId);
+    const hasBookmark = book.bookmarks.some(b => b.userId === userId);
+
+    if (hasBookmark) {
+      // Remove bookmark
+      return await this.bookModel.findOneAndUpdate(
+        { id: bookId },
+        { $pull: { bookmarks: { userId } } },
+        { new: true }
+      );
+    } else {
+      // Add bookmark
+      return await this.bookModel.findOneAndUpdate(
+        { id: bookId },
+        { $push: { bookmarks: { userId, dateAdded: new Date() } } },
+        { new: true }
+      );
+    }
   }
+
+  async getUserBookmarks(userId: string): Promise<BookDocument[]> {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    return await this.bookModel.find({
+      'bookmarks.userId': userId
+    }).exec();
+  }
+
+  async createReview(createReviewDto: CreateReviewDto) {
+    try {
+      let book = await this.bookModel.findOne({ id: createReviewDto.bookId });
+
+      if (!book) {
+        // Fetch book data from Open Library API using works endpoint
+        const bookData = await firstValueFrom(
+          this.httpService
+            .get(`${this.OPEN_LIBRARY_API_ENDPOINT}/works/OL${createReviewDto.bookId}W.json`)
+            .pipe(map((response) => response.data))
+        ).catch(() => null);
+
+        if (!bookData) {
+          throw new NotFoundException(`Book with ID ${createReviewDto.bookId} not found in Open Library`);
+        }
+
+        // Create new book with proper data mapping
+        const createBookDto = {
+          id: createReviewDto.bookId,
+          title: bookData.title,
+          description: bookData.description?.value || bookData.description || '',
+          authors: bookData.authors?.map(author => author.author?.key?.split('/').pop() || author.name) || [],
+          subjects: bookData.subjects || [],
+          publishDate: bookData.first_publish_date || bookData.publish_date,
+          coverImage: bookData.covers?.[0] ?
+            `${this.OPEN_LIBRARY_COVER_ENDPOINT}/id/${bookData.covers[0]}-L.jpg` : null
+        };
+
+        book = await this.bookModel.create(createBookDto);
+      }
+
+      // Create the review
+      const review = await this.reviewModel.create({
+        ...createReviewDto,
+        createdAt: new Date(),
+      });
+
+      // Update book's review statistics using aggregation
+      const stats = await this.reviewModel.aggregate([
+        { $match: { bookId: createReviewDto.bookId } },
+        {
+          $group: {
+            _id: null,
+            averageRating: { $avg: '$rating' },
+            totalReviews: { $sum: 1 }
+          }
+        }
+      ]).exec();
+
+      const { averageRating, totalReviews } = stats[0] || { averageRating: review.rating, totalReviews: 1 };
+
+      await this.bookModel.updateOne(
+        { id: createReviewDto.bookId },
+        {
+          $push: { reviews: review._id },
+          $set: { averageRating, totalReviews }
+        }
+      );
+
+      return review;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new Error(`Failed to create review: ${error.message}`);
+    }
+  }
+
+  async getBookReviews(bookId: number) {
+    const book = await this.bookModel.findOne({ id: bookId }).populate('reviews');
+    if (!book) {
+      throw new NotFoundException('Book not found');
+    }
+    return book.reviews;
+  }
+
+  async getUserReviews(userId: string): Promise<Review[]> {
+    const reviews = await this.reviewModel
+      .find({ userId })
+      .populate('bookId')
+      .sort({ createdAt: -1 })
+      .exec();
+
+    if (!reviews || reviews.length === 0) {
+      throw new NotFoundException(`No reviews found for user ${userId}`);
+    }
+
+    const updatedReviews = reviews.map((review) => {
+      review.emotion = this.detectEmotion(review.comment);
+      return review;
+    })
+
+    return updatedReviews;
+  }
+
+  detectEmotion(text: string): string {
+    const sentiment = new Sentiment();
+    const result = sentiment.analyze(text);
+    console.log('Sentiment analysis result:', result);
+    if (result.score > 0) return 'positive';
+    if (result.score < 0) return 'negative';
+    return 'neutral';
+  }
+
 }

@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
+import { Review } from './review.entity';
 
 @Schema({ _id: false })
 export class Bookmark {
@@ -42,6 +43,15 @@ export class Book {
 
   @Prop({ type: [Bookmark], default: [] })
   bookmarks: Bookmark[];
+
+  @Prop({ type: [{ type: 'ObjectId', ref: 'Review' }], default: [] })
+  reviews: Review[];
+
+  @Prop({ type: Number, default: 0 })
+  averageRating: number;
+
+  @Prop({ type: Number, default: 0 })
+  totalReviews: number;
 }
 
 export type BookDocument = HydratedDocument<Book>;

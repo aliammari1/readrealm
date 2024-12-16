@@ -9,11 +9,14 @@ import {
   Query,
   Res,
   Put,
+  BadRequestException,
 } from '@nestjs/common';
 import { BookService } from './book.service';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
 import { Response } from 'express';
+import { ToggleBookmarkDto } from './dto/toggle-bookmark.dto';
+import { CreateReviewDto } from './dto/create-review.dto';
 
 @Controller('book')
 export class BookController {
@@ -91,11 +94,20 @@ export class BookController {
     }
   }
 
-  @Put('bookmark')
+  @Post(':id/toggle-bookmark')
   async toggleBookmark(
+    @Param('id') id: string,
+    @Body() toggleBookmarkDto: ToggleBookmarkDto,
+  ) {
+    return await this.bookService.toggleBookmark(parseInt(id, 10), toggleBookmarkDto.userId);
+  }
+
+  @Put('bookmark')
+  async toggleBookmarkOld(
     @Body() data: { userId: string; book: CreateBookDto },
   ) {
-    return await this.bookService.toggleBookmark(data.userId, data.book);
+    const newBook = await this.bookService.create(data.book);
+    return await this.bookService.toggleBookmark(newBook.id, data.userId);
   }
 
   @Get('genre/:genre')
@@ -116,5 +128,36 @@ export class BookController {
   @Delete(':id')
   async remove(@Param('id') id: number) {
     return await this.bookService.remove(id);
+  }
+
+  @Get('bookmarks/:userId')
+  async getUserBookmarks(@Param('userId') userId: string) {
+    return await this.bookService.getUserBookmarks(userId);
+  }
+
+  @Post('reviews/:id')
+  createReview(
+    @Param('id') bookId: number,
+    @Body() createReviewDto: CreateReviewDto,
+  ) {
+    if (!bookId || isNaN(bookId)) {
+      throw new BadRequestException('Invalid book ID');
+    }
+    createReviewDto.bookId = bookId;
+    return this.bookService.createReview(createReviewDto);
+  }
+
+  @Get('reviews/:id')
+  getBookReviews(@Param('id') bookId: number) {
+    return this.bookService.getBookReviews(bookId);
+  }
+
+
+  @Get('user-reviews/:userId')
+  getUserReviews(@Param('userId') userId: string) {
+    if (!userId) {
+      throw new BadRequestException('Invalid user ID');
+    }
+    return this.bookService.getUserReviews(userId);
   }
 }

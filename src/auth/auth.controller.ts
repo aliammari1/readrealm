@@ -11,7 +11,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SignupDto } from './dto/signupDto';
+import { SignupDto } from './dto/signUpDto';
 import { AuthGaurd } from 'src/guards/authentification.guards';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { loginDto } from './dto/loginDto';
@@ -21,7 +21,7 @@ import { VerifyEmailDto } from './dto/verify-email.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('signup')
+  @Post('register')
   // @UseGuards(RoleGaurd)
   // @Roles(Role.Admin)
   async register(@Body() credentials: SignupDto) {
