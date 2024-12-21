@@ -17,7 +17,9 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import tn.esprit.libraryapp.screens.EPubReaderScreen
 import tn.esprit.libraryapp.screens.SpeechScreen
+import tn.esprit.libraryapp.services.TokenManagerProvider
 import tn.esprit.libraryapp.ui.theme.LibraryAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -37,19 +39,37 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             LibraryAppTheme {
-//                SpeechScreen()
                 val navController = rememberNavController()
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
+                TokenManagerProvider.initialize(this)
+
+                val authRoutes = listOf(
+                    NavigationItem.Login.route,
+                    NavigationItem.Register.route,
+                    NavigationItem.ForgotPassword.route,
+                    NavigationItem.OTP.route,
+                    NavigationItem.ResetPassword.route
+                )
+
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
-                    bottomBar = { BottomNavigationBar(navController) }
+                    bottomBar = {
+                        if (currentRoute !in authRoutes) {
+                            BottomNavigationBar(navController)
+                        }
+                    }
                 ) { innerPadding ->
                     AppNavHost(
                         modifier = Modifier.padding(innerPadding),
                         navController = navController,
-                        startDestination = NavigationItem.Home.route
+                        startDestination = NavigationItem.Login.route
                     )
                 }
             }
+//            LibraryAppTheme {
+//                EPubReaderScreen(epubUrl = "https://www.gutenberg.org/ebooks/1777.epub3.images")
+//            }
         }
     }
 }
@@ -58,8 +78,8 @@ class MainActivity : ComponentActivity() {
 fun BottomNavigationBar(navController: androidx.navigation.NavHostController) {
     val items = listOf(
         NavigationItem.Home,
-        NavigationItem.Login,
-        NavigationItem.Register
+        NavigationItem.Bookmarks,
+        NavigationItem.Speech
     )
     NavigationBar {
         val navBackStackEntry by navController.currentBackStackEntryAsState()

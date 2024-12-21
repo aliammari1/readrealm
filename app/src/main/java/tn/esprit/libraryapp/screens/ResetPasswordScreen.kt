@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import tn.esprit.libraryapp.NavigationItem
 import tn.esprit.libraryapp.R
@@ -27,9 +28,9 @@ import tn.esprit.libraryapp.viewModel.AuthViewModel
 fun ResetPasswordScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController,
-    viewModel: AuthViewModel = AuthViewModel(),
     email: String
 ) {
+    val viewModel: AuthViewModel = viewModel()
     var passwordState by remember { mutableStateOf("") }
     var confirmPasswordState by remember { mutableStateOf("") }
     val forgotPasswordResult by viewModel.forgotPasswordResult.observeAsState()

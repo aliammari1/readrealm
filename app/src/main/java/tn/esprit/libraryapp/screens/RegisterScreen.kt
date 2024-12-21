@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import tn.esprit.libraryapp.NavigationItem
 import tn.esprit.libraryapp.R
@@ -36,8 +37,8 @@ import tn.esprit.libraryapp.viewModel.AuthViewModel
 fun RegisterScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController,
-    viewModel: AuthViewModel = AuthViewModel()
 ) {
+    val viewModel: AuthViewModel = viewModel()
     var nameState by remember { mutableStateOf("") }
     var emailState by remember { mutableStateOf("") }
     var passwordState by remember { mutableStateOf("") }

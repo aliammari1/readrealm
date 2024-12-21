@@ -39,6 +39,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import tn.esprit.libraryapp.models.VerifyEmailRequest
 import tn.esprit.libraryapp.viewModel.AuthViewModel
@@ -47,9 +48,9 @@ import tn.esprit.libraryapp.viewModel.AuthViewModel
 @Composable
 fun OtpScreen(
     navController: NavHostController,
-    viewModel: AuthViewModel = AuthViewModel(),
     email: String
 ) {
+    val viewModel: AuthViewModel = viewModel()
     val verificationCode = remember { mutableStateListOf<String>().apply { repeat(6) { add("") } } }
     val verifyEmailResult by viewModel.verifyEmailResult.observeAsState()
     val sheetState = rememberModalBottomSheetState()
@@ -163,7 +164,7 @@ fun OtpScreen(
             onDismissRequest = { isSheetOpen = false }
         ) {
             ResetPasswordScreen(
-                navController = navController, viewModel = viewModel,
+                navController = navController,
                 email = email
             )
         }

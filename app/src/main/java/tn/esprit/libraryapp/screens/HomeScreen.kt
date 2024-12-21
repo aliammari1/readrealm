@@ -1,5 +1,7 @@
 package tn.esprit.libraryapp.screens
 
+import android.net.Uri
+import android.util.Log
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -33,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.palette.graphics.Palette
 import coil3.BitmapImage
@@ -41,19 +44,18 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.request.crossfade
+import com.google.gson.Gson
 import tn.esprit.libraryapp.enums.Genre
 import tn.esprit.libraryapp.models.Book
 import tn.esprit.libraryapp.viewModel.BookViewModel
-import android.net.Uri
-import com.google.gson.Gson
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController,
-    viewModel: BookViewModel = BookViewModel()
 ) {
+    val viewModel: BookViewModel = viewModel()
     val books by viewModel.books.observeAsState(emptyList())
     val searchResults by viewModel.searchResults.observeAsState(emptyList())
     val isLoading by viewModel.isLoading.observeAsState(true)
@@ -150,7 +152,12 @@ fun HomeScreen(
                             item {
                                 BookRow(
                                     genre = genre,
-                                    books = books.filter { it.genre.equals(genre.value, ignoreCase = true) },
+                                    books = books.filter {
+                                        it.genre.equals(
+                                            genre.value,
+                                            ignoreCase = true
+                                        )
+                                    },
                                     navController = navController
                                 )
                             }
@@ -159,7 +166,12 @@ fun HomeScreen(
                     item {
                         BookRow(
                             genre = selectedGenre,
-                            books = books.filter { it.genre.equals(selectedGenre.value, ignoreCase = true) },
+                            books = books.filter {
+                                it.genre.equals(
+                                    selectedGenre.value,
+                                    ignoreCase = true
+                                )
+                            },
                             navController = navController
                         )
                     }
@@ -404,9 +416,11 @@ fun BookCard(
             .clickable {
                 try {
                     val bookJson = Uri.encode(Gson().toJson(book))
-                    navController.navigate("book_details/${book.id}/$bookJson")
+                    Log.d("BookCard", "Book JSON: $book")
+                    val isBookmarked: Boolean = book.bookmarks?.isNotEmpty() == true
+                    Log.d("BookCard", "Is Bookmarked: $isBookmarked")
+                    navController.navigate("book_details/${book.id}/$bookJson?isBookmarked=$isBookmarked")
                 } catch (e: Exception) {
-                    // Handle navigation error
                     e.printStackTrace()
                 }
             },

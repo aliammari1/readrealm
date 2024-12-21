@@ -2,10 +2,23 @@
 accompanistSystemuicontroller = "0.32.0"
 activityComposeVersion = "1.4.0"
 agp = "8.7.3"
+androidPdfViewer = "3.2.0-beta.1"
+bookReader = "1.0.0"
 coilCompose = "3.0.3"
 composeVersion = "1.0.0-beta01"
 converterGson = "2.9.0"
+datastorePreferences = "1.1.1"
+epublibAndroid = "1.0"
+epublibCore = "4.0"
 exoplayer = "2.19.1"
+folioreader = "1.0.0"
+folioreaderVersion = "0.5.4"
+html2pdf = "4.0.5"
+itext7Core = "7.2.3"
+itext7CoreVersion = "7.2.5"
+itextpdf = "5.5.13.3"
+jsoup = "1.14.3"
+jsoupVersion = "1.15.3"
 kotlin = "2.0.0"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -25,14 +38,23 @@ media3ExoplayerVersion = "1.5.0"
 navigationCompose = "2.8.4"
 navigationComposeVersion = "2.6.0"
 paletteKtx = "1.0.0"
+readiumLcp = "3.0.2"
+readiumNavigator = "3.0.2"
+readiumOpds = "3.0.2"
+readiumShared = "3.0.2"
+readiumStreamer = "3.0.2"
 retrofit = "2.9.0"
+roomRuntime = "2.6.1"
 runtimeLivedata = "1.7.5"
 socketIoClient = "2.0.0"
 
 [libraries]
 accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
+android-pdf-viewer = { module = "com.github.barteksc:android-pdf-viewer", version.ref = "androidPdfViewer" }
 androidx-activity-compose-v140 = { module = "androidx.activity:activity-compose", version.ref = "activityComposeVersion" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-datastore-core = { module = "androidx.datastore:datastore-core", version.ref = "datastorePreferences" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleRuntimeKtx" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-media3-exoplayer-dash = { module = "androidx.media3:media3-exoplayer-dash", version.ref = "media3ExoplayerDash" }
@@ -42,12 +64,26 @@ androidx-navigation-compose = { module = "androidx.navigation:navigation-compose
 androidx-navigation-compose-material = { module = "androidx.navigation:navigation-compose-material", version.ref = "navigationComposeVersion" }
 androidx-navigation-compose-v260 = { module = "androidx.navigation:navigation-compose", version.ref = "navigationComposeVersion" }
 androidx-palette-ktx = { module = "androidx.palette:palette-ktx", version.ref = "paletteKtx" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomRuntime" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }
 androidx-runtime-livedata = { module = "androidx.compose.runtime:runtime-livedata", version.ref = "runtimeLivedata" }
+book-reader = { module = "com.github.mcsong:book-reader", version.ref = "bookReader" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coilCompose" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
+epublib-android = { module = "com.github.marbat87:epublib-android", version.ref = "epublibAndroid" }
+epublib-core = { module = "com.github.mikes-lab:epublib-core", version.ref = "epublibCore" }
 exoplayer = { module = "com.google.android.exoplayer:exoplayer", version.ref = "exoplayer" }
+folioreader = { module = "com.folioreader:folioreader", version.ref = "folioreader" }
+folioreader-v054 = { module = "com.folioreader:folioreader", version.ref = "folioreaderVersion" }
 glide-compose = { module = "com.github.bumptech.glide:compose", version.ref = "composeVersion" }
+html2pdf = { module = "com.itextpdf:html2pdf", version.ref = "html2pdf" }
+itext7-core = { module = "com.itextpdf:itext7-core", version.ref = "itext7Core" }
+itext7-core-v725 = { module = "com.itextpdf:itext7-core", version.ref = "itext7CoreVersion" }
+itextpdf = { module = "com.itextpdf:itextpdf", version.ref = "itextpdf" }
+jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
+jsoup-v1153 = { module = "org.jsoup:jsoup", version.ref = "jsoupVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
@@ -66,6 +102,11 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "loggingInterceptor" }
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
 media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "media3ExoplayerVersion" }
+readium-lcp = { module = "org.readium.kotlin-toolkit:readium-lcp", version.ref = "readiumLcp" }
+readium-navigator = { module = "org.readium.kotlin-toolkit:readium-navigator", version.ref = "readiumNavigator" }
+readium-opds = { module = "org.readium.kotlin-toolkit:readium-opds", version.ref = "readiumOpds" }
+readium-shared = { module = "org.readium.kotlin-toolkit:readium-shared", version.ref = "readiumShared" }
+readium-streamer = { module = "org.readium.kotlin-toolkit:readium-streamer", version.ref = "readiumStreamer" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 socket-io-client = { module = "io.socket:socket.io-client", version.ref = "socketIoClient" }
 

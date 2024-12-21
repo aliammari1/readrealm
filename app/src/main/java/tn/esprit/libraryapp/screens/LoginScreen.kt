@@ -1,6 +1,5 @@
 package tn.esprit.libraryapp.screens
 
-import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -14,11 +13,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.*
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import tn.esprit.libraryapp.NavigationItem
 import tn.esprit.libraryapp.R
@@ -32,8 +31,8 @@ import tn.esprit.libraryapp.viewModel.AuthViewModel
 fun LoginScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController,
-    viewModel: AuthViewModel = AuthViewModel()
 ) {
+    val viewModel: AuthViewModel = viewModel()
     var emailState by remember { mutableStateOf("") }
     var passwordState by remember { mutableStateOf("") }
     var isChecked by remember { mutableStateOf(false) }
@@ -53,17 +52,14 @@ fun LoginScreen(
                 painter = painterResource(R.drawable.login),
                 contentDescription = null,
                 contentScale = ContentScale.FillHeight,
-                modifier = Modifier
+                modifier =
+                Modifier
                     .fillMaxWidth()
                     .height(200.dp) // Adjust the height if necessary
             )
 
             Spacer(modifier = Modifier.height(1.dp))
-            Text(
-                text = "Login",
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 30.sp
-            )
+            Text(text = "Login", fontWeight = FontWeight.SemiBold, fontSize = 30.sp)
         }
 
         // Email and Password fields
@@ -94,10 +90,7 @@ fun LoginScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Checkbox(
-                    checked = isChecked,
-                    onCheckedChange = { isChecked = it }
-                )
+                Checkbox(checked = isChecked, onCheckedChange = { isChecked = it })
                 Text(
                     text = "Remember",
                     fontSize = 16.sp,
@@ -115,14 +108,7 @@ fun LoginScreen(
 
         // Login Button
         Button(
-            onClick = {
-                viewModel.login(
-                    LoginRequest(
-                        emailState,
-                        passwordState
-                    )
-                )
-            },
+            onClick = { viewModel.login(LoginRequest(emailState, passwordState)) },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
@@ -132,12 +118,15 @@ fun LoginScreen(
             )
         }
 
-        loginResult?.let {
-            if (it.isSuccess) {
-                Toast.makeText(LocalContext.current, "Login successful", Toast.LENGTH_SHORT).show()
-                navController.navigate(NavigationItem.Home.route)
-            } else {
-                Toast.makeText(LocalContext.current, "Login failed", Toast.LENGTH_SHORT).show()
+        LaunchedEffect(loginResult) {
+            loginResult?.let {
+                if (it.isSuccess) {
+                    navController.navigate(NavigationItem.Home.route) {
+                        popUpTo(NavigationItem.Login.route) {
+                            inclusive = true
+                        }
+                    }
+                }
             }
         }
 
@@ -145,7 +134,8 @@ fun LoginScreen(
         Text(
             text = "or, login with ... ",
             fontSize = 14.sp,
-            modifier = Modifier
+            modifier =
+            Modifier
                 .align(Alignment.CenterHorizontally)
                 .alpha(0.5f)
                 .padding(bottom = 1.dp) // Adjust padding below the text
@@ -174,7 +164,12 @@ fun LoginScreen(
                 text = "Register",
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.clickable { navController.navigate(NavigationItem.Register.route) }
+                modifier =
+                Modifier.clickable {
+                    navController.navigate(
+                        NavigationItem.Register.route
+                    )
+                }
             )
         }
 
@@ -182,12 +177,7 @@ fun LoginScreen(
             ModalBottomSheet(
                 sheetState = sheetState,
                 onDismissRequest = { isSheetOpen = false }
-            ) {
-                ForgotScreen(
-                    navController = navController,
-                    viewModel = viewModel
-                )
-            }
+            ) { ForgotScreen(navController = navController) }
         }
     }
 }

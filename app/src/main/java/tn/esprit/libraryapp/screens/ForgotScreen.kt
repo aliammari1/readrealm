@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import tn.esprit.libraryapp.NavigationItem
 import tn.esprit.libraryapp.models.GenerateEmailRequest
@@ -47,8 +48,8 @@ import tn.esprit.libraryapp.viewModel.AuthViewModel
 fun ForgotScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController,
-    viewModel: AuthViewModel = AuthViewModel()
 ) {
+    val viewModel: AuthViewModel = viewModel()
     val email = remember { mutableStateOf("") }
     val sheetState = rememberModalBottomSheetState()
     var isSheetopen by rememberSaveable {
@@ -169,7 +170,6 @@ fun ForgotScreen(
             ) {
                 OtpScreen(
                     navController = navController,
-                    viewModel = viewModel,
                     email = email.value
                 )
             }

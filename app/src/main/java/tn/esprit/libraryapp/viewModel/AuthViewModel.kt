@@ -16,14 +16,13 @@ import tn.esprit.libraryapp.models.LoginRequest
 import tn.esprit.libraryapp.models.LoginResponse
 import tn.esprit.libraryapp.models.RegisterRequest
 import tn.esprit.libraryapp.models.RegisterResponse
-import tn.esprit.libraryapp.models.User
 import tn.esprit.libraryapp.models.VerifyEmailRequest
 import tn.esprit.libraryapp.models.VerifyEmailResponse
 import tn.esprit.libraryapp.repository.UserRepository
+import tn.esprit.libraryapp.services.TokenManagerProvider
 
-class AuthViewModel : ViewModel() {
+class AuthViewModel() : ViewModel() {
     private val repository = UserRepository()
-    private val _users = MutableLiveData<List<User>>()
     private val _loginResult = MutableLiveData<Result<LoginResponse>>()
     private val _registerResult = MutableLiveData<Result<RegisterResponse>>()
     private val _changePasswordResult = MutableLiveData<Result<ChangePasswordResponse>>()
@@ -37,30 +36,36 @@ class AuthViewModel : ViewModel() {
     val verifyEmailResult: LiveData<Result<VerifyEmailResponse>> = _verifyEmailResult
     val forgotPasswordResult: LiveData<Result<ForgotPasswordResponse>> = _forgotPasswordResult
     val generateEmailResult: LiveData<Result<GenerateEmailResponse>> = _generateEmailResult
-    val users: LiveData<List<User>> = _users
-
-    fun fetchUsers() {
-        viewModelScope.launch {
-            try {
-                val cards = repository.getUsers()
-                _users.value = cards
-            } catch (e: Exception) {
-            }
-        }
-    }
 
     fun login(loginRequest: LoginRequest) {
         viewModelScope.launch {
             try {
                 val response = repository.login(loginRequest)
                 if (response.isSuccessful) {
-                    _loginResult.value = Result.success(response.body()!!)
+                    val loginResponse: LoginResponse = response.body()!!
+                    TokenManagerProvider.getInstance()
+                        .saveTokens(
+                            loginResponse.accessToken,
+                            loginResponse.refreshToken,
+                            loginResponse.userId
+                        )
+                    _loginResult.value = Result.success(loginResponse)
                 } else {
-                    _loginResult.value = Result.failure(Exception("Login failed"))
+                    _loginResult.postValue(Result.failure(Exception("Login failed")))
                 }
             } catch (e: Exception) {
-                _loginResult.value = Result.failure(e)
+                _loginResult.postValue(Result.failure(e))
                 Log.e("AuthViewModel", "Error logging in " + e.message, e)
+            }
+        }
+    }
+
+    fun logout() {
+        viewModelScope.launch {
+            try {
+                TokenManagerProvider.getInstance().clearTokens()
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Error logging out", e)
             }
         }
     }

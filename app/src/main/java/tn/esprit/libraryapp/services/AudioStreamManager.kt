@@ -58,7 +58,7 @@ class AudioStreamManager(private val context: Context) {
             release()
         }
         mediaPlayer = null
-        
+
         // Clean up temporary file
         currentFile?.delete()
         currentFile = null

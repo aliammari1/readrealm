@@ -2,11 +2,13 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.devtools.ksp")
 }
 
 android {
     namespace = "tn.esprit.libraryapp"
     compileSdk = 35
+
 
     defaultConfig {
         applicationId = "tn.esprit.libraryapp"
@@ -40,6 +42,13 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.itextpdf)
+    implementation(libs.jsoup)
+    implementation(libs.androidx.datastore.core)
+    implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.media3.exoplayer.v111)
     implementation(libs.androidx.material.icons.extended)

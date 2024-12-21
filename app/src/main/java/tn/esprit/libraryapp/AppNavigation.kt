@@ -16,6 +16,10 @@ class AppNavigation {
             Screen.RESET_PASSWORD -> navController.navigate(NavigationItem.ResetPassword.route)
             Screen.BOOK_DETAILS -> navController.navigate(NavigationItem.BookDetails.route)
             Screen.EBOOK -> navController.navigate(NavigationItem.Ebook.route)
+            Screen.SPEECH -> navController.navigate(NavigationItem.Speech.route)
+            Screen.BOOKMARKS -> navController.navigate(NavigationItem.Bookmarks.route)
+            Screen.READ_BOOK -> navController.navigate(NavigationItem.ReadBook.route)
+            Screen.PROFILE -> navController.navigate(NavigationItem.Profile.route)
         }
     }
 }
@@ -28,7 +32,11 @@ enum class Screen {
     HOME,
     RESET_PASSWORD,
     BOOK_DETAILS,
-    EBOOK
+    EBOOK,
+    SPEECH,
+    BOOKMARKS,
+    READ_BOOK,
+    PROFILE,
 }
 
 sealed class NavigationItem(val route: String, val icon: ImageVector, val title: String) {
@@ -40,4 +48,8 @@ sealed class NavigationItem(val route: String, val icon: ImageVector, val title:
     object ResetPassword : NavigationItem("reset_password", Icons.Filled.Refresh, "Reset Password")
     object BookDetails : NavigationItem("book_details", Icons.Filled.Info, "Book Details")
     object Ebook : NavigationItem("ebook", Icons.Filled.MailOutline, "Ebook")
+    object Speech : NavigationItem("speech", Icons.Filled.Mic, "Speech")
+    object Bookmarks : NavigationItem("bookmarks", Icons.Filled.Bookmark, "Bookmarks")
+    object ReadBook : NavigationItem("read_book", Icons.Filled.Book, "Read Book")
+    object Profile : NavigationItem("profile", Icons.Filled.Person, "Profile")
 }

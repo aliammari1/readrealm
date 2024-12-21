@@ -1,4 +1,3 @@
-// SpeechRealtimeViewModel.kt
 package tn.esprit.libraryapp.viewModel
 
 import android.annotation.SuppressLint
@@ -69,7 +68,7 @@ class SpeechViewModel : ViewModel() {
                 reconnection = true
                 forceNew = true
             }
-            mSocket = IO.socket("http://10.0.2.2:3000", options)
+            mSocket = IO.socket("http://192.168.98.105:3000", options)
             mSocket?.apply {
                 connect()
 
@@ -185,6 +184,9 @@ class SpeechViewModel : ViewModel() {
     fun startRecording(systemMessage: String, temperature: Float) {
         if (isRecording.value) return
 
+        // Set isRecording to true immediately
+        isRecording.value = true
+
         // Clear transcript when starting new session
         transcript.value = ""
 
@@ -193,9 +195,9 @@ class SpeechViewModel : ViewModel() {
             put("temperature", temperature)
         })
 
+        // Remove isRecording assignment from here
         mSocket?.once("sessionStatus") { args ->
             if (args.isNotEmpty() && (args[0] as JSONObject).optBoolean("active", false)) {
-                isRecording.value = true
                 coroutineScope.launch(Dispatchers.IO) {
                     try {
                         audioRecord.startRecording()
@@ -225,6 +227,9 @@ class SpeechViewModel : ViewModel() {
                         audioRecord.stop()
                     }
                 }
+            } else {
+                // Handle inactive session
+                isRecording.value = false
             }
         }
     }
