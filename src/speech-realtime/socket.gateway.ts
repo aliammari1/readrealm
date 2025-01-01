@@ -26,7 +26,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // 1. 'start': Initiates a new session
   // 2. 'sendAudio': Processes incoming audio chunks
   // 3. 'stop': Ends the session
-  
+
   // Events emitted:
   // 1. 'connectionStatus': Connection established
   // 2. 'sessionStatus': Session state
@@ -40,10 +40,13 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private logger = new Logger('WebSocket');
 
-  private activeSessions = new Map<string, {
-    isActive: boolean;
-    lastActivity: number;
-  }>();
+  private activeSessions = new Map<
+    string,
+    {
+      isActive: boolean;
+      lastActivity: number;
+    }
+  >();
 
   constructor(
     @Inject(forwardRef(() => SpeechRealtimeService))
@@ -54,7 +57,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.logger.log(`Client connected: ${socket.id}`);
     this.activeSessions.set(socket.id, {
       isActive: false,
-      lastActivity: Date.now()
+      lastActivity: Date.now(),
     });
     socket.emit('connectionStatus', { connected: true });
   }
@@ -74,7 +77,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     try {
       this.logger.log(`Received start request with data:`, data);
-      
+
       // Clear any existing session
       if (this.activeSessions.get(socket.id)?.isActive) {
         await this.speechRealtimeService.stopRealtime(socket.id);
@@ -87,7 +90,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       this.activeSessions.set(socket.id, {
         isActive: true,
-        lastActivity: Date.now()
+        lastActivity: Date.now(),
       });
 
       this.logger.log(`Starting session for client ${socket.id}`);
@@ -98,12 +101,11 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
 
       socket.emit('sessionStatus', { active: true });
-
     } catch (error) {
       this.logger.error(`Start session error: ${error.message}`);
       this.activeSessions.set(socket.id, {
         isActive: false,
-        lastActivity: Date.now()
+        lastActivity: Date.now(),
       });
       socket.emit('error', error.message);
     }
@@ -131,7 +133,6 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
         audioBuffer,
         socket.id,
       );
-
     } catch (error) {
       this.logger.error(`Audio processing error: ${error.message}`);
       socket.emit('error', error.message);
@@ -157,10 +158,9 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       this.logger.log(`Stopping session for client ${socket.id}`);
       await this.speechRealtimeService.stopRealtime(socket.id);
-      
+
       session.isActive = false;
       socket.emit('sessionStatus', { active: false });
-
     } catch (error) {
       this.logger.error(`Stop session error: ${error.message}`);
       socket.emit('error', error.message);

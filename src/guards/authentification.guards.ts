@@ -11,7 +11,7 @@ import { Request } from 'express';
 
 @Injectable()
 export class AuthGaurd implements CanActivate {
-  constructor(private jwtService: JwtService) { }
+  constructor(private jwtService: JwtService) {}
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {

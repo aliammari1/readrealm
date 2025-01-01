@@ -26,22 +26,22 @@ export class AuthService {
     private readonly verificationService: VerificationService,
     @InjectModel('RefreshToken')
     private readonly refreshTokenModel: Model<RefreshToken>, // Inject Mongoose model
-  ) { }
+  ) {}
 
   async register(signupData: SignupDto) {
-    const { email, password, username } = signupData;
+    const { email, password, username, profilePicture } = signupData;
 
     const emailInUse = await this.userService.findByEmail(email.toLowerCase());
     if (emailInUse) {
       throw new BadRequestException('Email already in use');
     }
-    
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await this.userService.addUser({
+    await this.userService.addUser({
       username,
       email: email.toLowerCase(),
       password: hashedPassword,
+      profilePicture: profilePicture, // Add this line
     });
 
     return {

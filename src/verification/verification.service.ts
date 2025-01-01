@@ -16,7 +16,7 @@ export class VerificationService {
     @InjectModel(Verification.name)
     private VerificationModel: Model<Verification>,
     private readonly userService: UserService,
-  ) { }
+  ) {}
 
   async generateOtp(userId: number, size = 6): Promise<string> {
     const now = new Date();

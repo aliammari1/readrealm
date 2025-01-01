@@ -160,8 +160,12 @@ export class SpeechRealtimeService {
 
         switch (message.type) {
           case 'session.created':
-            this.socketGateway.server.to(socketId).emit('state', InputState.ReadyToStop);
-            this.socketGateway.server.to(socketId).emit('transcript', '<< Session Started >>\n');
+            this.socketGateway.server
+              .to(socketId)
+              .emit('state', InputState.ReadyToStop);
+            this.socketGateway.server
+              .to(socketId)
+              .emit('transcript', '<< Session Started >>\n');
             break;
 
           case 'response.audio.delta':
@@ -171,23 +175,31 @@ export class SpeechRealtimeService {
               this.audioResponseBuffer.set(socketId, buffer);
 
               // Send accumulated audio chunks
-              this.socketGateway.server.to(socketId).emit('audio', message.delta);
+              this.socketGateway.server
+                .to(socketId)
+                .emit('audio', message.delta);
             } catch (error) {
               console.error('Error handling audio delta:', error);
             }
             break;
 
           case 'input_audio_buffer.speech_started':
-            this.socketGateway.server.to(socketId).emit('transcript', '<< Speech Started >>\n');
+            this.socketGateway.server
+              .to(socketId)
+              .emit('transcript', '<< Speech Started >>\n');
             this.socketGateway.server.to(socketId).emit('audio', 'clear');
             break;
 
           case 'response.audio_transcript.delta':
-            this.socketGateway.server.to(socketId).emit('transcript', message.delta);
+            this.socketGateway.server
+              .to(socketId)
+              .emit('transcript', message.delta);
             break;
 
           case 'conversation.item.input_audio_transcription.completed':
-            this.socketGateway.server.to(socketId).emit('transcript', `User: ${message.transcript}\n`);
+            this.socketGateway.server
+              .to(socketId)
+              .emit('transcript', `User: ${message.transcript}\n`);
             break;
 
           case 'response.done':
@@ -225,14 +237,14 @@ export class SpeechRealtimeService {
         ffmpeg()
           .input(tempPcmPath)
           .inputOptions([
-            '-f s16le',        // Input format: signed 16-bit little-endian
-            '-ar 24000',       // Sample rate: 24kHz
-            '-ac 1'           // Channels: mono
+            '-f s16le', // Input format: signed 16-bit little-endian
+            '-ar 24000', // Sample rate: 24kHz
+            '-ac 1', // Channels: mono
           ])
           .toFormat('mp3')
           .outputOptions([
             '-acodec libmp3lame',
-            '-ab 128k'        // Bitrate: 128kbps
+            '-ab 128k', // Bitrate: 128kbps
           ])
           .on('start', (command) => {
             // // console.log('FFmpeg process started:', command);
@@ -242,7 +254,9 @@ export class SpeechRealtimeService {
             // Clean up temporary PCM file
             unlink(tempPcmPath)
               .then(() => resolve(true))
-              .catch(err => console.error('Error cleaning up temp file:', err));
+              .catch((err) =>
+                console.error('Error cleaning up temp file:', err),
+              );
           })
           .on('error', (err) => {
             console.error('Error converting to MP3:', err);

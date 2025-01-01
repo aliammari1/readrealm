@@ -17,10 +17,18 @@ import { UpdateBookDto } from './dto/update-book.dto';
 import { Response } from 'express';
 import { ToggleBookmarkDto } from './dto/toggle-bookmark.dto';
 import { CreateReviewDto } from './dto/create-review.dto';
+import { TTSService } from './tts.service';
+import { ReviewService } from './review.service';
+import { BookmarkService } from './bookmark.service';
 
 @Controller('book')
 export class BookController {
-  constructor(private readonly bookService: BookService) { }
+  constructor(
+    private readonly bookService: BookService,
+    private readonly ttsService: TTSService,
+    private readonly reviewService: ReviewService,
+    private readonly bookmarkService: BookmarkService,
+  ) {}
 
   @Post()
   async create(@Body() createBookDto: CreateBookDto) {
@@ -33,13 +41,13 @@ export class BookController {
   }
 
   @Get('search')
-  searchBooks(@Query('query') query: string) {
+  searchBooks(@Query('q') query: string) {
     return this.bookService.searchBooks(query);
   }
 
   @Get('details/:id')
-  getBookDetails(@Param('id') id: number) {
-    return this.bookService.getBookDetails(id);
+  async getBookDetails(@Param('id') id: number) {
+    return await this.bookService.getBookDetails(id);
   }
 
   @Get('summary/:title')
@@ -51,17 +59,17 @@ export class BookController {
   @Post('ebook')
   async getEbook(@Body() createBookDto: CreateBookDto) {
     if (createBookDto.textData == '') createBookDto = new CreateBookDto();
-    const response = await this.bookService.getBookTTS(createBookDto);
+    const response = await this.ttsService.getBookTTS(createBookDto);
     return response;
   }
 
   @Get('tts/stream/:title')
   async streamBookTTSByTitle(
     @Param('title') title: string,
-    @Res() response: Response
+    @Res() response: Response,
   ) {
     try {
-      const audioStream = await this.bookService.getBookTTSByTitle(title);
+      const audioStream = await this.ttsService.getBookTTSByTitle(title);
 
       if (!audioStream) {
         throw new Error('Failed to generate audio stream');
@@ -88,31 +96,60 @@ export class BookController {
       console.error('Streaming error:', error);
       if (!response.headersSent) {
         response.status(error.status || 500).json({
-          error: error.message || 'An unexpected error occurred'
+          error: error.message || 'An unexpected error occurred',
         });
       }
     }
   }
 
-  @Post(':id/toggle-bookmark')
-  async toggleBookmark(
-    @Param('id') id: string,
-    @Body() toggleBookmarkDto: ToggleBookmarkDto,
-  ) {
-    return await this.bookService.toggleBookmark(parseInt(id, 10), toggleBookmarkDto.userId);
-  }
-
   @Put('bookmark')
-  async toggleBookmarkOld(
-    @Body() data: { userId: string; book: CreateBookDto },
+  async toggleBookmark(
+    @Body() toggleBookmarkDto: { userId: string; book: CreateBookDto },
   ) {
-    const newBook = await this.bookService.create(data.book);
-    return await this.bookService.toggleBookmark(newBook.id, data.userId);
+    try {
+      const book = await this.bookService.findOne(toggleBookmarkDto.book.id);
+      if (book) {
+        return await this.bookmarkService.toggleBookmark(
+          toggleBookmarkDto.book.id,
+          toggleBookmarkDto.userId,
+        );
+      }
+
+      const newBook = await this.bookService.create(toggleBookmarkDto.book);
+      return await this.bookmarkService.toggleBookmark(
+        newBook.id,
+        toggleBookmarkDto.userId,
+      );
+    } catch (error) {
+      throw new BadRequestException(error.message || 'Failed to toggle bookmark');
+    }
   }
 
   @Get('genre/:genre')
-  findBooksByGenre(@Param('genre') genre: string) {
-    return this.bookService.findBooksByGenre(genre);
+  async findBooksByGenre(
+    @Param('genre') genre: string,
+    @Query('offset') offset = '0',
+    @Query('limit') limit = '10',
+    @Res() res: Response
+  ) {
+    const parsedOffset = parseInt(offset, 10);
+    const parsedLimit = Math.min(parseInt(limit, 10), 50); // Cap at 50 items
+
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Connection', 'keep-alive');
+
+    const now = new Date();
+    res.setHeader('Last-Modified', now.toUTCString());
+    res.setHeader('Expires', new Date(now.getTime() + 300000).toUTCString());
+
+    try {
+      for await (const book of this.bookService.findBooksByGenre(genre, parsedOffset, parsedLimit)) {
+        res.write(`data: ${JSON.stringify(book)}\n\n`);
+      }
+    } finally {
+      res.end();
+    }
   }
 
   @Get(':id')
@@ -132,7 +169,7 @@ export class BookController {
 
   @Get('bookmarks/:userId')
   async getUserBookmarks(@Param('userId') userId: string) {
-    return await this.bookService.getUserBookmarks(userId);
+    return await this.bookmarkService.getUserBookmarks(userId);
   }
 
   @Post('reviews/:id')
@@ -144,20 +181,19 @@ export class BookController {
       throw new BadRequestException('Invalid book ID');
     }
     createReviewDto.bookId = bookId;
-    return this.bookService.createReview(createReviewDto);
+    return this.reviewService.createReview(createReviewDto);
   }
 
   @Get('reviews/:id')
   getBookReviews(@Param('id') bookId: number) {
-    return this.bookService.getBookReviews(bookId);
+    return this.reviewService.getBookReviews(bookId);
   }
-
 
   @Get('user-reviews/:userId')
   getUserReviews(@Param('userId') userId: string) {
     if (!userId) {
       throw new BadRequestException('Invalid user ID');
     }
-    return this.bookService.getUserReviews(userId);
+    return this.reviewService.getUserReviews(userId);
   }
 }

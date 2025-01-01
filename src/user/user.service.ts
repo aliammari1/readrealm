@@ -8,7 +8,7 @@ import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private UserModel: Model<User>) { }
+  constructor(@InjectModel(User.name) private UserModel: Model<User>) {}
   async create(createUserDto: CreateUserDto) {
     // const createdUser = new this.UserModel(createUserDto);
     const { email, password, username } = createUserDto;
@@ -19,9 +19,11 @@ export class UserService {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await this.addUser(
-      { username, email: email.toLowerCase(), password: hashedPassword }
-    )
+    const newUser = await this.addUser({
+      username,
+      email: email.toLowerCase(),
+      password: hashedPassword,
+    });
 
     return {
       message: 'User registered successfully',

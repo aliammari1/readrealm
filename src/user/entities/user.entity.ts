@@ -14,6 +14,12 @@ export class User {
   @Prop({ required: true, maxlength: 100 })
   password: string;
 
+  @Prop({
+    required: false,
+    length: 1000,
+  })
+  profilePicture: string;
+
   @Prop({ required: true, default: 'user' })
   role: string;
 

@@ -9,6 +9,7 @@ import { LoggerMiddleware } from './logger/logger.middleware';
 import { BookModule } from './book/book.module';
 import config from './config/config';
 import { SpeechRealtimeModule } from './speech-realtime/speech-realtime.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { SpeechRealtimeModule } from './speech-realtime/speech-realtime.module';
     AuthModule,
     BookModule,
     SpeechRealtimeModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],

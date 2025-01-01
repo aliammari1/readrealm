@@ -14,7 +14,7 @@ export class Bookmark {
 @Schema({
   timestamps: true,
   toJSON: { virtuals: true },
-  toObject: { virtuals: true }
+  toObject: { virtuals: true },
 })
 export class Book {
   @Prop({ required: true, unique: true, index: true })
@@ -27,7 +27,7 @@ export class Book {
   title: string;
 
   @Prop({ required: true })
-  publicationDate: number;
+  publicationYear: number;
 
   @Prop({ required: true })
   numOfPages: number;
@@ -37,6 +37,9 @@ export class Book {
 
   @Prop({ required: true, index: true })
   genre: string;
+
+  @Prop({ required: false, default: '' })
+  link: string;
 
   @Prop()
   textData: string;
@@ -52,6 +55,9 @@ export class Book {
 
   @Prop({ type: Number, default: 0 })
   totalReviews: number;
+
+  @Prop({ required: false, default: '' })
+  description: string;
 }
 
 export type BookDocument = HydratedDocument<Book>;
