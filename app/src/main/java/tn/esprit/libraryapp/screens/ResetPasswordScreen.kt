@@ -8,7 +8,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.*
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -33,7 +32,7 @@ fun ResetPasswordScreen(
     val viewModel: AuthViewModel = viewModel()
     var passwordState by remember { mutableStateOf("") }
     var confirmPasswordState by remember { mutableStateOf("") }
-    val forgotPasswordResult by viewModel.forgotPasswordResult.observeAsState()
+    val forgotPasswordResult by viewModel.forgotPasswordResult.collectAsState()
     Column(
         modifier = modifier
             .fillMaxSize()

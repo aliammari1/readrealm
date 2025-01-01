@@ -90,7 +90,7 @@ fun BookmarkItem(book: Book, modifier: Modifier = Modifier) {
                     style = MaterialTheme.typography.bodySmall
                 )
                 Text(
-                    text = "Published in ${book.publicationDate}",
+                    text = "Published in ${book.publicationYear}",
                     style = MaterialTheme.typography.bodySmall
                 )
                 Spacer(modifier = Modifier.height(8.dp))

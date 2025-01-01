@@ -1,38 +1,53 @@
 package tn.esprit.libraryapp.screens
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.Call
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.BookmarkBorder
-import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.StarOutline
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.*
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -41,75 +56,73 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.google.gson.Gson
+import com.valentinilk.shimmer.shimmer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import tn.esprit.libraryapp.models.Book
+import tn.esprit.libraryapp.models.LibrarianAction
 import tn.esprit.libraryapp.models.Review
 import tn.esprit.libraryapp.viewModel.BookViewModel
-import androidx.compose.animation.core.*
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.foundation.layout.offset
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.unit.IntOffset
-import kotlin.math.roundToInt
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.Category
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.sp
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun BookDetailsScreen(
     navController: NavHostController,
     bookId: Int,
-    bookJson: String,
-    initialIsBookmarked: Boolean = false,
+    viewModel: BookViewModel = viewModel()
 ) {
-    val viewModel: BookViewModel = viewModel()
-    val initialBook = remember {
-        val decodedJson = Uri.decode(bookJson)
-        Gson().fromJson(decodedJson, Book::class.java)
-    }
 
-    val book by viewModel.bookDetails.observeAsState(initialBook)
-    val isBookmarked by viewModel.isBookmarked.observeAsState(initial = initialIsBookmarked)
+    LaunchedEffect(Unit) { viewModel.setInitialBook(bookId) }
+
+    val book by viewModel.bookDetails.collectAsState()
+    val isBookmarked by viewModel.isBookmarked.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     val systemUiController = rememberSystemUiController()
     var isImageLoaded by remember { mutableStateOf(false) }
+    var isRefreshing by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val scrollState = rememberScrollState()
+    var showScrollToTop by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val pullRefreshState =
+        rememberPullRefreshState(
+            refreshing = isRefreshing,
+            onRefresh = {
+                scope.launch {
+                    isRefreshing = true
+                    viewModel.setInitialBook(bookId)
+                    isRefreshing = false
+                }
+            }
+        )
 
-    // Initialize bookmark state when screen loads
-    LaunchedEffect(Unit) {
-        Log.d("BookDetailsScreen", "Initial isBookmarked state: $initialIsBookmarked $isBookmarked")
-        //viewModel.fetchBookDetails(bookId)
-    }
+    LaunchedEffect(Unit) { viewModel.handleLibrarianAction(LibrarianAction.Welcome) }
 
-    // Update bookmark state when book details change
-    LaunchedEffect(book) {
-        Log.d("BookDetailsScreen", "Book details updated: ${book.id}")
-        if (book != initialBook) {
-            viewModel.initializeBookmarkState(book.bookmarks)
-        }
-    }
+    LaunchedEffect(scrollState.value) { showScrollToTop = scrollState.value > 100 }
 
-    val imageScale by animateFloatAsState(
-        targetValue = if (isImageLoaded) 1f else 0.8f, animationSpec = tween(500)
+    val imageScale by
+    animateFloatAsState(
+        targetValue = if (isImageLoaded) 1f else 0.8f,
+        animationSpec = tween(500),
+        label = ""
     )
 
-    val contentAlpha by animateFloatAsState(
-        targetValue = if (isImageLoaded) 1f else 0f, animationSpec = tween(500)
+    val contentAlpha by
+    animateFloatAsState(
+        targetValue = if (isImageLoaded) 1f else 0f,
+        animationSpec = tween(500),
+        label = ""
     )
 
     LaunchedEffect(Unit) { systemUiController.setStatusBarColor(Color.Transparent, true) }
@@ -132,7 +145,7 @@ fun BookDetailsScreen(
                             }
                         ) {
                             Icon(
-                                Icons.Default.ArrowBack,
+                                Icons.Default.ArrowBackIosNew,
                                 "Back",
                                 modifier = Modifier
                                     .scale(1.3f)
@@ -142,23 +155,56 @@ fun BookDetailsScreen(
                         }
                     },
                     actions = {
-                        IconButton(onClick = { viewModel.toggleBookmark(book) }) {
+                        IconButton(onClick = { viewModel.toggleBookmark(book!!) }) {
                             Icon(
-                                imageVector = if (isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+                                imageVector =
+                                if (isBookmarked) Icons.Filled.Bookmark
+                                else Icons.Outlined.BookmarkBorder,
                                 contentDescription = "Toggle Bookmark",
                                 tint = Color.White,
                                 modifier = Modifier.scale(1.2f)
                             )
                         }
+                        IconButton(
+                            onClick = {
+                                val shareText =
+                                    """
+                                    Check out "${book?.title}" by ${book?.author}!
+                                    Genre: ${book?.genre}
+                                    Rating: ${book?.averageRating ?: "Not rated"}
+                                """.trimIndent()
+                                val intent =
+                                    Intent().apply {
+                                        action = Intent.ACTION_SEND
+                                        type = "text/plain"
+                                        putExtra(Intent.EXTRA_TEXT, shareText)
+                                    }
+                                context.startActivity(
+                                    Intent.createChooser(intent, "Share Book")
+                                )
+                            }
+                        ) {
+                            Icon(
+                                Icons.Filled.Share,
+                                contentDescription = "Share",
+                                tint = Color.White
+                            )
+                        }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(
+                    colors =
+                    TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent.copy(alpha = 0.2f),
                         navigationIconContentColor = Color.White,
                         actionIconContentColor = Color.White
                     ),
-                    modifier = Modifier.background(
+                    modifier =
+                    Modifier.background(
                         Brush.verticalGradient(
-                            colors = listOf(Color.Black.copy(alpha = 0.3f), Color.Transparent),
+                            colors =
+                            listOf(
+                                Color.Black.copy(alpha = 0.3f),
+                                Color.Transparent
+                            ),
                             startY = 0f,
                             endY = 100f
                         )
@@ -170,32 +216,44 @@ fun BookDetailsScreen(
         Box(modifier = Modifier.fillMaxSize()) {
             // Book Cover Image with Parallax Effect
             val imageOffset = (rememberScrollState().value * 0.5f).toFloat()
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .height(500.dp)
-                .graphicsLayer {
-                    translationY = imageOffset
-                }) {
-                AsyncImage(model = ImageRequest.Builder(LocalContext.current).data(book.coverImage)
-                    .crossfade(true).build(),
+            Box(
+                modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(500.dp)
+                    .graphicsLayer {
+                        translationY = imageOffset
+                    }
+            ) {
+                AsyncImage(
+                    model =
+                    ImageRequest.Builder(LocalContext.current)
+                        .data(book?.coverImage ?: "")
+                        .crossfade(true)
+                        .build(),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxSize()
                         .scale(imageScale),
-                    onSuccess = { isImageLoaded = true })
+                    onSuccess = { isImageLoaded = true }
+                )
 
                 // Gradient Overlay
                 Box(
-                    modifier = Modifier
+                    modifier =
+                    Modifier
                         .fillMaxSize()
                         .background(
                             Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Transparent, Color.Black.copy(
+                                colors =
+                                listOf(
+                                    Color.Transparent,
+                                    Color.Black.copy(
                                         alpha = 0.7f
                                     )
-                                ), startY = 300f
+                                ),
+                                startY = 300f
                             )
                         )
                 )
@@ -205,41 +263,68 @@ fun BookDetailsScreen(
             BookDetailsContent(
                 book = book,
                 contentAlpha = contentAlpha,
-                onStartReading = { /* TODO */ },
-                onStartListening = { navController.navigate("ebook/${bookId}") }
+                onStartReading = {
+                    try {
+                        val encodedUrl = Uri.encode(book?.link)
+                        navController.navigate("read_book/$encodedUrl")
+                    } catch (e: Exception) {
+                        Log.e("BookDetailsScreen", "Error navigating to reader: ${e.message}")
+                    }
+                },
+                viewModel = viewModel
             )
+
+            // Add scroll to top button
+            AnimatedVisibility(
+                visible = showScrollToTop,
+                enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+                exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
+            ) {
+                FloatingActionButton(
+                    onClick = { scope.launch { scrollState.animateScrollTo(0) } },
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(16.dp)
+                ) { Icon(Icons.Filled.KeyboardArrowUp, "Scroll to top") }
+            }
+
+            // Add pull to refresh
+            Box(Modifier.pullRefresh(pullRefreshState)) {
+                PullRefreshIndicator(
+                    refreshing = isRefreshing,
+                    state = pullRefreshState,
+                    modifier = Modifier.align(Alignment.TopCenter)
+                )
+            }
         }
     }
 }
 
 @Composable
 private fun BookDetailsContent(
-    book: Book,
+    book: Book?,
     contentAlpha: Float,
     onStartReading: () -> Unit,
-    onStartListening: () -> Unit
+    viewModel: BookViewModel
 ) {
-    val viewModel: BookViewModel = viewModel()
+    if (book == null) {
+        ShimmerLoadingEffect()
+        return
+    }
+
+    Log.d("tag", book.toString())
     val reviews = viewModel.reviews.collectAsState(initial = emptyList()).value
-    val uiState by viewModel.ebookUiState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     var showReviewDialog by remember { mutableStateOf(false) }
     var reviewText by remember { mutableStateOf("") }
-    var rating by remember { mutableStateOf(0) }
+    var rating by remember { mutableIntStateOf(0) }
 
-    // Add animation states
     val slideIn = remember { Animatable(initialValue = 100f) }
     val fadeIn = remember { Animatable(initialValue = 0f) }
-    
+
     LaunchedEffect(Unit) {
-        slideIn.animateTo(
-            targetValue = 0f,
-            animationSpec = tween(500, easing = EaseOutExpo)
-        )
-        fadeIn.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(700)
-        )
+        slideIn.animateTo(targetValue = 0f, animationSpec = tween(500, easing = EaseOutExpo))
+        fadeIn.animateTo(targetValue = 1f, animationSpec = tween(700))
     }
 
     LaunchedEffect(book.id) {
@@ -247,7 +332,6 @@ private fun BookDetailsContent(
         viewModel.fetchReviews(book.id)
     }
 
-    // Debug logging
     LaunchedEffect(reviews) {
         Log.d("BookDetailsContent", "Reviews updated. Count: ${reviews.size}")
         reviews.forEach { review ->
@@ -258,16 +342,7 @@ private fun BookDetailsContent(
         }
     }
 
-    LaunchedEffect(uiState) {
-        Log.d(
-            "BookDetailsContent",
-            "UI State: isLoading=${uiState.isLoading}, error=${uiState.error}"
-        )
-    }
-
-    LazyColumn(
-        contentPadding = PaddingValues(bottom = 32.dp)
-    ) {
+    LazyColumn(contentPadding = PaddingValues(bottom = 32.dp)) {
         item {
             Box(
                 modifier = Modifier
@@ -278,22 +353,28 @@ private fun BookDetailsContent(
                 AsyncImage(
                     model = book.coverImage,
                     contentDescription = null,
-                    modifier = Modifier
+                    modifier =
+                    Modifier
                         .fillMaxSize()
                         .blur(radius = 20.dp)
                         .graphicsLayer(alpha = 0.3f),
                     contentScale = ContentScale.FillBounds
                 )
 
-                // Gradient overlay
                 Box(
-                    modifier = Modifier
+                    modifier =
+                    Modifier
                         .fillMaxSize()
                         .background(
                             Brush.verticalGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
-                                    MaterialTheme.colorScheme.surface
+                                colors =
+                                listOf(
+                                    MaterialTheme.colorScheme
+                                        .surface.copy(
+                                            alpha = 0.7f
+                                        ),
+                                    MaterialTheme.colorScheme
+                                        .surface
                                 )
                             )
                         )
@@ -308,7 +389,8 @@ private fun BookDetailsContent(
                 ) {
                     // Book cover with animation
                     Surface(
-                        modifier = Modifier
+                        modifier =
+                        Modifier
                             .width(220.dp)
                             .height(320.dp)
                             .graphicsLayer(alpha = fadeIn.value)
@@ -333,16 +415,17 @@ private fun BookDetailsContent(
                     ) {
                         Text(
                             text = book.title,
-                            style = MaterialTheme.typography.headlineMedium.copy(
+                            style =
+                            MaterialTheme.typography.headlineMedium.copy(
                                 fontWeight = FontWeight.Bold
                             ),
                             textAlign = TextAlign.Center,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis
                         )
-                        
+
                         Spacer(modifier = Modifier.height(8.dp))
-                        
+
                         Text(
                             text = "by ${book.author}",
                             style = MaterialTheme.typography.titleMedium,
@@ -353,19 +436,39 @@ private fun BookDetailsContent(
             }
         }
 
+        // Add average rating display if available
+        item {
+            if (book.averageRating != null) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Average Rating: ${String.format("%.1f", book.averageRating)} ",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = "(${book.totalReviews ?: 0} reviews)",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                }
+            }
+        }
+
         // Quick Info Cards
         item {
             Row(
-                modifier = Modifier
+                modifier =
+                Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 24.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                QuickInfoCard(
-                    icon = Icons.Filled.Category,
-                    label = "Genre",
-                    value = book.genre
-                )
+                QuickInfoCard(icon = Icons.Filled.Category, label = "Genre", value = book.genre)
                 QuickInfoCard(
                     icon = Icons.Filled.AccessTime,
                     label = "Pages",
@@ -374,7 +477,7 @@ private fun BookDetailsContent(
                 QuickInfoCard(
                     icon = Icons.Filled.Language,
                     label = "Language",
-                    value = "English"  // Add language to your Book model
+                    value = "English" // Add language to your Book model
                 )
             }
         }
@@ -388,9 +491,7 @@ private fun BookDetailsContent(
                 shape = RoundedCornerShape(16.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "About this book",
                         style = MaterialTheme.typography.titleLarge,
@@ -398,7 +499,7 @@ private fun BookDetailsContent(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = book.title ?: "No description available",
+                        text = book.description ?: "No description available",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                         lineHeight = 24.sp
@@ -410,7 +511,7 @@ private fun BookDetailsContent(
         // Action Buttons
         item {
             Spacer(modifier = Modifier.height(24.dp))
-            ActionButtons(onStartReading, onStartListening)
+            ActionButtons(onStartReading)
             Spacer(modifier = Modifier.height(32.dp))
         }
 
@@ -419,15 +520,13 @@ private fun BookDetailsContent(
             ReviewsSection(
                 reviews = reviews,
                 onAddReview = { showReviewDialog = true },
-                isLoading = uiState.isLoading,
-                error = uiState.error
+                isLoading = false, // Remove uiState dependency
+                error = null // Remove uiState dependency
             )
         }
 
         // Review Items
-        items(reviews) { review ->
-            ReviewItem(review = review, book = book)
-        }
+        items(reviews) { review -> ReviewItem(review = review, book = book) }
     }
 
     if (showReviewDialog) {
@@ -443,9 +542,14 @@ private fun BookDetailsContent(
                         repeat(5) { index ->
                             IconButton(onClick = { rating = index + 1 }) {
                                 Icon(
-                                    imageVector = if (index < rating) Icons.Filled.Star else Icons.Outlined.StarOutline,
+                                    imageVector =
+                                    if (index < rating) Icons.Filled.Star
+                                    else Icons.Outlined.StarOutline,
                                     contentDescription = "Star ${index + 1}",
-                                    tint = if (index < rating) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                    tint =
+                                    if (index < rating)
+                                        MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -454,8 +558,12 @@ private fun BookDetailsContent(
                     OutlinedTextField(
                         value = reviewText,
                         onValueChange = { reviewText = it },
-                        label = { Text("Your Review") },
-                        modifier = Modifier.fillMaxWidth()
+                        label = { Text("Your Review (optional)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        placeholder = { Text("Write your review here...") },
+                        singleLine = false,
+                        minLines = 3,
+                        maxLines = 5
                     )
                 }
             },
@@ -464,33 +572,30 @@ private fun BookDetailsContent(
                     onClick = {
                         coroutineScope.launch {
                             if (rating > 0) {
-                                viewModel.addReview(book.id, rating, reviewText)
+                                // Pass the review text even if empty
+                                viewModel.addReview(
+                                    book.id,
+                                    rating,
+                                    reviewText.ifEmpty { null }
+                                )
                                 showReviewDialog = false
                                 reviewText = ""
                                 rating = 0
                             }
                         }
                     },
-                    enabled = rating > 0
-                ) {
-                    Text("Submit")
-                }
+                    enabled = rating > 0 // Only rating is required
+                ) { Text("Submit") }
             },
             dismissButton = {
-                TextButton(onClick = { showReviewDialog = false }) {
-                    Text("Cancel")
-                }
+                TextButton(onClick = { showReviewDialog = false }) { Text("Cancel") }
             }
         )
     }
 }
 
 @Composable
-private fun QuickInfoCard(
-    icon: ImageVector,
-    label: String,
-    value: String
-) {
+private fun QuickInfoCard(icon: ImageVector, label: String, value: String) {
     Surface(
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
@@ -545,11 +650,8 @@ private fun ReviewsSection(
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
-            
-            FilledTonalIconButton(
-                onClick = onAddReview,
-                shape = CircleShape
-            ) {
+
+            FilledTonalIconButton(onClick = onAddReview, shape = CircleShape) {
                 Icon(Icons.Default.Star, "Add Review")
             }
         }
@@ -560,9 +662,7 @@ private fun ReviewsSection(
                     .fillMaxWidth()
                     .height(100.dp),
                 contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
+            ) { CircularProgressIndicator() }
         } else if (error != null) {
             Text(
                 text = "Error loading reviews: $error",
@@ -580,65 +680,10 @@ private fun ReviewsSection(
 }
 
 @Composable
-private fun BookInfoGrid(book: Book) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-        AnimatedBookInfoItem(
-            icon = Icons.Default.DateRange,
-            label = "Published",
-            value = book.publicationDate.toString(),
-            delay = 100
-        )
-        AnimatedBookInfoItem(
-            icon = Icons.Outlined.Check,
-            label = "Pages",
-            value = book.numOfPages.toString(),
-            delay = 200
-        )
-        AnimatedBookInfoItem(
-            icon = Icons.Default.Check, label = "Genre", value = book.genre, delay = 300
-        )
-    }
-}
-
-@Composable
-private fun AnimatedBookInfoItem(icon: ImageVector, label: String, value: String, delay: Int) {
-    var visible by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        delay(delay.toLong())
-        visible = true
-    }
-
-    AnimatedVisibility(visible = visible, enter = fadeIn() + expandVertically()) {
-        BookInfoItem(icon = icon, label = label, value = value)
-    }
-}
-
-@Composable
-private fun BookInfoItem(icon: ImageVector, label: String, value: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(8.dp)) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold
-        )
-    }
-}
-
-@Composable
-private fun ActionButtons(onStartReading: () -> Unit, onStartListening: () -> Unit) {
-    var animatedProgress by remember { mutableStateOf(0f) }
-    val animatedScale by animateFloatAsState(
+private fun ActionButtons(onStartReading: () -> Unit) {
+    var animatedProgress by remember { mutableFloatStateOf(0f) }
+    val animatedScale by
+    animateFloatAsState(
         targetValue = if (animatedProgress == 1f) 1f else 0.8f,
         animationSpec = spring(dampingRatio = 0.7f)
     )
@@ -649,13 +694,11 @@ private fun ActionButtons(onStartReading: () -> Unit, onStartListening: () -> Un
     }
 
     Column(
-        modifier = Modifier
+        modifier =
+        Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .graphicsLayer(
-                scaleX = animatedScale,
-                scaleY = animatedScale
-            ),
+            .graphicsLayer(scaleX = animatedScale, scaleY = animatedScale),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Button(
@@ -664,54 +707,23 @@ private fun ActionButtons(onStartReading: () -> Unit, onStartListening: () -> Un
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(28.dp),
-            colors = ButtonDefaults.buttonColors(
+            colors =
+            ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary
             ),
-            elevation = ButtonDefaults.buttonElevation(
+            elevation =
+            ButtonDefaults.buttonElevation(
                 defaultElevation = 4.dp,
                 pressedElevation = 8.dp
             )
         ) {
-            Icon(
-                Icons.Default.Check,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp)
-            )
+            Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(24.dp))
             Spacer(modifier = Modifier.width(12.dp))
             Text(
                 "Start Reading",
                 style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
             )
         }
-
-        OutlinedButton(
-            onClick = onStartListening,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            shape = RoundedCornerShape(28.dp),
-            border = BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
-        ) {
-            Icon(
-                Icons.Default.Call,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                "Listen to Audiobook",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-            )
-        }
-    }
-}
-
-@Composable
-private fun LoadingAnimation() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator(
-            modifier = Modifier.scale(1.2f), color = MaterialTheme.colorScheme.primary
-        )
     }
 }
 
@@ -720,18 +732,15 @@ private fun ReviewItem(review: Review, book: Book, modifier: Modifier = Modifier
     val viewModel: BookViewModel = viewModel()
     Log.d("ReviewItem", "Rendering review: id=${review.id}, rating=${review.rating}")
     var showDeleteConfirmation by remember { mutableStateOf(false) }
-    var animatedProgress by remember { mutableStateOf(0f) }
-    val animatedAlpha by animateFloatAsState(
-        targetValue = animatedProgress,
-        animationSpec = tween(500)
-    )
+    var animatedProgress by remember { mutableFloatStateOf(0f) }
+    val animatedAlpha by
+    animateFloatAsState(targetValue = animatedProgress, animationSpec = tween(500))
 
-    LaunchedEffect(Unit) {
-        animatedProgress = 1f
-    }
+    LaunchedEffect(Unit) { animatedProgress = 1f }
 
     Surface(
-        modifier = modifier
+        modifier =
+        modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp)
             .graphicsLayer(
@@ -759,9 +768,13 @@ private fun ReviewItem(review: Review, book: Book, modifier: Modifier = Modifier
                 ) {
                     repeat(5) { index ->
                         Icon(
-                            imageVector = if (index < review.rating) Icons.Filled.Star else Icons.Outlined.StarOutline,
+                            imageVector =
+                            if (index < review.rating) Icons.Filled.Star
+                            else Icons.Outlined.StarOutline,
                             contentDescription = null,
-                            tint = if (index < review.rating) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                            tint =
+                            if (index < review.rating) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -795,8 +808,10 @@ private fun ReviewItem(review: Review, book: Book, modifier: Modifier = Modifier
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = review.comment,
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * 1.3
+                    style =
+                    MaterialTheme.typography.bodyLarge.copy(
+                        lineHeight =
+                        MaterialTheme.typography.bodyLarge.lineHeight * 1.3
                     ),
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -815,16 +830,89 @@ private fun ReviewItem(review: Review, book: Book, modifier: Modifier = Modifier
                         viewModel.deleteReview(book.id.toString(), review.id)
                         showDeleteConfirmation = false
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Delete")
-                }
+                    colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) { Text("Delete") }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteConfirmation = false }) {
-                    Text("Cancel")
-                }
+                TextButton(onClick = { showDeleteConfirmation = false }) { Text("Cancel") }
             }
         )
+    }
+}
+
+@Composable
+private fun ShimmerLoadingEffect() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .shimmer()
+    ) {
+        // Cover image placeholder
+        Box(
+            modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(320.dp)
+                .background(Color.LightGray.copy(alpha = 0.5f))
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Title placeholder
+        Box(
+            modifier =
+            Modifier
+                .fillMaxWidth(0.7f)
+                .height(24.dp)
+                .background(Color.LightGray.copy(alpha = 0.5f))
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Author placeholder
+        Box(
+            modifier =
+            Modifier
+                .fillMaxWidth(0.4f)
+                .height(16.dp)
+                .background(Color.LightGray.copy(alpha = 0.5f))
+        )
+
+        // Add more shimmer placeholders for other content
+    }
+}
+
+// Add error handling component
+@Composable
+private fun ErrorState(message: String, onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.Error,
+            contentDescription = null,
+            modifier = Modifier.size(48.dp),
+            tint = MaterialTheme.colorScheme.error
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = onRetry) { Text("Retry") }
     }
 }

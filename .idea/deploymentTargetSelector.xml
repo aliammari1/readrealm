@@ -4,14 +4,20 @@
     <selectionStates>
       <SelectionState runConfigName="LibraryApp.app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2024-12-16T21:56:48.192317700Z">
+        <DropdownSelection timestamp="2024-12-31T14:10:40.189443Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=kfofeu7xx8nrscei" />
+              <DeviceId pluginId="PhysicalDevice" identifier="serial=R5CX941F7QL" />
             </handle>
           </Target>
         </DropdownSelection>
         <DialogSelection />
+      </SelectionState>
+      <SelectionState runConfigName="EPubReaderScreenPreview">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="BookChatScreen">
+        <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>
   </component>

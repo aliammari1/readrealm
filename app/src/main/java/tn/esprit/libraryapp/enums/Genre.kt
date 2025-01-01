@@ -5,8 +5,10 @@ enum class Genre(val value: String) {
     ACTION("Action"),
     ADVENTURE("Adventure"),
     FANTASY("Fantasy"),
-    MYSTERY("Mystery"),
     ROMANCE("Romance"),
     SCIFI("Sci-Fi"),
-    THRILLER("Thriller")
+    THRILLER("Thriller"),
+    HORROR("Horror"),
+    HISTORICAL("Historical"),
+    NONFICTION("Non-Fiction"),
 }

@@ -5,6 +5,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Path
 import tn.esprit.libraryapp.models.ChangePasswordRequest
 import tn.esprit.libraryapp.models.ChangePasswordResponse
 import tn.esprit.libraryapp.models.ForgotPasswordRequest
@@ -30,14 +31,25 @@ interface UserService {
     suspend fun register(@Body registerRequest: RegisterRequest): Response<RegisterResponse>
 
     @PUT("auth/change-password")
-    suspend fun changePassword(@Body changePasswordRequest: ChangePasswordRequest): Response<ChangePasswordResponse>
+    suspend fun changePassword(
+        @Body changePasswordRequest: ChangePasswordRequest
+    ): Response<ChangePasswordResponse>
 
     @POST("auth/generate-email")
-    suspend fun generateEmail(@Body generateEmailRequest: GenerateEmailRequest): Response<GenerateEmailResponse>
+    suspend fun generateEmail(
+        @Body generateEmailRequest: GenerateEmailRequest
+    ): Response<GenerateEmailResponse>
 
     @POST("auth/verify-email")
-    suspend fun verifyEmail(@Body verifyEmailRequest: VerifyEmailRequest): Response<VerifyEmailResponse>
+    suspend fun verifyEmail(
+        @Body verifyEmailRequest: VerifyEmailRequest
+    ): Response<VerifyEmailResponse>
 
     @POST("auth/forgot-password")
-    suspend fun forgotPassword(@Body forgotPasswordRequest: ForgotPasswordRequest): Response<ForgotPasswordResponse>
+    suspend fun forgotPassword(
+        @Body forgotPasswordRequest: ForgotPasswordRequest
+    ): Response<ForgotPasswordResponse>
+
+    @GET("user/profile/{userId}")
+    suspend fun getUserProfile(@Path("userId") userId: String): Response<User>
 }

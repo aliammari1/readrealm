@@ -7,15 +7,17 @@ import tn.esprit.libraryapp.models.*
 
 interface BookService {
     @GET("book/genre/{genre}")
-    suspend fun getBooks(@Path("genre") genre: Genre): List<Book>
+    suspend fun getBooks(
+        @Path("genre") genre: Genre,
+    ): List<Book>
 
-    @GET("book/{id}")
+    @GET("book/details/{id}")
     suspend fun getBookDetails(@Path("id") bookId: Int): Book
 
     @GET("book/search")
     suspend fun searchBooks(@Query("q") query: String): List<Book>
 
-    @GET("book/stream/{title}")
+    @GET("book/tts/stream/{title}")
     suspend fun streamAudioBookByTitle(@Path("title") title: String): ResponseBody
 
     @PUT("book/bookmark")
@@ -25,10 +27,7 @@ interface BookService {
     suspend fun getBookmarks(@Path("userId") userId: String): List<Book>
 
     @POST("book/reviews/{bookId}")
-    suspend fun addReview(
-        @Path("bookId") bookId: Int,
-        @Body request: ReviewRequest
-    ): Book
+    suspend fun addReview(@Path("bookId") bookId: Int, @Body request: ReviewRequest): Book
 
     @DELETE("book/{bookId}/reviews/{reviewId}")
     suspend fun removeReview(@Body request: DeleteReviewRequest): Book

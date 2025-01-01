@@ -46,4 +46,8 @@ class UserRepository {
     suspend fun forgotPassword(forgotPasswordRequest: ForgotPasswordRequest): Response<ForgotPasswordResponse> {
         return userService.forgotPassword(forgotPasswordRequest)
     }
+
+    suspend fun getUserProfile(userId: String): Response<User> {
+        return userService.getUserProfile(userId)
+    }
 }

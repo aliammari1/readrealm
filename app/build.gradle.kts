@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId = "tn.esprit.libraryapp"
-        minSdk = 24
+        minSdk = 33
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -42,6 +42,36 @@ android {
 }
 
 dependencies {
+    implementation(libs.accompanist.placeholder.material)
+    implementation(libs.orbital)
+    implementation(libs.wheelpickercompose)
+    implementation("com.google.mlkit:object-detection:17.0.2")
+    implementation(libs.barcode.scanning)
+    implementation(libs.image.labeling)
+    implementation(libs.face.detection)
+    implementation(libs.play.services.mlkit.text.recognition)
+    implementation(libs.language.id)
+    implementation(libs.smart.reply)
+    implementation(libs.androidx.camera.mlkit.vision)
+    implementation("androidx.compose.material:material:1.4.0-beta01")
+    implementation(libs.compose.shimmer)
+    implementation(libs.androidx.biometric.ktx)
+    implementation(libs.androidx.biometric)
+    implementation(libs.play.services.auth)
+    implementation(libs.facebook.login)
+    implementation(libs.material)
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.text.recognition)
+    implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.translate)
+    implementation(libs.androidx.foundation)
+    implementation(libs.accompanist.flowlayout)
+    implementation(libs.accompanist.swiperefresh)
+    implementation(libs.stream.chat.android.offline)
+    implementation(libs.stream.chat.android.compose)
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.room.ktx)
@@ -50,7 +80,6 @@ dependencies {
     implementation(libs.androidx.datastore.core)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.androidx.media3.exoplayer.v111)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.lottie.compose)
@@ -62,7 +91,6 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.androidx.palette.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.runtime.livedata)
     implementation(libs.retrofit)
     implementation(libs.logging.interceptor)
     implementation(libs.converter.gson)

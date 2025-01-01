@@ -1,7 +1,9 @@
 package tn.esprit.libraryapp
 
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -41,26 +43,14 @@ fun AppNavHost(
             ResetPasswordScreen(navController = navController, email = email ?: "")
         }
         composable(
-            "book_details/{bookId}/{bookJson}?isBookmarked={isBookmarked}",
+            "book_details/{bookId}",
             arguments = listOf(
                 navArgument("bookId") { type = NavType.IntType },
-                navArgument("bookJson") { type = NavType.StringType },
-                navArgument("isBookmarked") { type = NavType.BoolType; defaultValue = false }
             )
         ) { backStackEntry ->
             BookDetailsScreen(
                 navController = navController,
                 bookId = backStackEntry.arguments?.getInt("bookId") ?: 0,
-                bookJson = backStackEntry.arguments?.getString("bookJson") ?: "",
-                initialIsBookmarked = backStackEntry.arguments?.getBoolean("isBookmarked") == true
-            )
-        }
-        composable(route = "ebook/{bookId}", arguments = listOf(navArgument("bookId") {
-            type = NavType.IntType  // Change to StringType to match book_details
-        })) {
-            val bookId = it.arguments?.getInt("bookId") ?: 0
-            EbookScreen(
-                navController = navController, bookId = bookId
             )
         }
         composable(NavigationItem.Speech.route) {
@@ -69,13 +59,36 @@ fun AppNavHost(
         composable(NavigationItem.Bookmarks.route) {
             BookmarksScreen()
         }
-//        composable(NavigationItem.ReadBook.route + "/{bookId}") {
-//            val bookId = it.arguments?.getInt("bookId") ?: 0
-//            ReadBookScreen(book = Book(
-//            ))
-//        }
+        composable(
+            route = NavigationItem.ReadBook.route + "/{encodedUrl}",
+            arguments = listOf(
+                navArgument("encodedUrl") {
+                    type = NavType.StringType
+                    nullable = true
+                }
+            )
+        ) { backStackEntry ->
+            val encodedUrl = backStackEntry.arguments?.getString("encodedUrl")
+            val decodedUrl = encodedUrl?.let { Uri.decode(it) }
+            EPubReaderScreen(bookUrl = decodedUrl ?: "")
+        }
         composable(NavigationItem.Profile.route) {
             ProfileScreen(navController = navController)
+        }
+        composable(NavigationItem.BookChannel.route) {
+            BookChatScreen()
+        }
+        composable(
+            route = "book_chat/{bookId}",
+            arguments = listOf(
+                navArgument("bookId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val bookId = backStackEntry.arguments?.getString("bookId") ?: ""
+            BookChatScreen(
+                bookId = bookId,
+                viewModel = viewModel()
+            )
         }
     }
 }

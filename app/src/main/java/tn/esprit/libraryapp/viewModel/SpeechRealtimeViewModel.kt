@@ -32,11 +32,12 @@ class SpeechViewModel : ViewModel() {
     private val coroutineScope = viewModelScope
 
     private val sampleRate = 24000
-    private val bufferSize = AudioRecord.getMinBufferSize(
-        sampleRate,
-        AudioFormat.CHANNEL_IN_MONO,
-        AudioFormat.ENCODING_PCM_16BIT
-    ) * 2 // Double the minimum buffer size
+    private val bufferSize =
+        AudioRecord.getMinBufferSize(
+            sampleRate,
+            AudioFormat.CHANNEL_IN_MONO,
+            AudioFormat.ENCODING_PCM_16BIT
+        ) * 2 // Double the minimum buffer size
 
     private val audioRecord: AudioRecord by lazy {
         AudioRecord(
@@ -63,18 +64,17 @@ class SpeechViewModel : ViewModel() {
 
     private fun initSocket() {
         try {
-            val options = IO.Options().apply {
-                transports = arrayOf("websocket")
-                reconnection = true
-                forceNew = true
-            }
-            mSocket = IO.socket("http://192.168.98.105:3000", options)
+            val options =
+                IO.Options().apply {
+                    transports = arrayOf("websocket")
+                    reconnection = true
+                    forceNew = true
+                }
+            mSocket = IO.socket("http://192.168.198.105:3000", options)
             mSocket?.apply {
                 connect()
 
-                on(Socket.EVENT_CONNECT) {
-                    Log.d("SpeechViewModel", "Socket connected")
-                }
+                on(Socket.EVENT_CONNECT) { Log.d("SpeechViewModel", "Socket connected") }
 
                 on("sessionStatus") { args ->
                     if (args.isNotEmpty()) {
@@ -87,9 +87,7 @@ class SpeechViewModel : ViewModel() {
                     if (args.isNotEmpty()) {
                         val errorMsg = args[0] as String
                         Log.e("SpeechViewModel", "Socket error: $errorMsg")
-                        coroutineScope.launch {
-                            _errorMessages.emit(errorMsg)
-                        }
+                        coroutineScope.launch { _errorMessages.emit(errorMsg) }
                     }
                 }
 
@@ -103,7 +101,8 @@ class SpeechViewModel : ViewModel() {
                     if (args.isNotEmpty()) {
                         val transcriptUpdate = args[0] as String
                         Log.d("SpeechViewModel", "Received transcript: $transcriptUpdate")
-                        transcript.value += "$transcriptUpdate"  // Remove newline to keep continuous text
+                        transcript.value +=
+                            "$transcriptUpdate" // Remove newline to keep continuous text
                     }
                 }
 
@@ -111,7 +110,8 @@ class SpeechViewModel : ViewModel() {
                     if (args.isNotEmpty()) {
                         val transcriptionText = args[0] as String
                         Log.d("SpeechViewModel", "Received transcription: $transcriptionText")
-                        transcript.value += "\n$transcriptionText\n"  // Add newlines for completed utterances
+                        transcript.value +=
+                            "\n$transcriptionText\n" // Add newlines for completed utterances
                     }
                 }
 
@@ -130,22 +130,23 @@ class SpeechViewModel : ViewModel() {
                                             "SpeechViewModel",
                                             "Received audio data: ${audioBytes.size} bytes"
                                         )
-                                        coroutineScope.launch {
-                                            _receivedAudio.emit(audioBytes)
-                                        }
+                                        coroutineScope.launch { _receivedAudio.emit(audioBytes) }
                                     } catch (e: Exception) {
                                         Log.e("SpeechViewModel", "Error decoding audio data", e)
                                         coroutineScope.launch {
-                                            _errorMessages.emit("Error decoding audio: ${e.message}")
+                                            _errorMessages.emit(
+                                                "Error decoding audio: ${e.message}"
+                                            )
                                         }
                                     }
                                 }
                             }
 
-                            else -> Log.e(
-                                "SpeechViewModel",
-                                "Unexpected audio data type: ${audioData?.javaClass}"
-                            )
+                            else ->
+                                Log.e(
+                                    "SpeechViewModel",
+                                    "Unexpected audio data type: ${audioData?.javaClass}"
+                                )
                         }
                     }
                 }
@@ -157,9 +158,7 @@ class SpeechViewModel : ViewModel() {
                     }
                 }
 
-                on("done") {
-                    latestInputSpeechBlock.value += " << Session Done >>"
-                }
+                on("done") { latestInputSpeechBlock.value += " << Session Done >>" }
 
                 on(Socket.EVENT_DISCONNECT) {
                     Log.d("SpeechViewModel", "Socket disconnected")
@@ -169,15 +168,11 @@ class SpeechViewModel : ViewModel() {
                     }
                 }
 
-                on(Socket.EVENT_CONNECT_ERROR) { args ->
-                    emit("stop")
-                }
+                on(Socket.EVENT_CONNECT_ERROR) { args -> emit("stop") }
             }
         } catch (e: URISyntaxException) {
             Log.e("SpeechViewModel", "Socket URI error: ${e.message}")
-            coroutineScope.launch {
-                _errorMessages.emit("Socket URI error: ${e.message}")
-            }
+            coroutineScope.launch { _errorMessages.emit("Socket URI error: ${e.message}") }
         }
     }
 
@@ -190,10 +185,13 @@ class SpeechViewModel : ViewModel() {
         // Clear transcript when starting new session
         transcript.value = ""
 
-        mSocket?.emit("start", JSONObject().apply {
-            put("systemMessage", systemMessage)
-            put("temperature", temperature)
-        })
+        mSocket?.emit(
+            "start",
+            JSONObject().apply {
+                put("systemMessage", systemMessage)
+                put("temperature", temperature)
+            }
+        )
 
         // Remove isRecording assignment from here
         mSocket?.once("sessionStatus") { args ->
@@ -206,8 +204,8 @@ class SpeechViewModel : ViewModel() {
                         while (isRecording.value) {
                             val read = audioRecord.read(buffer, 0, buffer.size)
                             if (read > 0) {
-                                val byteBuffer = ByteBuffer.allocate(read * 2)
-                                    .order(ByteOrder.LITTLE_ENDIAN)
+                                val byteBuffer =
+                                    ByteBuffer.allocate(read * 2).order(ByteOrder.LITTLE_ENDIAN)
                                 for (i in 0 until read) {
                                     byteBuffer.putShort(buffer[i])
                                 }
@@ -215,9 +213,10 @@ class SpeechViewModel : ViewModel() {
                                 val audioData = byteBuffer.array()
                                 val base64Audio = Base64.encodeToString(audioData, Base64.NO_WRAP)
 
-                                mSocket?.emit("sendAudio", JSONObject().apply {
-                                    put("audio", base64Audio)
-                                })
+                                mSocket?.emit(
+                                    "sendAudio",
+                                    JSONObject().apply { put("audio", base64Audio) }
+                                )
                             }
                             kotlinx.coroutines.delay(10)
                         }

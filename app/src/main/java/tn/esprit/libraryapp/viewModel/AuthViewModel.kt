@@ -1,10 +1,11 @@
 package tn.esprit.libraryapp.viewModel
 
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import tn.esprit.libraryapp.models.ChangePasswordRequest
 import tn.esprit.libraryapp.models.ChangePasswordResponse
@@ -16,6 +17,7 @@ import tn.esprit.libraryapp.models.LoginRequest
 import tn.esprit.libraryapp.models.LoginResponse
 import tn.esprit.libraryapp.models.RegisterRequest
 import tn.esprit.libraryapp.models.RegisterResponse
+import tn.esprit.libraryapp.models.User
 import tn.esprit.libraryapp.models.VerifyEmailRequest
 import tn.esprit.libraryapp.models.VerifyEmailResponse
 import tn.esprit.libraryapp.repository.UserRepository
@@ -23,19 +25,41 @@ import tn.esprit.libraryapp.services.TokenManagerProvider
 
 class AuthViewModel() : ViewModel() {
     private val repository = UserRepository()
-    private val _loginResult = MutableLiveData<Result<LoginResponse>>()
-    private val _registerResult = MutableLiveData<Result<RegisterResponse>>()
-    private val _changePasswordResult = MutableLiveData<Result<ChangePasswordResponse>>()
-    private val _verifyEmailResult = MutableLiveData<Result<VerifyEmailResponse>>()
-    private val _forgotPasswordResult = MutableLiveData<Result<ForgotPasswordResponse>>()
-    private val _generateEmailResult = MutableLiveData<Result<GenerateEmailResponse>>()
+    private val _loginResult = MutableStateFlow<Result<LoginResponse>?>(null)
+    private val _registerResult = MutableStateFlow<Result<RegisterResponse>?>(null)
+    private val _changePasswordResult = MutableStateFlow<Result<ChangePasswordResponse>?>(null)
+    private val _verifyEmailResult = MutableStateFlow<Result<VerifyEmailResponse>?>(null)
+    private val _forgotPasswordResult = MutableStateFlow<Result<ForgotPasswordResponse>?>(null)
+    private val _generateEmailResult = MutableStateFlow<Result<GenerateEmailResponse>?>(null)
+    private val _userProfile = MutableStateFlow<User?>(null)
+    private val _name = MutableStateFlow("")
+    private val _email = MutableStateFlow("ali.ammari@esprit.tn")
+    private val _password = MutableStateFlow("password")
 
-    val loginResult: LiveData<Result<LoginResponse>> = _loginResult
-    val registerResult: LiveData<Result<RegisterResponse>> = _registerResult
-    val changePasswordResult: LiveData<Result<ChangePasswordResponse>> = _changePasswordResult
-    val verifyEmailResult: LiveData<Result<VerifyEmailResponse>> = _verifyEmailResult
-    val forgotPasswordResult: LiveData<Result<ForgotPasswordResponse>> = _forgotPasswordResult
-    val generateEmailResult: LiveData<Result<GenerateEmailResponse>> = _generateEmailResult
+    val loginResult: StateFlow<Result<LoginResponse>?> = _loginResult
+    val registerResult: StateFlow<Result<RegisterResponse>?> = _registerResult
+    val changePasswordResult: StateFlow<Result<ChangePasswordResponse>?> = _changePasswordResult
+    val verifyEmailResult: StateFlow<Result<VerifyEmailResponse>?> = _verifyEmailResult
+    val forgotPasswordResult: StateFlow<Result<ForgotPasswordResponse>?> = _forgotPasswordResult
+    val generateEmailResult: StateFlow<Result<GenerateEmailResponse>?> = _generateEmailResult
+    val userProfile: StateFlow<User?> = _userProfile
+    val name: StateFlow<String> = _name
+    val email: StateFlow<String> = _email
+    val password: StateFlow<String> = _password
+
+    fun onNameChange(value: String) {
+        _name.value = value
+    }
+
+
+    fun onEmailChange(value: String) {
+        _email.value = value
+    }
+
+
+    fun onPasswordChange(value: String) {
+        _password.value = value
+    }
 
     fun login(loginRequest: LoginRequest) {
         viewModelScope.launch {
@@ -51,13 +75,17 @@ class AuthViewModel() : ViewModel() {
                         )
                     _loginResult.value = Result.success(loginResponse)
                 } else {
-                    _loginResult.postValue(Result.failure(Exception("Login failed")))
+                    _loginResult.value = Result.failure(Exception("Login failed"))
                 }
             } catch (e: Exception) {
-                _loginResult.postValue(Result.failure(e))
+                _loginResult.value = Result.failure(e)
                 Log.e("AuthViewModel", "Error logging in " + e.message, e)
             }
         }
+    }
+
+    fun clearLoginResult() {
+        _loginResult.value = null
     }
 
     fun logout() {
@@ -84,6 +112,10 @@ class AuthViewModel() : ViewModel() {
                 Log.e("AuthViewModel", "Error registering", e)
             }
         }
+    }
+
+    fun clearRegisterResult() {
+        _registerResult.value = null
     }
 
     fun changePassword(changePasswordRequest: ChangePasswordRequest) {
@@ -150,6 +182,22 @@ class AuthViewModel() : ViewModel() {
             } catch (e: Exception) {
                 _forgotPasswordResult.value = Result.failure(e)
                 Log.e("AuthViewModel", "Error forgot password", e)
+            }
+        }
+    }
+
+    fun fetchUserProfile() {
+        viewModelScope.launch {
+            try {
+                val userId = TokenManagerProvider.getInstance().userId.first()
+                userId?.let {
+                    val response = repository.getUserProfile(it)
+                    if (response.isSuccessful) {
+                        _userProfile.value = response.body()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Error fetching user profile", e)
             }
         }
     }
