@@ -31,6 +31,10 @@ export class BookService {
   private geminiApiKey: string;
   private geminiModel: string;
 
+  private bookCache = new Map<string, any>();
+  private readonly CACHE_DURATION = 1000 * 60 * 15; // 15 minutes
+  private readonly BATCH_SIZE = 20;
+
   constructor(
     @InjectModel(Book.name) private bookModel: Model<BookDocument>,
     @InjectModel(Review.name) private reviewModel: Model<Review>,
@@ -106,18 +110,14 @@ export class BookService {
   }
 
   async getBookDetails(id: number): Promise<Book> {
-    // First try to get from database
     try {
-      const book = await this.bookModel.findOne({ id }).exec();
-      if (book) {
-        return book;
+      // First try to get from database
+      const existingBook = await this.bookModel.findOne({ id }).exec();
+      if (existingBook) {
+        return existingBook;
       }
-    } catch (error) {
-      console.error('Error fetching from database:', error);
-    }
 
-    // If not in database, fetch from OpenLibrary API
-    try {
+      // If not in database, fetch from OpenLibrary API
       const response = await firstValueFrom(
         this.httpService.get(`${this.OPEN_LIBRARY_API_ENDPOINT}/works/OL${id}W.json`)
       );
@@ -139,7 +139,7 @@ export class BookService {
         description = bookDetails.description?.value || bookDetails.description || '';
       }
 
-      const book: Book = {
+      const bookData = {
         id: Number(bookDetails.key.split('/')[2].replace('OL', '').replace('W', '')),
         title: bookDetails.title,
         author: bookDetails.authors?.[0]?.name || 'Unknown',
@@ -152,28 +152,29 @@ export class BookService {
           ? bookDetails.subjects[0]
           : 'Unknown',
         textData: '',
-        link: epubLink || '', // Ensure it's never undefined
+        link: epubLink || '',
         bookmarks: [],
         reviews: await this.reviewService.getBookReviews(id),
         averageRating: 0,
         totalReviews: 0,
-        description: description, // Add this line
+        description: description,
       };
 
-      // Save to database
-      try {
-        const createdBook = new this.bookModel({
-          ...book,
-          link: book.link || '', // Ensure link is never undefined when saving
-        });
-        await createdBook.save();
-      } catch (error) {
-        console.error('Error saving to database:', error);
-      }
+      // Try to update if exists, otherwise create new
+      const book = await this.bookModel.findOneAndUpdate(
+        { id: bookData.id },
+        bookData,
+        { 
+          new: true,
+          upsert: true,
+          setDefaultsOnInsert: true
+        }
+      );
 
       return book;
     } catch (error) {
-      throw new NotFoundException(`Book with ID ${id} not found in external API ${error.message}`);
+      console.error('Error in getBookDetails:', error);
+      throw new NotFoundException(`Book with ID ${id} not found: ${error.message}`);
     }
   }
 
@@ -182,39 +183,111 @@ export class BookService {
       return;
     }
 
-    try {
-      const response = await this.httpService
-        .get(
-          `${this.OPEN_LIBRARY_API_ENDPOINT}/subjects/${genre}.json?limit=${limit}&offset=${offset}&details=true`,
-        )
-        .toPromise();
+    const cacheKey = `${genre}-${offset}-${limit}`;
+    const now = Date.now();
 
-      const works = response.data.works;
-      for (const work of works) {
-        yield {
-          id: Number(work.key.split('/')[2].replace('OL', '').replace('W', '')),
-          title: work.title,
-          author: work.authors?.[0]?.name || 'Unknown',
-          publicationYear: work.first_publish_year,
-          numOfPages: work.number_of_pages_median || 0,
-          coverImage: work.cover_id
-            ? `${this.OPEN_LIBRARY_COVER_ENDPOINT}/b/id/${work.cover_id}-M.jpg`
-            : null,
-          genre: genre.charAt(0).toUpperCase() + genre.slice(1),
-          textData: '',
-          link: await this.getBookEpubLinkByTitle(work.title),
-          bookmarks: [],
-          reviews: [],
-          averageRating: 0,
-          totalReviews: 0,
-          total: response.data.work_count || 0, // Add total count
-          description: work.description?.value || work.description || '',
-          offset: offset,
-          limit: limit
-        };
+    try {
+      // Check cache first
+      if (this.bookCache.has(cacheKey)) {
+        const cachedData = this.bookCache.get(cacheKey);
+        if (now - cachedData.timestamp < this.CACHE_DURATION) {
+          for (const book of cachedData.books) {
+            yield book;
+          }
+          return;
+        }
+        this.bookCache.delete(cacheKey);
+      }
+
+      // Implement batch processing
+      const batchedBooks = [];
+      let retryCount = 0;
+      const maxRetries = 3;
+
+      while (retryCount < maxRetries) {
+        try {
+          const response = await firstValueFrom(
+            this.httpService.get(
+              `${this.OPEN_LIBRARY_API_ENDPOINT}/subjects/${genre}.json?limit=${limit}&offset=${offset}&details=true`,
+            )
+          );
+
+          const works = response.data.works;
+          const total = response.data.work_count || 0;
+
+          // Process books in batches
+          for (let i = 0; i < works.length; i += this.BATCH_SIZE) {
+            const batch = works.slice(i, i + this.BATCH_SIZE);
+            const batchPromises = batch.map(async (work) => {
+              // Optimize data transformation
+              const bookData = {
+                id: Number(work.key.split('/')[2].replace('OL', '').replace('W', '')),
+                title: work.title,
+                author: work.authors?.[0]?.name || 'Unknown',
+                publicationYear: work.first_publish_year,
+                numOfPages: work.number_of_pages_median || 0,
+                coverImage: work.cover_id
+                  ? `${this.OPEN_LIBRARY_COVER_ENDPOINT}/b/id/${work.cover_id}-M.jpg`
+                  : null,
+                genre: genre.charAt(0).toUpperCase() + genre.slice(1),
+                textData: '',
+                link: '', // Defer epub link fetching
+                bookmarks: [],
+                reviews: [],
+                averageRating: 0,
+                totalReviews: 0,
+                total,
+                description: work.description?.value || work.description || '',
+                offset,
+                limit
+              };
+
+              // Only fetch epub link if needed
+              if (work.has_fulltext) {
+                bookData.link = await this.getBookEpubLinkByTitle(work.title);
+              }
+
+              return bookData;
+            });
+
+            const batchResults = await Promise.all(batchPromises);
+            batchedBooks.push(...batchResults);
+
+            // Yield each book in the batch
+            for (const book of batchResults) {
+              yield book;
+            }
+          }
+
+          // Cache the results
+          this.bookCache.set(cacheKey, {
+            books: batchedBooks,
+            timestamp: now,
+          });
+
+          // Clean up old cache entries
+          this.cleanupCache();
+          break;
+        } catch (error) {
+          retryCount++;
+          if (retryCount === maxRetries) {
+            throw new Error(`Failed to fetch books for genre ${genre} after ${maxRetries} attempts: ${error.message}`);
+          }
+          await new Promise(resolve => setTimeout(resolve, 1000 * retryCount)); // Exponential backoff
+        }
       }
     } catch (error) {
-      throw new Error(`Failed to fetch books for genre ${genre}: ${error.message}`);
+      console.error(`Error in findBooksByGenre: ${error.message}`);
+      throw error;
+    }
+  }
+
+  private cleanupCache() {
+    const now = Date.now();
+    for (const [key, value] of this.bookCache.entries()) {
+      if (now - value.timestamp > this.CACHE_DURATION) {
+        this.bookCache.delete(key);
+      }
     }
   }
 

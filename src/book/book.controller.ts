@@ -135,17 +135,28 @@ export class BookController {
     const parsedOffset = parseInt(offset, 10);
     const parsedLimit = Math.min(parseInt(limit, 10), 50); // Cap at 50 items
 
-    res.setHeader('Cache-Control', 'public, max-age=300');
+    // Set performance-oriented headers
+    res.setHeader('Cache-Control', 'public, max-age=900'); // 15 minutes
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Connection', 'keep-alive');
+    // res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
+    // res.setHeader('Content-Encoding', 'gzip'); // Enable compression
 
     const now = new Date();
     res.setHeader('Last-Modified', now.toUTCString());
-    res.setHeader('Expires', new Date(now.getTime() + 300000).toUTCString());
+    res.setHeader('Expires', new Date(now.getTime() + 900000).toUTCString());
 
     try {
+      let count = 0;
       for await (const book of this.bookService.findBooksByGenre(genre, parsedOffset, parsedLimit)) {
+        if (count >= parsedLimit) break;
         res.write(`data: ${JSON.stringify(book)}\n\n`);
+        count++;
+      }
+    } catch (error) {
+      console.error(`Error streaming books: ${error.message}`);
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'Failed to fetch books' });
       }
     } finally {
       res.end();
