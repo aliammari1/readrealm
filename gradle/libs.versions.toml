@@ -45,6 +45,7 @@ smartReply = "17.0.4"
 socketIoClient = "2.0.0"
 streamChatAndroidCompose = "6.4.4"
 streamChatAndroidOffline = "6.4.4"
+streamVideoAndroidUiCompose = "1.2.0"
 textRecognition = "16.0.1"
 translate = "17.0.3"
 wheelpickercompose = "1.1.11"
@@ -113,6 +114,7 @@ smart-reply = { module = "com.google.mlkit:smart-reply", version.ref = "smartRep
 socket-io-client = { module = "io.socket:socket.io-client", version.ref = "socketIoClient" }
 stream-chat-android-compose = { module = "io.getstream:stream-chat-android-compose", version.ref = "streamChatAndroidCompose" }
 stream-chat-android-offline = { module = "io.getstream:stream-chat-android-offline", version.ref = "streamChatAndroidOffline" }
+stream-video-android-ui-compose = { module = "io.getstream:stream-video-android-ui-compose", version.ref = "streamVideoAndroidUiCompose" }
 text-recognition = { module = "com.google.mlkit:text-recognition", version.ref = "textRecognition" }
 translate = { module = "com.google.mlkit:translate", version.ref = "translate" }
 wheelpickercompose = { module = "com.github.commandiron:WheelPickerCompose", version.ref = "wheelpickercompose" }

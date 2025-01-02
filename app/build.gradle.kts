@@ -42,6 +42,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.stream.video.android.ui.compose)
     implementation(libs.accompanist.placeholder.material)
     implementation(libs.orbital)
     implementation(libs.wheelpickercompose)
