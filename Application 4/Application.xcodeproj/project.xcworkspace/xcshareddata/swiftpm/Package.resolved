@@ -1,0 +1,23 @@
+{
+  "pins" : [
+    {
+      "identity" : "keychain-swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/evgenyneu/keychain-swift.git",
+      "state" : {
+        "revision" : "5e1b02b6a9dac2a759a1d5dbc175c86bd192a608",
+        "version" : "24.0.0"
+      }
+    },
+    {
+      "identity" : "swifttranslate",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/SkiingIsFun123/SwiftTranslate",
+      "state" : {
+        "branch" : "main",
+        "revision" : "e23289625c201a975fe441be01c0faaa769805c2"
+      }
+    }
+  ],
+  "version" : 2
+}
