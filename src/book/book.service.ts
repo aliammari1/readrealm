@@ -32,7 +32,7 @@ export class BookService {
   private geminiModel: string;
 
   private bookCache = new Map<string, any>();
-  private readonly CACHE_DURATION = 1000 * 60 * 15; // 15 minutes
+  private readonly CACHE_DURATION = 900000000; // 15 minutes
   private readonly BATCH_SIZE = 20;
 
   constructor(
@@ -313,7 +313,9 @@ export class BookService {
         coverImage: bookData.formats['image/jpeg'],
         genre: bookData.subjects.length > 0 ? bookData.subjects[0] : 'Unknown',
         textData: '',
-        link: bookData.formats['application/epub+zip'] || '', // Ensure it's never undefined
+        link:         bookData.formats['text/plain; charset=utf-8'] ||
+        bookData.formats['text/plain; charset=us-ascii'] ||
+        bookData.formats['text/plain'] || '', // Ensure it's never undefined
       };
 
       const textUrl =

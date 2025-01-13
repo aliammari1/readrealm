@@ -6,7 +6,7 @@ import { firstValueFrom } from 'rxjs';
 export class EpubService {
     private readonly GUTEDEX_API_ENDPOINT = 'https://gutendex.com';
 
-    constructor(private readonly httpService: HttpService) {}
+    constructor(private readonly httpService: HttpService) { }
 
     async getBookEpubLinkByTitle(title: string) {
         if (!title) {
@@ -20,24 +20,26 @@ export class EpubService {
         try {
             const response = await firstValueFrom(this.httpService.get(url));
             const books = response.data.results;
-            
+
             if (!books || books.length === 0) {
                 console.log(`No books found with title: ${title}`);
                 return '';
             }
-            
+
             // Try to find an exact or close match
-            const matchedBook = books.find(book => 
+            const matchedBook = books.find(book =>
                 book.title.toLowerCase().includes(title.toLowerCase()) ||
                 title.toLowerCase().includes(book.title.toLowerCase())
             ) || books[0];
 
             // Check all possible EPUB format keys
             const epubFormats = [
-                'application/epub+zip',
-                'application/x-mobipocket-ebook',
-                'text/html',
-                'text/plain; charset=utf-8'
+                // 'application/epub+zip',
+                // 'application/x-mobipocket-ebook',
+                // 'text/html',
+                'text/plain; charset=us-ascii',
+                'text/plain; charset=utf-8',
+                'text/plain',
             ];
 
             for (const format of epubFormats) {
@@ -55,4 +57,5 @@ export class EpubService {
             return '';
         }
     }
-}
+}   
+
