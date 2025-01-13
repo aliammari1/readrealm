@@ -40,7 +40,6 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import tn.esprit.libraryapp.components.LibrarianFab
 import tn.esprit.libraryapp.services.TokenManagerProvider
 import tn.esprit.libraryapp.ui.theme.LibraryAppTheme
 import tn.esprit.libraryapp.viewModel.BookViewModel
@@ -87,53 +86,22 @@ class MainActivity : ComponentActivity() {
 //            }
         }
     }
-}
 
-@Composable
-fun MainContent(
-    navController: NavHostController,
-    startDestination: String,
-    innerPadding: PaddingValues
-) {
-    val viewModel: BookViewModel = viewModel()
+    @Composable
+    fun MainContent(
+        navController: NavHostController,
+        startDestination: String,
+        innerPadding: PaddingValues
+    ) {
+        val viewModel: BookViewModel = viewModel()
 
-    LaunchedEffect(Unit) {
-        viewModel.initializeLibrarian(navController)
-    }
-
-    val librarianState by viewModel.librarianState.collectAsState()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-
-    val authRoutes = listOf(
-        NavigationItem.Login.route,
-        NavigationItem.Register.route,
-        NavigationItem.ForgotPassword.route,
-        NavigationItem.OTP.route,
-        NavigationItem.ResetPassword.route
-    )
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        AppNavHost(
-            modifier = Modifier.padding(innerPadding),
-            navController = navController,
-            startDestination = startDestination
-        )
-
-        // Show librarian if not on auth routes, positioned above bottom navigation
-        if (currentRoute !in authRoutes) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(bottom = 80.dp) // Add padding to stay above bottom navigation
-            ) {
-                LibrarianFab(
-                    state = librarianState,
-                    onAction = viewModel::handleLibrarianAction,
-                    navController = navController,  // Pass navigation controller
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }
+        // Remove LaunchedEffect and librarian initialization
+        Box(modifier = Modifier.fillMaxSize()) {
+            AppNavHost(
+                modifier = Modifier.padding(innerPadding),
+                navController = navController,
+                startDestination = startDestination
+            )
         }
     }
 }

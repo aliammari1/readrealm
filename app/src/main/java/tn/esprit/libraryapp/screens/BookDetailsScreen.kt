@@ -70,7 +70,6 @@ import com.valentinilk.shimmer.shimmer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import tn.esprit.libraryapp.models.Book
-import tn.esprit.libraryapp.models.LibrarianAction
 import tn.esprit.libraryapp.models.Review
 import tn.esprit.libraryapp.viewModel.BookViewModel
 
@@ -107,7 +106,6 @@ fun BookDetailsScreen(
             }
         )
 
-    LaunchedEffect(Unit) { viewModel.handleLibrarianAction(LibrarianAction.Welcome) }
 
     LaunchedEffect(scrollState.value) { showScrollToTop = scrollState.value > 100 }
 

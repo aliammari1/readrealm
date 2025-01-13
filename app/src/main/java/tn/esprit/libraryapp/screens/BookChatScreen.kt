@@ -47,9 +47,7 @@ import io.getstream.chat.android.state.plugin.factory.StreamStatePluginFactory
 import io.getstream.video.android.compose.permission.LaunchCallPermissions
 import io.getstream.video.android.compose.theme.VideoTheme
 import io.getstream.video.android.compose.ui.components.call.activecall.CallContent
-import io.getstream.video.android.compose.ui.components.call.ringing.RingingCallContent
 import io.getstream.video.android.core.StreamVideoBuilder
-import io.getstream.video.android.core.model.CallStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -200,7 +198,7 @@ fun ChatChannelScreen(
         if (selectedChannel != null) {
             var showVideoCall by remember { mutableStateOf(false) }
             val scope = rememberCoroutineScope()
-            
+
             if (showVideoCall) {
                 val videoClient = remember {
                     StreamVideoBuilder(
@@ -242,7 +240,8 @@ fun ChatChannelScreen(
                                         Log.d("VideoCall", "Successfully joined call")
                                     }.onError { error ->
                                         Log.e("VideoCall", "Failed to join call: $error")
-                                        Toast.makeText(context, error.message, Toast.LENGTH_LONG).show()
+                                        Toast.makeText(context, error.message, Toast.LENGTH_LONG)
+                                            .show()
                                         showVideoCall = false
                                     }
                                 } catch (e: Exception) {

@@ -57,7 +57,7 @@ fun AppNavHost(
             SpeechScreen()
         }
         composable(NavigationItem.Bookmarks.route) {
-            BookmarksScreen()
+            MyLibraryScreen()
         }
         composable(
             route = NavigationItem.ReadBook.route + "/{encodedUrl}",

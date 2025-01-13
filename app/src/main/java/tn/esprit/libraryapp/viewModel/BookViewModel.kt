@@ -3,7 +3,6 @@ package tn.esprit.libraryapp.viewModel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.NavHostController
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,17 +12,13 @@ import kotlinx.coroutines.launch
 import tn.esprit.libraryapp.enums.Genre
 import tn.esprit.libraryapp.models.Book
 import tn.esprit.libraryapp.models.BookmarkBook
-import tn.esprit.libraryapp.models.LibrarianAction
-import tn.esprit.libraryapp.models.LibrarianState
 import tn.esprit.libraryapp.models.Review
 import tn.esprit.libraryapp.models.SearchFilter
 import tn.esprit.libraryapp.models.SearchHistory
 import tn.esprit.libraryapp.models.SortOption
 import tn.esprit.libraryapp.repository.BookRepository
 import tn.esprit.libraryapp.services.AudioStreamManager
-import tn.esprit.libraryapp.services.MLKitService
 import tn.esprit.libraryapp.services.TokenManagerProvider
-import tn.esprit.libraryapp.utils.LibrarianManager
 
 class BookViewModel() : ViewModel() {
     private val repository = BookRepository()
@@ -31,8 +26,7 @@ class BookViewModel() : ViewModel() {
     val books: StateFlow<List<Book>> = _books
 
     private val _bookmarks = MutableStateFlow<List<Book>>(emptyList())
-    val bookmarks: StateFlow<List<Book>>
-        get() = _bookmarks
+    val bookmarks: StateFlow<List<Book>> = _bookmarks.asStateFlow()
 
     private val _reviews = MutableStateFlow<List<Review>>(emptyList())
     val reviews: StateFlow<List<Review>> = _reviews.asStateFlow()
@@ -80,23 +74,6 @@ class BookViewModel() : ViewModel() {
     // Add new state for error handling
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
-
-    // Add these properties
-    private val _librarianState = MutableStateFlow(LibrarianState())
-    val librarianState: StateFlow<LibrarianState> = _librarianState
-
-    private val mlKitService = MLKitService()
-
-    private var librarianManager: LibrarianManager? = null
-
-    fun initializeLibrarian(navController: NavHostController) {
-        librarianManager = LibrarianManager(navController, mlKitService)
-        viewModelScope.launch {
-            librarianManager?.state?.collect { state ->
-                _librarianState.value = state
-            }
-        }
-    }
 
     fun loadBookmarks() {
         viewModelScope.launch {
@@ -166,10 +143,10 @@ class BookViewModel() : ViewModel() {
 
                 // Perform search locally first for immediate feedback
                 val localResults =
-                    allBooks.filter { book ->
-                        book.title.contains(query, ignoreCase = true) ||
-                                book.author.contains(query, ignoreCase = true)
-                    }
+                        allBooks.filter { book ->
+                            book.title.contains(query, ignoreCase = true) ||
+                                    book.author.contains(query, ignoreCase = true)
+                        }
 
                 _searchResults.value = localResults
 
@@ -179,33 +156,31 @@ class BookViewModel() : ViewModel() {
 
                 // Apply filters
                 val filteredResults =
-                    results.filter { book ->
-                        var matches = true
-                        filters.genre?.let {
-                            matches = (matches && book.genre.equals(it.value, true))
+                        results.filter { book ->
+                            var matches = true
+                            filters.genre?.let {
+                                matches = (matches && book.genre.equals(it.value, true))
+                            }
+                            filters.author?.let {
+                                matches = (matches && book.author.contains(it, true))
+                            }
+                            filters.year?.let { matches = (matches && book.publicationYear == it) }
+                            matches
                         }
-                        filters.author?.let {
-                            matches = (matches && book.author.contains(it, true))
-                        }
-                        filters.year?.let { matches = (matches && book.publicationYear == it) }
-                        matches
-                    }
 
                 // Apply sorting
                 val sortedResults =
-                    when (filters.sortBy) {
-                        SortOption.TITLE_ASC -> filteredResults.sortedBy { it.title }
-                        SortOption.TITLE_DESC -> filteredResults.sortedByDescending { it.title }
-                        SortOption.AUTHOR_ASC -> filteredResults.sortedBy { it.author }
-                        SortOption.AUTHOR_DESC ->
-                            filteredResults.sortedByDescending { it.author }
-
-                        SortOption.YEAR_NEW ->
-                            filteredResults.sortedByDescending { it.publicationYear }
-
-                        SortOption.YEAR_OLD -> filteredResults.sortedBy { it.publicationYear }
-                        else -> filteredResults
-                    }
+                        when (filters.sortBy) {
+                            SortOption.TITLE_ASC -> filteredResults.sortedBy { it.title }
+                            SortOption.TITLE_DESC -> filteredResults.sortedByDescending { it.title }
+                            SortOption.AUTHOR_ASC -> filteredResults.sortedBy { it.author }
+                            SortOption.AUTHOR_DESC ->
+                                    filteredResults.sortedByDescending { it.author }
+                            SortOption.YEAR_NEW ->
+                                    filteredResults.sortedByDescending { it.publicationYear }
+                            SortOption.YEAR_OLD -> filteredResults.sortedBy { it.publicationYear }
+                            else -> filteredResults
+                        }
 
                 _searchResults.value = sortedResults
 
@@ -241,8 +216,7 @@ class BookViewModel() : ViewModel() {
                     val updatedBook = repository.toggleBookmark(userId, book)
                     Log.d("BookViewModel", "ToggleBookmark - Updated book: $updatedBook")
                     _bookDetails.value = updatedBook
-                    _isBookmarked.value =
-                        updatedBook.bookmarks?.any { it.userId == userId } == true
+                    _isBookmarked.value = updatedBook.bookmarks?.any { it.userId == userId } == true
                 }
             } catch (e: Exception) {
                 Log.e("BookViewModel", "Error toggling bookmark", e)
@@ -280,13 +254,13 @@ class BookViewModel() : ViewModel() {
 
                 if (userId != null) {
                     val hasBookmark =
-                        bookmarks?.any { bookmark ->
-                            Log.d(
-                                "BookViewModel",
-                                "Checking bookmark: userId=${bookmark.userId} against currentUser=$userId"
-                            )
-                            bookmark.userId == userId
-                        } == true
+                            bookmarks?.any { bookmark ->
+                                Log.d(
+                                        "BookViewModel",
+                                        "Checking bookmark: userId=${bookmark.userId} against currentUser=$userId"
+                                )
+                                bookmark.userId == userId
+                            } == true
 
                     Log.d("BookViewModel", "Setting isBookmarked to: $hasBookmark")
                     _isBookmarked.value = hasBookmark
@@ -348,8 +322,8 @@ class BookViewModel() : ViewModel() {
                 Log.d("BookViewModel", "Reviews: $fetchedReviews")
                 _reviews.value = fetchedReviews
                 Log.d(
-                    "BookViewModel",
-                    "Reviews state updated. Current size: ${_reviews.value.size}"
+                        "BookViewModel",
+                        "Reviews state updated. Current size: ${_reviews.value.size}"
                 )
             } catch (e: Exception) {
                 Log.e("BookViewModel", "Error fetching reviews", e)
@@ -387,22 +361,8 @@ class BookViewModel() : ViewModel() {
         _searchHistory.value = _searchHistory.value.filter { it.query != query }
     }
 
-    fun handleLibrarianAction(action: LibrarianAction) {
-        viewModelScope.launch {
-            try {
-                _librarianState.value = _librarianState.value.copy(isTyping = true)
-                librarianManager?.handleAction(action)
-            } catch (e: Exception) {
-                _error.value = e.message
-            } finally {
-                _librarianState.value = _librarianState.value.copy(isTyping = false)
-            }
-        }
-    }
-
     override fun onCleared() {
         super.onCleared()
-        mlKitService.close()
         currentJob?.cancel()
         stopAudio()
         audioStreamManager = null
