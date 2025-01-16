@@ -6,7 +6,7 @@ data class User(
     val email: String,
     val password: String,
     val profilePicture: String?,
-    val role: String
+    val role: String,
 )
 
 data class LoginRequest(val email: String, val password: String)
@@ -17,7 +17,7 @@ data class RegisterRequest(
     val username: String,
     val email: String,
     val password: String,
-    val profilePicture: String? = null
+    val profilePicture: String? = null,
 )
 
 data class RegisterResponse(val token: String)

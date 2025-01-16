@@ -51,11 +51,9 @@ class AuthViewModel() : ViewModel() {
         _name.value = value
     }
 
-
     fun onEmailChange(value: String) {
         _email.value = value
     }
-
 
     fun onPasswordChange(value: String) {
         _password.value = value
@@ -71,7 +69,7 @@ class AuthViewModel() : ViewModel() {
                         .saveTokens(
                             loginResponse.accessToken,
                             loginResponse.refreshToken,
-                            loginResponse.userId
+                            loginResponse.userId,
                         )
                     _loginResult.value = Result.success(loginResponse)
                 } else {

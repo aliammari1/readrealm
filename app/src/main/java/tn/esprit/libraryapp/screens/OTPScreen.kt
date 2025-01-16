@@ -48,7 +48,7 @@ import tn.esprit.libraryapp.viewModel.AuthViewModel
 @Composable
 fun OtpScreen(
     navController: NavHostController,
-    email: String
+    email: String,
 ) {
     val viewModel: AuthViewModel = viewModel()
     val verificationCode = remember { mutableStateListOf<String>().apply { repeat(6) { add("") } } }
@@ -61,9 +61,8 @@ fun OtpScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .background(Color(0xffffffff))
-            .padding(20.dp)
+            .padding(20.dp),
     ) {
-
         Text(
             modifier = Modifier
                 .width(340.dp),
@@ -72,7 +71,7 @@ fun OtpScreen(
             fontSize = 30.sp,
             fontWeight = FontWeight.Normal,
             textAlign = TextAlign.Left,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
         )
 
         Text(
@@ -84,28 +83,28 @@ fun OtpScreen(
             fontSize = 18.sp,
             fontWeight = FontWeight.Normal,
             textAlign = TextAlign.Left,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
         )
 
         // Verification Code Input Fields (One for each digit)
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
-                .padding(start = 50.dp, top = 20.dp) // This adds space before the section
+                .padding(start = 50.dp, top = 20.dp), // This adds space before the section
         ) {
             Text(
                 text = "Verification Code",
                 color = Color(0xff000000),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Normal,
-                textAlign = TextAlign.Left
+                textAlign = TextAlign.Left,
             )
 
             // Added more space here
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 for (i in 0 until 6) {
                     OutlinedTextField(
@@ -120,7 +119,7 @@ fun OtpScreen(
                             .width(50.dp)
                             .border(3.dp, Color(0x7f000000), RoundedCornerShape(15.dp)),
                         singleLine = true,
-                        placeholder = { Text("", color = Color(0x7f000000)) }
+                        placeholder = { Text("", color = Color(0x7f000000)) },
                     )
                 }
             }
@@ -137,13 +136,13 @@ fun OtpScreen(
                 .padding(top = 20.dp)
                 .fillMaxWidth()
                 .height(56.dp),
-            shape = RoundedCornerShape(10.dp)
+            shape = RoundedCornerShape(10.dp),
         ) {
             Text(
                 text = "Submit",
                 color = Color.White,
                 fontSize = 16.sp,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
         }
     }
@@ -161,14 +160,12 @@ fun OtpScreen(
     if (isSheetOpen) {
         ModalBottomSheet(
             sheetState = sheetState,
-            onDismissRequest = { isSheetOpen = false }
+            onDismissRequest = { isSheetOpen = false },
         ) {
             ResetPasswordScreen(
                 navController = navController,
-                email = email
+                email = email,
             )
         }
     }
-
 }
-

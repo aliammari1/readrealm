@@ -9,16 +9,16 @@ object RetrofitService {
     private const val BASE_URL = "http://192.168.17.105:3000/"
 
     private val loggingInterceptor =
-            HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
+        HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
 
     private val okHttpClient = OkHttpClient.Builder().addInterceptor(loggingInterceptor).build()
 
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .client(okHttpClient)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
+            .baseUrl(BASE_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
     }
 
     val userService: UserService by lazy { retrofit.create(UserService::class.java) }

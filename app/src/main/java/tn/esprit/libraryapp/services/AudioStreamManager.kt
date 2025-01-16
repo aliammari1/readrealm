@@ -41,7 +41,6 @@ class AudioStreamManager(private val context: Context) {
                 }
                 prepareAsync()
             }
-
         } catch (e: IOException) {
             Log.e("AudioStreamManager", "Error playing audio stream", e)
             stop()

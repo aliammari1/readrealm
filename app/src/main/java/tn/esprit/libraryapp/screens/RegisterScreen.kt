@@ -80,7 +80,7 @@ fun RegisterScreen(
     var imageUri by remember { mutableStateOf<Uri?>(null) }
 
     val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
+        contract = ActivityResultContracts.GetContent(),
     ) { uri: Uri? ->
         imageUri = uri
     }
@@ -117,9 +117,9 @@ fun RegisterScreen(
         targetValue = 1.03f,
         animationSpec = infiniteRepeatable(
             animation = tween(3000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
+            repeatMode = RepeatMode.Reverse,
         ),
-        label = ""
+        label = "",
     )
 
     val rotation by infiniteTransition.animateFloat(
@@ -127,9 +127,9 @@ fun RegisterScreen(
         targetValue = 5f,
         animationSpec = infiniteRepeatable(
             animation = tween(4000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
+            repeatMode = RepeatMode.Reverse,
         ),
-        label = ""
+        label = "",
     )
 
     val scrollState = rememberScrollState()
@@ -142,7 +142,7 @@ fun RegisterScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .alpha(0.1f)
+                .alpha(0.1f),
         ) {
             repeat(12) { index ->
                 val rotation by rememberInfiniteTransition(label = "")
@@ -151,9 +151,9 @@ fun RegisterScreen(
                         targetValue = 360f,
                         animationSpec = infiniteRepeatable(
                             animation = tween(20000, easing = LinearEasing),
-                            repeatMode = RepeatMode.Restart
+                            repeatMode = RepeatMode.Restart,
                         ),
-                        label = ""
+                        label = "",
                     )
 
                 Box(
@@ -161,19 +161,19 @@ fun RegisterScreen(
                         .size(160.dp)
                         .offset(
                             x = (index * 100).dp,
-                            y = (index * 80).dp
+                            y = (index * 80).dp,
                         )
                         .graphicsLayer {
                             rotationZ = rotation + index * 30
                             scaleX = 0.8f
                             scaleY = 0.8f
-                        }
+                        },
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Outlined.MenuBook,
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
-                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
                     )
                 }
             }
@@ -184,7 +184,7 @@ fun RegisterScreen(
                 .fillMaxSize()
                 .verticalScroll(scrollState)
                 .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Box(
                 modifier = Modifier
@@ -192,12 +192,12 @@ fun RegisterScreen(
                     .graphicsLayer {
                         alpha = 1f - (scrollState.value * 0.002f).coerceAtMost(0.3f)
                         translationY = -scrollState.value * 0.3f
-                    }
+                    },
             ) {
                 Column(
                     modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    verticalArrangement = Arrangement.Center,
                 ) {
                     Box(
                         modifier = Modifier
@@ -207,13 +207,13 @@ fun RegisterScreen(
                                 brush = Brush.radialGradient(
                                     colors = listOf(
                                         MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                                    )
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                    ),
                                 ),
-                                shape = CircleShape
+                                shape = CircleShape,
                             )
                             .padding(24.dp)
-                            .clickable { launcher.launch("image/*") }
+                            .clickable { launcher.launch("image/*") },
                     ) {
                         if (imageUri != null) {
                             Image(
@@ -222,7 +222,7 @@ fun RegisterScreen(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .clip(CircleShape),
-                                contentScale = ContentScale.Crop
+                                contentScale = ContentScale.Crop,
                             )
                         } else {
                             Icon(
@@ -235,7 +235,7 @@ fun RegisterScreen(
                                         scaleY = scale
                                         rotationZ = rotation * 2
                                     },
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = MaterialTheme.colorScheme.primary,
                             )
                         }
                     }
@@ -249,8 +249,8 @@ fun RegisterScreen(
                                     color = MaterialTheme.colorScheme.primary,
                                     fontSize = 36.sp,
                                     fontWeight = FontWeight.Light,
-                                    letterSpacing = 2.sp
-                                )
+                                    letterSpacing = 2.sp,
+                                ),
                             ) { append("Join") }
                             append("\n\n")
                             withStyle(
@@ -262,16 +262,16 @@ fun RegisterScreen(
                                     shadow = Shadow(
                                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
                                         offset = Offset(0f, 4f),
-                                        blurRadius = 8f
-                                    )
-                                )
+                                        blurRadius = 8f,
+                                    ),
+                                ),
                             ) { append("ReadRealm") }
                         },
                         textAlign = TextAlign.Center,
                         modifier = Modifier.graphicsLayer {
                             scaleX = scale
                             scaleY = scale
-                        }
+                        },
                     )
 
                     Text(
@@ -279,9 +279,9 @@ fun RegisterScreen(
                         style = MaterialTheme.typography.titleMedium.copy(
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             fontWeight = FontWeight.Medium,
-                            letterSpacing = 1.sp
+                            letterSpacing = 1.sp,
                         ),
-                        modifier = Modifier.padding(top = 8.dp)
+                        modifier = Modifier.padding(top = 8.dp),
                     )
                 }
             }
@@ -295,30 +295,30 @@ fun RegisterScreen(
                     .shadow(
                         elevation = 20.dp,
                         shape = RoundedCornerShape(32.dp),
-                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                     )
                     .clip(RoundedCornerShape(32.dp))
                     .background(
                         brush = Brush.verticalGradient(
                             colors = listOf(
                                 MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-                                MaterialTheme.colorScheme.surface.copy(alpha = 0.98f)
-                            )
-                        )
-                    )
+                                MaterialTheme.colorScheme.surface.copy(alpha = 0.98f),
+                            ),
+                        ),
+                    ),
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
                     MyTextField(
                         textFieldState = name,
                         onTextChange = { viewModel.onNameChange(it) },
                         hint = "Name",
                         leadingIcon = Icons.Outlined.AccountCircle,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     )
                     MyTextField(
                         textFieldState = email,
@@ -327,7 +327,7 @@ fun RegisterScreen(
                         leadingIcon = Icons.Outlined.Email,
                         trailingIcon = Icons.Outlined.Check,
                         keyboardType = KeyboardType.Email,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     )
                     MyTextField(
                         textFieldState = password,
@@ -335,7 +335,7 @@ fun RegisterScreen(
                         hint = "Password",
                         leadingIcon = Icons.Outlined.Lock,
                         isPassword = true,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     )
 
                     Button(
@@ -346,17 +346,17 @@ fun RegisterScreen(
                                     username = name,
                                     email = email,
                                     password = password,
-                                    profilePicture = base64Image
-                                )
+                                    profilePicture = base64Image,
+                                ),
                             )
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp),
                     ) {
                         Text(
                             text = "Create Account",
                             modifier = Modifier.padding(vertical = 8.dp),
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.titleMedium,
                         )
                     }
                 }
@@ -371,15 +371,15 @@ fun RegisterScreen(
                     .shadow(
                         elevation = 8.dp,
                         shape = RoundedCornerShape(24.dp),
-                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                     ),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
-                )
+                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                ),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround
+                    horizontalArrangement = Arrangement.SpaceAround,
                 ) {
                     AuthOption(image = R.drawable.google)
                     AuthOption(image = R.drawable.facebook)
@@ -397,18 +397,18 @@ fun RegisterScreen(
                     .shadow(
                         elevation = 4.dp,
                         shape = RoundedCornerShape(20.dp),
-                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                     ),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
-                )
+                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                ),
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
                     horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text("Already have an account? ", style = MaterialTheme.typography.bodyLarge)
                     Text(
@@ -421,7 +421,7 @@ fun RegisterScreen(
                             .graphicsLayer {
                                 scaleX = scale
                                 scaleY = scale
-                            }
+                            },
                     )
                 }
             }

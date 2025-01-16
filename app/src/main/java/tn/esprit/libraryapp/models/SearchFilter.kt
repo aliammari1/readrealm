@@ -6,7 +6,7 @@ data class SearchFilter(
     val genre: Genre? = null,
     val author: String? = null,
     val year: Int? = null,
-    val sortBy: SortOption = SortOption.RELEVANCE
+    val sortBy: SortOption = SortOption.RELEVANCE,
 )
 
 enum class SortOption(val displayName: String) {
@@ -16,10 +16,10 @@ enum class SortOption(val displayName: String) {
     AUTHOR_ASC("Author A-Z"),
     AUTHOR_DESC("Author Z-A"),
     YEAR_NEW("Newest First"),
-    YEAR_OLD("Oldest First")
+    YEAR_OLD("Oldest First"),
 }
 
 data class SearchHistory(
     val query: String,
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
 )

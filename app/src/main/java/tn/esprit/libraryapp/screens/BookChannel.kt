@@ -32,7 +32,7 @@ import tn.esprit.libraryapp.viewModel.BookChannelViewModel
 @Composable
 fun BookChannelScreen(
     navController: NavHostController,
-    viewModel: BookChannelViewModel = viewModel()
+    viewModel: BookChannelViewModel = viewModel(),
 ) {
     val bookmarkedBooks by viewModel.bookmarkedBooks.collectAsState(initial = emptyList())
 
@@ -46,17 +46,17 @@ fun BookChannelScreen(
                 title = { Text("Book Channels") },
                 colors =
                 TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                ),
             )
-        }
+        },
     ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             items(bookmarkedBooks) { book ->
                 BookChannelItem(
@@ -65,7 +65,7 @@ fun BookChannelScreen(
                     lastMessage = "Join the discussion!",
                     onChannelClick = {
                         book.id?.let { id -> navController.navigate("book_chat/$id") }
-                    }
+                    },
                 )
             }
         }
@@ -77,18 +77,19 @@ fun BookChannelItem(
     bookTitle: String,
     bookCover: String,
     lastMessage: String,
-    onChannelClick: () -> Unit
+    onChannelClick: () -> Unit,
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(80.dp), onClick = onChannelClick
+            .height(80.dp),
+        onClick = onChannelClick,
     ) {
         Row(
             modifier = Modifier
                 .padding(8.dp)
                 .fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             AsyncImage(
                 model = bookCover,
@@ -96,7 +97,7 @@ fun BookChannelItem(
                 modifier = Modifier
                     .size(60.dp)
                     .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
             )
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -106,7 +107,7 @@ fun BookChannelItem(
                 Text(
                     text = lastMessage,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -121,7 +122,7 @@ fun BookChatScreen(bookId: String, viewModel: BookChannelViewModel = viewModel()
     val permissionNeeded by viewModel.permissionNeeded.collectAsState()
 
     val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
+        ActivityResultContracts.RequestPermission(),
     ) { isGranted: Boolean ->
         if (isGranted) {
             viewModel.onPermissionGranted(bookId)
@@ -150,7 +151,7 @@ fun BookChatScreen(bookId: String, viewModel: BookChannelViewModel = viewModel()
                 }) {
                     Text("Grant Permission")
                 }
-            }
+            },
         )
     }
 
@@ -163,13 +164,13 @@ fun BookChatScreen(bookId: String, viewModel: BookChannelViewModel = viewModel()
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.Top, // Stack from top
-                state = rememberLazyListState() // Add list state for scrolling
+                state = rememberLazyListState(), // Add list state for scrolling
             ) {
                 items(messages.sortedByDescending { it.timestamp }) { message -> // Reverse sort order
                     ChatMessage(
                         message = message.content,
                         isOwnMessage = message.userId == viewModel.getCurrentUserId(),
-                        senderName = message.userName
+                        senderName = message.userName,
                     )
                 }
             }
@@ -178,21 +179,21 @@ fun BookChatScreen(bookId: String, viewModel: BookChannelViewModel = viewModel()
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 tonalElevation = 4.dp,
-                shadowElevation = 4.dp // Add shadow to make it stand out
+                shadowElevation = 4.dp, // Add shadow to make it stand out
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 8.dp, vertical = 8.dp), // Increased padding
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     // Message input
                     OutlinedTextField(
                         value = messageText,
                         onValueChange = { messageText = it },
                         modifier = Modifier.weight(1f),
-                        placeholder = { Text("Type a message...") }
+                        placeholder = { Text("Type a message...") },
                     )
 
                     // Voice call button
@@ -202,13 +203,13 @@ fun BookChatScreen(bookId: String, viewModel: BookChannelViewModel = viewModel()
                             .size(48.dp)
                             .background(
                                 MaterialTheme.colorScheme.primary,
-                                CircleShape
-                            )
+                                CircleShape,
+                            ),
                     ) {
                         Icon(
                             imageVector = Icons.Default.Phone,
                             contentDescription = "Start voice call",
-                            tint = MaterialTheme.colorScheme.onPrimary
+                            tint = MaterialTheme.colorScheme.onPrimary,
                         )
                     }
 
@@ -224,13 +225,13 @@ fun BookChatScreen(bookId: String, viewModel: BookChannelViewModel = viewModel()
                             .size(48.dp)
                             .background(
                                 MaterialTheme.colorScheme.primary,
-                                CircleShape
-                            )
+                                CircleShape,
+                            ),
                     ) {
                         Icon(
                             imageVector = Icons.Default.Send,
                             contentDescription = "Send message",
-                            tint = MaterialTheme.colorScheme.onPrimary
+                            tint = MaterialTheme.colorScheme.onPrimary,
                         )
                     }
                 }
@@ -240,7 +241,7 @@ fun BookChatScreen(bookId: String, viewModel: BookChannelViewModel = viewModel()
         // Show call UI when in call
         if (viewModel.isInCall.collectAsState().value) {
             VoiceCallOverlay(
-                onEndCall = { viewModel.endVoiceCall() }
+                onEndCall = { viewModel.endVoiceCall() },
             )
         }
 
@@ -249,7 +250,7 @@ fun BookChatScreen(bookId: String, viewModel: BookChannelViewModel = viewModel()
             IncomingCallDialog(
                 caller = call.caller,
                 onAccept = { viewModel.acceptCall(call.roomId) },
-                onReject = { viewModel.rejectCall() }
+                onReject = { viewModel.rejectCall() },
             )
         }
     }
@@ -259,7 +260,7 @@ fun BookChatScreen(bookId: String, viewModel: BookChannelViewModel = viewModel()
 fun IncomingCallDialog(
     caller: String,
     onAccept: () -> Unit,
-    onReject: () -> Unit
+    onReject: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onReject,
@@ -269,8 +270,8 @@ fun IncomingCallDialog(
             Button(
                 onClick = onAccept,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
+                    containerColor = MaterialTheme.colorScheme.primary,
+                ),
             ) {
                 Text("Accept")
             }
@@ -279,12 +280,12 @@ fun IncomingCallDialog(
             Button(
                 onClick = onReject,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error
-                )
+                    containerColor = MaterialTheme.colorScheme.error,
+                ),
             ) {
                 Text("Reject")
             }
-        }
+        },
     )
 }
 
@@ -293,17 +294,17 @@ fun VoiceCallOverlay(onEndCall: () -> Unit) {
     // Update the existing VoiceCallOverlay to show connected users
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.scrim.copy(alpha = 0.7f)
+        color = MaterialTheme.colorScheme.scrim.copy(alpha = 0.7f),
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
         ) {
             Text(
                 text = "Voice Call in Progress",
                 style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -314,13 +315,13 @@ fun VoiceCallOverlay(onEndCall: () -> Unit) {
                     .size(64.dp)
                     .background(
                         color = MaterialTheme.colorScheme.error,
-                        shape = CircleShape
-                    )
+                        shape = CircleShape,
+                    ),
             ) {
                 Icon(
                     imageVector = Icons.Default.Call,
                     contentDescription = "End call",
-                    tint = MaterialTheme.colorScheme.onError
+                    tint = MaterialTheme.colorScheme.onError,
                 )
             }
         }
@@ -332,32 +333,35 @@ fun ChatMessage(
     message: String,
     isOwnMessage: Boolean,
     senderName: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 2.dp), // Reduced vertical padding
-        horizontalAlignment = if (isOwnMessage) Alignment.End else Alignment.Start
+        horizontalAlignment = if (isOwnMessage) Alignment.End else Alignment.Start,
     ) {
         Text(
             text = senderName,
             style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
         )
 
         Surface(
             shape = RoundedCornerShape(12.dp),
-            color = if (isOwnMessage) MaterialTheme.colorScheme.primaryContainer
-            else MaterialTheme.colorScheme.surfaceVariant,
+            color = if (isOwnMessage) {
+                MaterialTheme.colorScheme.primaryContainer
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant
+            },
             modifier = Modifier
                 .padding(horizontal = 8.dp)
-                .widthIn(max = 280.dp) // Limit maximum width of messages
+                .widthIn(max = 280.dp), // Limit maximum width of messages
         ) {
             Text(
                 text = message,
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
             )
         }
     }

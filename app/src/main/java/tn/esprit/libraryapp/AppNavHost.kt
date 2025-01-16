@@ -15,10 +15,12 @@ import tn.esprit.libraryapp.screens.*
 fun AppNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController,
-    startDestination: String = NavigationItem.Home.route
+    startDestination: String = NavigationItem.Home.route,
 ) {
     NavHost(
-        modifier = modifier, navController = navController, startDestination = startDestination
+        modifier = modifier,
+        navController = navController,
+        startDestination = startDestination,
     ) {
         composable(NavigationItem.Home.route) {
             HomeScreen(navController = navController)
@@ -35,7 +37,8 @@ fun AppNavHost(
         composable(NavigationItem.OTP.route + "/{email}") {
             val email = it.arguments?.getString("email")
             OtpScreen(
-                navController = navController, email = email ?: ""
+                navController = navController,
+                email = email ?: "",
             )
         }
         composable(NavigationItem.ResetPassword.route + "/{email}") {
@@ -46,7 +49,7 @@ fun AppNavHost(
             "book_details/{bookId}",
             arguments = listOf(
                 navArgument("bookId") { type = NavType.IntType },
-            )
+            ),
         ) { backStackEntry ->
             BookDetailsScreen(
                 navController = navController,
@@ -65,8 +68,8 @@ fun AppNavHost(
                 navArgument("encodedUrl") {
                     type = NavType.StringType
                     nullable = true
-                }
-            )
+                },
+            ),
         ) { backStackEntry ->
             val encodedUrl = backStackEntry.arguments?.getString("encodedUrl")
             val decodedUrl = encodedUrl?.let { Uri.decode(it) }
@@ -81,13 +84,13 @@ fun AppNavHost(
         composable(
             route = "book_chat/{bookId}",
             arguments = listOf(
-                navArgument("bookId") { type = NavType.StringType }
-            )
+                navArgument("bookId") { type = NavType.StringType },
+            ),
         ) { backStackEntry ->
             val bookId = backStackEntry.arguments?.getString("bookId") ?: ""
             BookChatScreen(
                 bookId = bookId,
-                viewModel = viewModel()
+                viewModel = viewModel(),
             )
         }
     }

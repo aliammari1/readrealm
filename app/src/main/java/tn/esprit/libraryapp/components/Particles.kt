@@ -19,8 +19,8 @@ fun ParticleEffect() {
                 Particle(
                     position =
                     Offset(Random.nextFloat() * 1000f, Random.nextFloat() * 2000f),
-                    velocity = Random.nextFloat() * 2f + 1f
-                )
+                    velocity = Random.nextFloat() * 2f + 1f,
+                ),
             )
         }
     }
@@ -30,7 +30,7 @@ fun ParticleEffect() {
             drawCircle(
                 color = Color.White.copy(0.2f),
                 radius = 4.dp.toPx(),
-                center = particle.value.position
+                center = particle.value.position,
             )
             particle.value = particle.value.update(size)
         }

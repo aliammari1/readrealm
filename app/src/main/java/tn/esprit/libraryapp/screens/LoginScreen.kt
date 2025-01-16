@@ -79,28 +79,28 @@ fun LoginScreen(
 
     val infiniteTransition = rememberInfiniteTransition(label = "")
     val scale by
-    infiniteTransition.animateFloat(
-        initialValue = 0.97f,
-        targetValue = 1.03f,
-        animationSpec =
-        infiniteRepeatable(
-            animation = tween(3000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = ""
-    )
+        infiniteTransition.animateFloat(
+            initialValue = 0.97f,
+            targetValue = 1.03f,
+            animationSpec =
+            infiniteRepeatable(
+                animation = tween(3000, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse,
+            ),
+            label = "",
+        )
 
     val rotation by
-    infiniteTransition.animateFloat(
-        initialValue = -5f,
-        targetValue = 5f,
-        animationSpec =
-        infiniteRepeatable(
-            animation = tween(4000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = ""
-    )
+        infiniteTransition.animateFloat(
+            initialValue = -5f,
+            targetValue = 5f,
+            animationSpec =
+            infiniteRepeatable(
+                animation = tween(4000, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse,
+            ),
+            label = "",
+        )
 
     val scrollState = rememberScrollState()
     300.dp
@@ -121,43 +121,43 @@ fun LoginScreen(
                         listOf(
                             MaterialTheme.colorScheme
                                 .primary.copy(
-                                    alpha = 0.15f
+                                    alpha = 0.15f,
                                 ),
                             MaterialTheme.colorScheme
                                 .secondary.copy(
-                                    alpha = 0.1f
+                                    alpha = 0.1f,
                                 ),
                             MaterialTheme.colorScheme
                                 .tertiary.copy(
-                                    alpha = 0.05f
+                                    alpha = 0.05f,
                                 ),
                             MaterialTheme.colorScheme
-                                .surface
-                        )
-                    )
-                )
+                                .surface,
+                        ),
+                    ),
+                ),
         )
 
         // 3D Floating Books Background
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .alpha(0.1f)
+                .alpha(0.1f),
         ) {
             repeat(12) { index ->
                 val rotation by
-                rememberInfiniteTransition(label = "")
-                    .animateFloat(
-                        initialValue = 0f,
-                        targetValue = 360f,
-                        animationSpec =
-                        infiniteRepeatable(
-                            animation =
-                            tween(20000, easing = LinearEasing),
-                            repeatMode = RepeatMode.Restart
-                        ),
-                        label = ""
-                    )
+                    rememberInfiniteTransition(label = "")
+                        .animateFloat(
+                            initialValue = 0f,
+                            targetValue = 360f,
+                            animationSpec =
+                            infiniteRepeatable(
+                                animation =
+                                tween(20000, easing = LinearEasing),
+                                repeatMode = RepeatMode.Restart,
+                            ),
+                            label = "",
+                        )
 
                 Box(
                     modifier =
@@ -168,13 +168,13 @@ fun LoginScreen(
                             rotationZ = rotation + index * 30
                             scaleX = 0.8f
                             scaleY = 0.8f
-                        }
+                        },
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.MenuBook,
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
-                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
                     )
                 }
             }
@@ -183,7 +183,7 @@ fun LoginScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(scrollState)
+                .verticalScroll(scrollState),
         ) {
             // Enhanced header section
             Box(
@@ -193,14 +193,14 @@ fun LoginScreen(
                     .graphicsLayer {
                         alpha = 1f - (scrollState.value * 0.002f).coerceAtMost(0.3f)
                         translationY = -scrollState.value * 0.3f
-                    }
+                    },
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(32.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    verticalArrangement = Arrangement.Center,
                 ) {
                     Box(
                         modifier =
@@ -217,20 +217,20 @@ fun LoginScreen(
                                             .primary
                                             .copy(
                                                 alpha =
-                                                0.2f
+                                                0.2f,
                                             ),
                                         MaterialTheme
                                             .colorScheme
                                             .primary
                                             .copy(
                                                 alpha =
-                                                0.1f
-                                            )
-                                    )
+                                                0.1f,
+                                            ),
+                                    ),
                                 ),
-                                shape = CircleShape
+                                shape = CircleShape,
                             )
-                            .padding(24.dp)
+                            .padding(24.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.AutoStories,
@@ -243,7 +243,7 @@ fun LoginScreen(
                                     scaleY = scale
                                     rotationZ = rotation * 2
                                 },
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.primary,
                         )
                     }
 
@@ -255,8 +255,8 @@ fun LoginScreen(
                                     color = MaterialTheme.colorScheme.primary,
                                     fontSize = 36.sp,
                                     fontWeight = FontWeight.Light,
-                                    letterSpacing = 2.sp
-                                )
+                                    letterSpacing = 2.sp,
+                                ),
                             ) { append("Welcome to") }
                             append("\n\n") // Added extra newline for more spacing
                             withStyle(
@@ -270,14 +270,13 @@ fun LoginScreen(
                                         color =
                                         MaterialTheme.colorScheme
                                             .primary.copy(
-                                                alpha = 0.5f
+                                                alpha = 0.5f,
                                             ),
                                         offset = Offset(0f, 4f),
-                                        blurRadius = 8f
-                                    )
-                                )
+                                        blurRadius = 8f,
+                                    ),
+                                ),
                             ) { append("ReadRealm") }
-
                         },
                         textAlign = TextAlign.Center,
                         modifier =
@@ -286,7 +285,7 @@ fun LoginScreen(
                                 scaleX = scale
                                 scaleY = scale
                             }
-                            .padding(vertical = 8.dp) // Added vertical padding
+                            .padding(vertical = 8.dp), // Added vertical padding
                     )
 
                     Text(
@@ -295,12 +294,12 @@ fun LoginScreen(
                         MaterialTheme.typography.titleMedium.copy(
                             color =
                             MaterialTheme.colorScheme.onSurface.copy(
-                                alpha = 0.7f
+                                alpha = 0.7f,
                             ),
                             fontWeight = FontWeight.Medium,
-                            letterSpacing = 1.sp
+                            letterSpacing = 1.sp,
                         ),
-                        modifier = Modifier.padding(top = 8.dp)
+                        modifier = Modifier.padding(top = 8.dp),
                     )
                 }
             }
@@ -310,7 +309,7 @@ fun LoginScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                verticalArrangement = Arrangement.spacedBy(24.dp),
             ) {
                 // Enhanced login card
                 Card(
@@ -322,8 +321,8 @@ fun LoginScreen(
                             shape = RoundedCornerShape(32.dp),
                             spotColor =
                             MaterialTheme.colorScheme.primary.copy(
-                                alpha = 0.2f
-                            )
+                                alpha = 0.2f,
+                            ),
                         )
                         .clip(RoundedCornerShape(32.dp))
                         .background(
@@ -336,29 +335,29 @@ fun LoginScreen(
                                         .surface
                                         .copy(
                                             alpha =
-                                            0.95f
+                                            0.95f,
                                         ),
                                     MaterialTheme
                                         .colorScheme
                                         .surface
                                         .copy(
                                             alpha =
-                                            0.98f
-                                        )
-                                )
-                            )
-                        )
+                                            0.98f,
+                                        ),
+                                ),
+                            ),
+                        ),
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(24.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
                         Text(
                             "Sign In",
                             style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
                         )
 
                         MyTextField(
@@ -368,7 +367,7 @@ fun LoginScreen(
                             leadingIcon = Icons.Outlined.Email,
                             trailingIcon = Icons.Outlined.Check,
                             keyboardType = KeyboardType.Email,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
                         )
 
                         MyTextField(
@@ -377,13 +376,13 @@ fun LoginScreen(
                             hint = "Password",
                             leadingIcon = Icons.Outlined.Lock,
                             isPassword = true,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
                         )
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Checkbox(
@@ -392,8 +391,8 @@ fun LoginScreen(
                                     colors =
                                     CheckboxDefaults.colors(
                                         checkedColor =
-                                        MaterialTheme.colorScheme.primary
-                                    )
+                                        MaterialTheme.colorScheme.primary,
+                                    ),
                                 )
                                 Text("Remember me")
                             }
@@ -405,12 +404,12 @@ fun LoginScreen(
                         Button(
                             onClick = { viewModel.login(LoginRequest(email, password)) },
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(12.dp),
                         ) {
                             Text(
                                 "Login",
                                 modifier = Modifier.padding(vertical = 8.dp),
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
                             )
                         }
                     }
@@ -426,47 +425,47 @@ fun LoginScreen(
                             shape = RoundedCornerShape(24.dp),
                             spotColor =
                             MaterialTheme.colorScheme.primary.copy(
-                                alpha = 0.1f
-                            )
+                                alpha = 0.1f,
+                            ),
                         ),
                     colors =
                     CardDefaults.cardColors(
                         containerColor =
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
-                    )
+                        MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                    ),
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text(
                             "Continue with",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
+                            horizontalArrangement = Arrangement.SpaceEvenly,
                         ) {
                             SocialLoginButton(
                                 icon = R.drawable.google,
                                 onClick = { /* Handle Google login */ },
-                                backgroundColor = MaterialTheme.colorScheme.surface
+                                backgroundColor = MaterialTheme.colorScheme.surface,
                             )
                             SocialLoginButton(
                                 icon = R.drawable.facebook,
                                 onClick = { /* Handle Facebook login */ },
-                                backgroundColor = MaterialTheme.colorScheme.surface
+                                backgroundColor = MaterialTheme.colorScheme.surface,
                             )
                             SocialLoginButton(
                                 icon = R.drawable.instagram,
                                 onClick = { /* Handle Instagram login */ },
-                                backgroundColor = MaterialTheme.colorScheme.surface
+                                backgroundColor = MaterialTheme.colorScheme.surface,
                             )
                         }
                     }
@@ -483,21 +482,21 @@ fun LoginScreen(
                             shape = RoundedCornerShape(20.dp),
                             spotColor =
                             MaterialTheme.colorScheme.primary.copy(
-                                alpha = 0.1f
-                            )
+                                alpha = 0.1f,
+                            ),
                         ),
                     colors =
                     CardDefaults.cardColors(
                         containerColor =
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
-                    )
+                        MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                    ),
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
                         horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text("New to BookHaven? ", style = MaterialTheme.typography.bodyLarge)
                         Text(
@@ -513,7 +512,7 @@ fun LoginScreen(
                                 .graphicsLayer {
                                     scaleX = scale
                                     scaleY = scale
-                                }
+                                },
                         )
                     }
                 }
@@ -544,7 +543,7 @@ private fun SocialLoginButton(icon: Int, onClick: () -> Unit, backgroundColor: C
             .shadow(
                 elevation = if (isPressed) 4.dp else 8.dp,
                 shape = RoundedCornerShape(16.dp),
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
             )
             .graphicsLayer {
                 scaleX = scale
@@ -556,9 +555,9 @@ private fun SocialLoginButton(icon: Int, onClick: () -> Unit, backgroundColor: C
                         isPressed = true
                         tryAwaitRelease()
                         isPressed = false
-                    }
+                    },
                 )
-            }
+            },
     ) {
         Image(
             painter = painterResource(icon),
@@ -566,7 +565,7 @@ private fun SocialLoginButton(icon: Int, onClick: () -> Unit, backgroundColor: C
             modifier = Modifier
                 .padding(14.dp)
                 .fillMaxSize(),
-            contentScale = ContentScale.Fit
+            contentScale = ContentScale.Fit,
         )
     }
 }

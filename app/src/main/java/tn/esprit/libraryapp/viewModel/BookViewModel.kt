@@ -143,10 +143,10 @@ class BookViewModel() : ViewModel() {
 
                 // Perform search locally first for immediate feedback
                 val localResults =
-                        allBooks.filter { book ->
-                            book.title.contains(query, ignoreCase = true) ||
-                                    book.author.contains(query, ignoreCase = true)
-                        }
+                    allBooks.filter { book ->
+                        book.title.contains(query, ignoreCase = true) ||
+                            book.author.contains(query, ignoreCase = true)
+                    }
 
                 _searchResults.value = localResults
 
@@ -156,31 +156,31 @@ class BookViewModel() : ViewModel() {
 
                 // Apply filters
                 val filteredResults =
-                        results.filter { book ->
-                            var matches = true
-                            filters.genre?.let {
-                                matches = (matches && book.genre.equals(it.value, true))
-                            }
-                            filters.author?.let {
-                                matches = (matches && book.author.contains(it, true))
-                            }
-                            filters.year?.let { matches = (matches && book.publicationYear == it) }
-                            matches
+                    results.filter { book ->
+                        var matches = true
+                        filters.genre?.let {
+                            matches = (matches && book.genre.equals(it.value, true))
                         }
+                        filters.author?.let {
+                            matches = (matches && book.author.contains(it, true))
+                        }
+                        filters.year?.let { matches = (matches && book.publicationYear == it) }
+                        matches
+                    }
 
                 // Apply sorting
                 val sortedResults =
-                        when (filters.sortBy) {
-                            SortOption.TITLE_ASC -> filteredResults.sortedBy { it.title }
-                            SortOption.TITLE_DESC -> filteredResults.sortedByDescending { it.title }
-                            SortOption.AUTHOR_ASC -> filteredResults.sortedBy { it.author }
-                            SortOption.AUTHOR_DESC ->
-                                    filteredResults.sortedByDescending { it.author }
-                            SortOption.YEAR_NEW ->
-                                    filteredResults.sortedByDescending { it.publicationYear }
-                            SortOption.YEAR_OLD -> filteredResults.sortedBy { it.publicationYear }
-                            else -> filteredResults
-                        }
+                    when (filters.sortBy) {
+                        SortOption.TITLE_ASC -> filteredResults.sortedBy { it.title }
+                        SortOption.TITLE_DESC -> filteredResults.sortedByDescending { it.title }
+                        SortOption.AUTHOR_ASC -> filteredResults.sortedBy { it.author }
+                        SortOption.AUTHOR_DESC ->
+                            filteredResults.sortedByDescending { it.author }
+                        SortOption.YEAR_NEW ->
+                            filteredResults.sortedByDescending { it.publicationYear }
+                        SortOption.YEAR_OLD -> filteredResults.sortedBy { it.publicationYear }
+                        else -> filteredResults
+                    }
 
                 _searchResults.value = sortedResults
 
@@ -254,13 +254,13 @@ class BookViewModel() : ViewModel() {
 
                 if (userId != null) {
                     val hasBookmark =
-                            bookmarks?.any { bookmark ->
-                                Log.d(
-                                        "BookViewModel",
-                                        "Checking bookmark: userId=${bookmark.userId} against currentUser=$userId"
-                                )
-                                bookmark.userId == userId
-                            } == true
+                        bookmarks?.any { bookmark ->
+                            Log.d(
+                                "BookViewModel",
+                                "Checking bookmark: userId=${bookmark.userId} against currentUser=$userId",
+                            )
+                            bookmark.userId == userId
+                        } == true
 
                     Log.d("BookViewModel", "Setting isBookmarked to: $hasBookmark")
                     _isBookmarked.value = hasBookmark
@@ -322,8 +322,8 @@ class BookViewModel() : ViewModel() {
                 Log.d("BookViewModel", "Reviews: $fetchedReviews")
                 _reviews.value = fetchedReviews
                 Log.d(
-                        "BookViewModel",
-                        "Reviews state updated. Current size: ${_reviews.value.size}"
+                    "BookViewModel",
+                    "Reviews state updated. Current size: ${_reviews.value.size}",
                 )
             } catch (e: Exception) {
                 Log.e("BookViewModel", "Error fetching reviews", e)

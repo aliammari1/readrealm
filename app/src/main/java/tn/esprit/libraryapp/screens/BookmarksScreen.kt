@@ -21,7 +21,7 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookmarksScreen(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val viewModel: BookViewModel = viewModel()
     val bookmarks by viewModel.bookmarks.collectAsState()
@@ -36,7 +36,7 @@ fun BookmarksScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) { Text("No bookmarks yet") }
         } else {
             LazyColumn(
@@ -44,7 +44,7 @@ fun BookmarksScreen(
                     .fillMaxSize()
                     .padding(paddingValues),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(16.dp)
+                contentPadding = PaddingValues(16.dp),
             ) { items(bookmarks) { bookmark -> BookmarkItem(book = bookmark) } }
         }
     }
@@ -60,7 +60,7 @@ fun BookmarkItem(book: Book, modifier: Modifier = Modifier) {
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             // Book cover
             AsyncImage(
@@ -69,7 +69,7 @@ fun BookmarkItem(book: Book, modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .width(80.dp)
                     .height(120.dp),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
             )
 
             // Book details
@@ -77,21 +77,21 @@ fun BookmarkItem(book: Book, modifier: Modifier = Modifier) {
                 Text(
                     text = book.title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = book.author,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "${book.numOfPages} pages • ${book.genre}",
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
                 )
                 Text(
                     text = "Published in ${book.publicationYear}",
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
                 )
                 Spacer(modifier = Modifier.height(8.dp))
             }

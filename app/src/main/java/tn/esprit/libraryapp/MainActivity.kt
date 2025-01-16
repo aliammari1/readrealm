@@ -67,7 +67,7 @@ class MainActivity : ComponentActivity() {
                         NavigationItem.Register.route,
                         NavigationItem.ForgotPassword.route,
                         NavigationItem.OTP.route,
-                        NavigationItem.ResetPassword.route
+                        NavigationItem.ResetPassword.route,
                     )
 
                 Scaffold(
@@ -76,7 +76,7 @@ class MainActivity : ComponentActivity() {
                         if (currentRoute !in authRoutes) {
                             BottomNavigationBar(navController)
                         }
-                    }
+                    },
                 ) { innerPadding ->
                     MainContent(navController, NavigationItem.Login.route, innerPadding)
                 }
@@ -91,7 +91,7 @@ class MainActivity : ComponentActivity() {
     fun MainContent(
         navController: NavHostController,
         startDestination: String,
-        innerPadding: PaddingValues
+        innerPadding: PaddingValues,
     ) {
         val viewModel: BookViewModel = viewModel()
 
@@ -100,7 +100,7 @@ class MainActivity : ComponentActivity() {
             AppNavHost(
                 modifier = Modifier.padding(innerPadding),
                 navController = navController,
-                startDestination = startDestination
+                startDestination = startDestination,
             )
         }
     }
@@ -114,7 +114,7 @@ fun BottomNavigationBar(navController: NavHostController) {
             NavigationItem.Bookmarks,
             NavigationItem.BookChannel,
             NavigationItem.Speech,
-            NavigationItem.Profile
+            NavigationItem.Profile,
         )
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -129,7 +129,7 @@ fun BottomNavigationBar(navController: NavHostController) {
         shape = RoundedCornerShape(36.dp),
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 4.dp,
-        shadowElevation = 8.dp
+        shadowElevation = 8.dp,
     ) {
         Box(
             modifier =
@@ -144,11 +144,11 @@ fun BottomNavigationBar(navController: NavHostController) {
                                 .surface,
                             MaterialTheme.colorScheme
                                 .surface.copy(
-                                    alpha = 0.9f
-                                )
-                        )
-                    )
-                )
+                                    alpha = 0.9f,
+                                ),
+                        ),
+                    ),
+                ),
         ) {
             // Animated background pattern
             Canvas(modifier = Modifier.fillMaxSize()) {
@@ -161,7 +161,7 @@ fun BottomNavigationBar(navController: NavHostController) {
                             size.width * 0.8f,
                             size.height * 0.6f,
                             size.width,
-                            size.height * 0.4f
+                            size.height * 0.4f,
                         )
                         lineTo(size.width, size.height)
                         lineTo(0f, size.height)
@@ -173,7 +173,7 @@ fun BottomNavigationBar(navController: NavHostController) {
             Row(
                 modifier = Modifier.fillMaxSize(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 items.forEachIndexed { index, item ->
                     val selected = currentRoute == item.route
@@ -189,7 +189,7 @@ fun BottomNavigationBar(navController: NavHostController) {
                                 launchSingleTop = true
                                 restoreState = true
                             }
-                        }
+                        },
                     )
                 }
             }
@@ -202,37 +202,37 @@ private fun FloatingNavItem(
     item: NavigationItem,
     selected: Boolean,
     index: Int,
-    onItemClick: () -> Unit
+    onItemClick: () -> Unit,
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "")
     val scale = remember { Animatable(1f) }
 
     // Pulse animation for selected item
     val pulseScale by
-    infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.1f,
-        animationSpec =
-        infiniteRepeatable(
-            animation = tween(1000),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = ""
-    )
+        infiniteTransition.animateFloat(
+            initialValue = 1f,
+            targetValue = 1.1f,
+            animationSpec =
+            infiniteRepeatable(
+                animation = tween(1000),
+                repeatMode = RepeatMode.Reverse,
+            ),
+            label = "",
+        )
 
     // Rotation animation for icon
     val rotation by
-    animateFloatAsState(
-        targetValue = if (selected) 360f else 0f,
-        animationSpec = spring(dampingRatio = 0.3f, stiffness = 300f),
-        label = ""
-    )
+        animateFloatAsState(
+            targetValue = if (selected) 360f else 0f,
+            animationSpec = spring(dampingRatio = 0.3f, stiffness = 300f),
+            label = "",
+        )
 
     LaunchedEffect(selected) {
         if (selected) {
             scale.animateTo(
                 targetValue = 1.2f,
-                animationSpec = spring(dampingRatio = 0.5f, stiffness = 300f)
+                animationSpec = spring(dampingRatio = 0.5f, stiffness = 300f),
             )
         } else {
             scale.animateTo(1f)
@@ -244,7 +244,7 @@ private fun FloatingNavItem(
         modifier = Modifier
             .clip(CircleShape)
             .clickable(onClick = onItemClick)
-            .padding(8.dp)
+            .padding(8.dp),
     ) {
         Box(
             modifier =
@@ -267,9 +267,9 @@ private fun FloatingNavItem(
                                 MaterialTheme
                                     .colorScheme
                                     .primary.copy(
-                                        alpha = 0.8f
-                                    )
-                            )
+                                        alpha = 0.8f,
+                                    ),
+                            ),
                         )
                     } else {
                         Brush.radialGradient(
@@ -283,14 +283,14 @@ private fun FloatingNavItem(
                                     .surfaceVariant
                                     .copy(
                                         alpha =
-                                        0.8f
-                                    )
-                            )
+                                        0.8f,
+                                    ),
+                            ),
                         )
                     },
-                    shape = CircleShape
+                    shape = CircleShape,
                 ),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = item.icon,
@@ -301,21 +301,21 @@ private fun FloatingNavItem(
                     MaterialTheme.colorScheme.onPrimary
                 } else {
                     MaterialTheme.colorScheme.onSurfaceVariant
-                }
+                },
             )
         }
 
         AnimatedVisibility(
             visible = selected,
             enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut()
+            exit = shrinkVertically() + fadeOut(),
         ) {
             Text(
                 text = item.title,
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.labelSmall,
                 fontSize = 11.sp,
-                modifier = Modifier.padding(top = 4.dp)
+                modifier = Modifier.padding(top = 4.dp),
             )
         }
     }

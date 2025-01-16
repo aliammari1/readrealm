@@ -28,7 +28,7 @@ import java.util.Locale
 class EPubReaderViewModel(
     private val repository: BookProgressRepository,
     private val bookUrl: String,
-    private val context: Context
+    private val context: Context,
 ) : ViewModel() {
 
     val readingProgress =
@@ -70,7 +70,8 @@ class EPubReaderViewModel(
             when (result) {
                 TextToSpeech.LANG_AVAILABLE,
                 TextToSpeech.LANG_COUNTRY_AVAILABLE,
-                TextToSpeech.LANG_COUNTRY_VAR_AVAILABLE -> {
+                TextToSpeech.LANG_COUNTRY_VAR_AVAILABLE,
+                -> {
                     tts.language = locale
                     _currentLocale.value = locale
                     // Wait for language switch to complete
@@ -84,7 +85,7 @@ class EPubReaderViewModel(
                                 // Reset to original listener after language switch
                                 setupUtteranceProgressListener()
                             }
-                        }
+                        },
                     )
                 }
 
@@ -124,11 +125,11 @@ class EPubReaderViewModel(
                     utteranceId: String?,
                     start: Int,
                     end: Int,
-                    frame: Int
+                    frame: Int,
                 ) {
                     _currentWordIndex.value = countWordsUpTo(start)
                 }
-            }
+            },
         )
     }
 
@@ -168,7 +169,8 @@ class EPubReaderViewModel(
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                             context.resources.configuration.locales[0]
                         } else {
-                            @Suppress("DEPRECATION") context.resources.configuration.locale
+                            @Suppress("DEPRECATION")
+                            context.resources.configuration.locale
                         }
                     updateTtsLanguage(systemLocale)
 
@@ -201,7 +203,7 @@ class EPubReaderViewModel(
             // Update stats when page changes
             updateReadingStats(
                 content,
-                currentPage = currentPage
+                currentPage = currentPage,
             )
         }
     }
@@ -268,7 +270,7 @@ class EPubReaderViewModel(
                 pagesRead = currentPage + 1,
                 bookmarksCount = _bookmarks.value.size,
                 averageReadingSpeed = wordsPerMinute,
-                lastReadTimestamp = currentTime
+                lastReadTimestamp = currentTime,
             )
 
         lastUpdateTime = currentTime
@@ -286,7 +288,7 @@ class EPubReaderViewModel(
     fun endReadingSession() {
         updateReadingStats(
             content,
-            currentPage = 0
+            currentPage = 0,
         )
     }
 

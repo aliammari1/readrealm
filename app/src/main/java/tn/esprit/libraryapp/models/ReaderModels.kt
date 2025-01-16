@@ -7,13 +7,13 @@ data class ReadingTheme(
     val backgroundColor: Color,
     val textColor: Color,
     val accentColor: Color,
-    val isDark: Boolean
+    val isDark: Boolean,
 )
 
 data class BookmarkPage(
     val pageNumber: Int,
     val snippet: String,
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
 )
 
 data class ReadingStatistics(
@@ -21,5 +21,5 @@ data class ReadingStatistics(
     val pagesRead: Int = 0,
     val bookmarksCount: Int = 0,
     val averageReadingSpeed: Float = 0f,
-    val lastReadTimestamp: Long = System.currentTimeMillis()
+    val lastReadTimestamp: Long = System.currentTimeMillis(),
 )
