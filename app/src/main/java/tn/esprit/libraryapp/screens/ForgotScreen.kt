@@ -62,7 +62,7 @@ fun ForgotScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .background(Color(0xffffffff))
-            .padding(20.dp)
+            .padding(20.dp),
     ) {
         // Text - Forgot password
         Text(
@@ -73,7 +73,7 @@ fun ForgotScreen(
             fontSize = 30.sp,
             fontWeight = FontWeight.Normal,
             textAlign = TextAlign.Left,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
         )
 
         // Description Text
@@ -86,21 +86,21 @@ fun ForgotScreen(
             fontSize = 16.sp,
             fontWeight = FontWeight.Normal,
             textAlign = TextAlign.Left,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
         )
 
         // Email Input Field
         Column(
             verticalArrangement = Arrangement.spacedBy(6.dp),
             modifier = Modifier
-                .padding(top = 20.dp)
+                .padding(top = 20.dp),
         ) {
             Text(
                 text = "Email address",
                 color = Color(0xff000000),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,
-                textAlign = TextAlign.Left
+                textAlign = TextAlign.Left,
             )
             OutlinedTextField(
                 value = email.value,
@@ -110,7 +110,7 @@ fun ForgotScreen(
                     .fillMaxWidth()
                     .border(1.dp, Color(0xffd8dadc), RoundedCornerShape(10.dp))
                     .padding(horizontal = 16.dp, vertical = 18.dp),
-                singleLine = true
+                singleLine = true,
             )
         }
 
@@ -125,13 +125,13 @@ fun ForgotScreen(
                 .padding(top = 20.dp)
                 .fillMaxWidth()
                 .height(56.dp),
-            shape = RoundedCornerShape(15.dp)
+            shape = RoundedCornerShape(15.dp),
         ) {
             Text(
                 text = "Send code",
                 color = Color.White,
                 fontSize = 16.sp,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
         }
 
@@ -151,7 +151,7 @@ fun ForgotScreen(
             onClick = { navController.navigate(NavigationItem.Login.route) },
             modifier = Modifier
                 .align(Alignment.Start)
-                .padding(start = 90.dp, top = 10.dp)
+                .padding(start = 90.dp, top = 10.dp),
         ) {
             Text(
                 text = "Remember password? Log in",
@@ -159,23 +159,20 @@ fun ForgotScreen(
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,
                 textAlign = TextAlign.Left,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
         }
 
         if (isSheetopen) {
             ModalBottomSheet(
                 sheetState = sheetState,
-                onDismissRequest = { isSheetopen = false }
+                onDismissRequest = { isSheetopen = false },
             ) {
                 OtpScreen(
                     navController = navController,
-                    email = email.value
+                    email = email.value,
                 )
             }
         }
     }
 }
-
-
-

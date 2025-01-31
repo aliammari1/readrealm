@@ -32,22 +32,22 @@ interface UserService {
 
     @PUT("auth/change-password")
     suspend fun changePassword(
-        @Body changePasswordRequest: ChangePasswordRequest
+        @Body changePasswordRequest: ChangePasswordRequest,
     ): Response<ChangePasswordResponse>
 
     @POST("auth/generate-email")
     suspend fun generateEmail(
-        @Body generateEmailRequest: GenerateEmailRequest
+        @Body generateEmailRequest: GenerateEmailRequest,
     ): Response<GenerateEmailResponse>
 
     @POST("auth/verify-email")
     suspend fun verifyEmail(
-        @Body verifyEmailRequest: VerifyEmailRequest
+        @Body verifyEmailRequest: VerifyEmailRequest,
     ): Response<VerifyEmailResponse>
 
     @POST("auth/forgot-password")
     suspend fun forgotPassword(
-        @Body forgotPasswordRequest: ForgotPasswordRequest
+        @Body forgotPasswordRequest: ForgotPasswordRequest,
     ): Response<ForgotPasswordResponse>
 
     @GET("user/profile/{userId}")

@@ -18,7 +18,7 @@ class VoiceCommandHandler(private val activity: Activity) {
             listOf("start", "play", "begin", "read") to VoiceCommand.START,
             listOf("stop", "pause", "halt") to VoiceCommand.STOP,
             listOf("next", "forward", "continue") to VoiceCommand.NEXT,
-            listOf("previous", "back", "return") to VoiceCommand.PREVIOUS
+            listOf("previous", "back", "return") to VoiceCommand.PREVIOUS,
         )
 
     fun startListening(onCommand: (VoiceCommand) -> Unit) {
@@ -26,7 +26,7 @@ class VoiceCommandHandler(private val activity: Activity) {
             Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                 putExtra(
                     RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+                    RecognizerIntent.LANGUAGE_MODEL_FREE_FORM,
                 )
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
                 putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
@@ -64,7 +64,7 @@ class VoiceCommandHandler(private val activity: Activity) {
                     if (error !in
                         listOf(
                             SpeechRecognizer.ERROR_CLIENT,
-                            SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS
+                            SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS,
                         )
                     ) {
                         speechRecognizer.startListening(intent)
@@ -72,7 +72,7 @@ class VoiceCommandHandler(private val activity: Activity) {
                         _isListening.value = false
                     }
                 }
-            }
+            },
         )
 
         speechRecognizer.startListening(intent)
@@ -92,7 +92,7 @@ enum class VoiceCommand {
     START,
     STOP,
     NEXT,
-    PREVIOUS
+    PREVIOUS,
 }
 
 abstract class VoiceRecognitionListener : android.speech.RecognitionListener {

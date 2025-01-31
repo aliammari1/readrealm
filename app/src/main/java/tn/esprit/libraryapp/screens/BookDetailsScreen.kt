@@ -79,9 +79,8 @@ import tn.esprit.libraryapp.viewModel.BookViewModel
 fun BookDetailsScreen(
     navController: NavHostController,
     bookId: Int,
-    viewModel: BookViewModel = viewModel()
+    viewModel: BookViewModel = viewModel(),
 ) {
-
     LaunchedEffect(Unit) { viewModel.setInitialBook(bookId) }
 
     val book by viewModel.bookDetails.collectAsState()
@@ -103,25 +102,24 @@ fun BookDetailsScreen(
                     viewModel.setInitialBook(bookId)
                     isRefreshing = false
                 }
-            }
+            },
         )
-
 
     LaunchedEffect(scrollState.value) { showScrollToTop = scrollState.value > 100 }
 
     val imageScale by
-    animateFloatAsState(
-        targetValue = if (isImageLoaded) 1f else 0.8f,
-        animationSpec = tween(500),
-        label = ""
-    )
+        animateFloatAsState(
+            targetValue = if (isImageLoaded) 1f else 0.8f,
+            animationSpec = tween(500),
+            label = "",
+        )
 
     val contentAlpha by
-    animateFloatAsState(
-        targetValue = if (isImageLoaded) 1f else 0f,
-        animationSpec = tween(500),
-        label = ""
-    )
+        animateFloatAsState(
+            targetValue = if (isImageLoaded) 1f else 0f,
+            animationSpec = tween(500),
+            label = "",
+        )
 
     LaunchedEffect(Unit) { systemUiController.setStatusBarColor(Color.Transparent, true) }
 
@@ -129,7 +127,7 @@ fun BookDetailsScreen(
         topBar = {
             AnimatedVisibility(
                 visible = isImageLoaded,
-                enter = fadeIn(animationSpec = tween(500)) + slideInVertically()
+                enter = fadeIn(animationSpec = tween(500)) + slideInVertically(),
             ) {
                 TopAppBar(
                     title = {},
@@ -140,7 +138,7 @@ fun BookDetailsScreen(
                                     systemUiController.setStatusBarColor(Color.Red)
                                     navController.popBackStack()
                                 }
-                            }
+                            },
                         ) {
                             Icon(
                                 Icons.Default.ArrowBackIosNew,
@@ -148,7 +146,7 @@ fun BookDetailsScreen(
                                 modifier = Modifier
                                     .scale(1.3f)
                                     .padding(4.dp),
-                                tint = Color.White
+                                tint = Color.White,
                             )
                         }
                     },
@@ -156,11 +154,14 @@ fun BookDetailsScreen(
                         IconButton(onClick = { viewModel.toggleBookmark(book!!) }) {
                             Icon(
                                 imageVector =
-                                if (isBookmarked) Icons.Filled.Bookmark
-                                else Icons.Outlined.BookmarkBorder,
+                                if (isBookmarked) {
+                                    Icons.Filled.Bookmark
+                                } else {
+                                    Icons.Outlined.BookmarkBorder
+                                },
                                 contentDescription = "Toggle Bookmark",
                                 tint = Color.White,
-                                modifier = Modifier.scale(1.2f)
+                                modifier = Modifier.scale(1.2f),
                             )
                         }
                         IconButton(
@@ -170,7 +171,7 @@ fun BookDetailsScreen(
                                     Check out "${book?.title}" by ${book?.author}!
                                     Genre: ${book?.genre}
                                     Rating: ${book?.averageRating ?: "Not rated"}
-                                """.trimIndent()
+                                    """.trimIndent()
                                 val intent =
                                     Intent().apply {
                                         action = Intent.ACTION_SEND
@@ -178,14 +179,14 @@ fun BookDetailsScreen(
                                         putExtra(Intent.EXTRA_TEXT, shareText)
                                     }
                                 context.startActivity(
-                                    Intent.createChooser(intent, "Share Book")
+                                    Intent.createChooser(intent, "Share Book"),
                                 )
-                            }
+                            },
                         ) {
                             Icon(
                                 Icons.Filled.Share,
                                 contentDescription = "Share",
-                                tint = Color.White
+                                tint = Color.White,
                             )
                         }
                     },
@@ -193,7 +194,7 @@ fun BookDetailsScreen(
                     TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent.copy(alpha = 0.2f),
                         navigationIconContentColor = Color.White,
-                        actionIconContentColor = Color.White
+                        actionIconContentColor = Color.White,
                     ),
                     modifier =
                     Modifier.background(
@@ -201,15 +202,15 @@ fun BookDetailsScreen(
                             colors =
                             listOf(
                                 Color.Black.copy(alpha = 0.3f),
-                                Color.Transparent
+                                Color.Transparent,
                             ),
                             startY = 0f,
-                            endY = 100f
-                        )
-                    )
+                            endY = 100f,
+                        ),
+                    ),
                 )
             }
-        }
+        },
     ) { _ ->
         Box(modifier = Modifier.fillMaxSize()) {
             // Book Cover Image with Parallax Effect
@@ -221,7 +222,7 @@ fun BookDetailsScreen(
                     .height(500.dp)
                     .graphicsLayer {
                         translationY = imageOffset
-                    }
+                    },
             ) {
                 AsyncImage(
                     model =
@@ -234,7 +235,7 @@ fun BookDetailsScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .scale(imageScale),
-                    onSuccess = { isImageLoaded = true }
+                    onSuccess = { isImageLoaded = true },
                 )
 
                 // Gradient Overlay
@@ -248,12 +249,12 @@ fun BookDetailsScreen(
                                 listOf(
                                     Color.Transparent,
                                     Color.Black.copy(
-                                        alpha = 0.7f
-                                    )
+                                        alpha = 0.7f,
+                                    ),
                                 ),
-                                startY = 300f
-                            )
-                        )
+                                startY = 300f,
+                            ),
+                        ),
                 )
             }
 
@@ -269,20 +270,20 @@ fun BookDetailsScreen(
                         Log.e("BookDetailsScreen", "Error navigating to reader: ${e.message}")
                     }
                 },
-                viewModel = viewModel
+                viewModel = viewModel,
             )
 
             // Add scroll to top button
             AnimatedVisibility(
                 visible = showScrollToTop,
                 enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
-                exit = fadeOut() + slideOutVertically(targetOffsetY = { it })
+                exit = fadeOut() + slideOutVertically(targetOffsetY = { it }),
             ) {
                 FloatingActionButton(
                     onClick = { scope.launch { scrollState.animateScrollTo(0) } },
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .padding(16.dp)
+                        .padding(16.dp),
                 ) { Icon(Icons.Filled.KeyboardArrowUp, "Scroll to top") }
             }
 
@@ -291,7 +292,7 @@ fun BookDetailsScreen(
                 PullRefreshIndicator(
                     refreshing = isRefreshing,
                     state = pullRefreshState,
-                    modifier = Modifier.align(Alignment.TopCenter)
+                    modifier = Modifier.align(Alignment.TopCenter),
                 )
             }
         }
@@ -303,7 +304,7 @@ private fun BookDetailsContent(
     book: Book?,
     contentAlpha: Float,
     onStartReading: () -> Unit,
-    viewModel: BookViewModel
+    viewModel: BookViewModel,
 ) {
     if (book == null) {
         ShimmerLoadingEffect()
@@ -335,7 +336,7 @@ private fun BookDetailsContent(
         reviews.forEach { review ->
             Log.d(
                 "BookDetailsContent",
-                "Review: id=${review.id}, rating=${review.rating}, comment=${review.comment}"
+                "Review: id=${review.id}, rating=${review.rating}, comment=${review.comment}",
             )
         }
     }
@@ -345,7 +346,7 @@ private fun BookDetailsContent(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(450.dp)
+                    .height(450.dp),
             ) {
                 // Blurred background
                 AsyncImage(
@@ -356,7 +357,7 @@ private fun BookDetailsContent(
                         .fillMaxSize()
                         .blur(radius = 20.dp)
                         .graphicsLayer(alpha = 0.3f),
-                    contentScale = ContentScale.FillBounds
+                    contentScale = ContentScale.FillBounds,
                 )
 
                 Box(
@@ -369,13 +370,13 @@ private fun BookDetailsContent(
                                 listOf(
                                     MaterialTheme.colorScheme
                                         .surface.copy(
-                                            alpha = 0.7f
+                                            alpha = 0.7f,
                                         ),
                                     MaterialTheme.colorScheme
-                                        .surface
-                                )
-                            )
-                        )
+                                        .surface,
+                                ),
+                            ),
+                        ),
                 )
 
                 // Book cover and details
@@ -383,7 +384,7 @@ private fun BookDetailsContent(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     // Book cover with animation
                     Surface(
@@ -395,12 +396,12 @@ private fun BookDetailsContent(
                             .offset(y = (-slideIn.value).dp),
                         shape = RoundedCornerShape(16.dp),
                         tonalElevation = 8.dp,
-                        shadowElevation = 16.dp
+                        shadowElevation = 16.dp,
                     ) {
                         AsyncImage(
                             model = book.coverImage,
                             contentDescription = "Book cover",
-                            contentScale = ContentScale.Crop
+                            contentScale = ContentScale.Crop,
                         )
                     }
 
@@ -409,17 +410,17 @@ private fun BookDetailsContent(
                     // Book title and author with animation
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.graphicsLayer(alpha = fadeIn.value)
+                        modifier = Modifier.graphicsLayer(alpha = fadeIn.value),
                     ) {
                         Text(
                             text = book.title,
                             style =
                             MaterialTheme.typography.headlineMedium.copy(
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
                             ),
                             textAlign = TextAlign.Center,
                             maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
@@ -427,7 +428,7 @@ private fun BookDetailsContent(
                         Text(
                             text = "by ${book.author}",
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         )
                     }
                 }
@@ -442,16 +443,16 @@ private fun BookDetailsContent(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         text = "Average Rating: ${String.format("%.1f", book.averageRating)} ",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
                     )
                     Text(
                         text = "(${book.totalReviews ?: 0} reviews)",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     )
                 }
             }
@@ -464,18 +465,18 @@ private fun BookDetailsContent(
                 Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 24.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 QuickInfoCard(icon = Icons.Filled.Category, label = "Genre", value = book.genre)
                 QuickInfoCard(
                     icon = Icons.Filled.AccessTime,
                     label = "Pages",
-                    value = "${book.numOfPages} pages"
+                    value = "${book.numOfPages} pages",
                 )
                 QuickInfoCard(
                     icon = Icons.Filled.Language,
                     label = "Language",
-                    value = "English" // Add language to your Book model
+                    value = "English", // Add language to your Book model
                 )
             }
         }
@@ -487,20 +488,20 @@ private fun BookDetailsContent(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
                 shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "About this book",
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = book.description ?: "No description available",
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                        lineHeight = 24.sp
+                        lineHeight = 24.sp,
                     )
                 }
             }
@@ -519,7 +520,7 @@ private fun BookDetailsContent(
                 reviews = reviews,
                 onAddReview = { showReviewDialog = true },
                 isLoading = false, // Remove uiState dependency
-                error = null // Remove uiState dependency
+                error = null, // Remove uiState dependency
             )
         }
 
@@ -535,19 +536,24 @@ private fun BookDetailsContent(
                 Column {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
+                        horizontalArrangement = Arrangement.Center,
                     ) {
                         repeat(5) { index ->
                             IconButton(onClick = { rating = index + 1 }) {
                                 Icon(
                                     imageVector =
-                                    if (index < rating) Icons.Filled.Star
-                                    else Icons.Outlined.StarOutline,
+                                    if (index < rating) {
+                                        Icons.Filled.Star
+                                    } else {
+                                        Icons.Outlined.StarOutline
+                                    },
                                     contentDescription = "Star ${index + 1}",
                                     tint =
-                                    if (index < rating)
+                                    if (index < rating) {
                                         MaterialTheme.colorScheme.primary
-                                    else MaterialTheme.colorScheme.onSurfaceVariant
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    },
                                 )
                             }
                         }
@@ -561,7 +567,7 @@ private fun BookDetailsContent(
                         placeholder = { Text("Write your review here...") },
                         singleLine = false,
                         minLines = 3,
-                        maxLines = 5
+                        maxLines = 5,
                     )
                 }
             },
@@ -574,7 +580,7 @@ private fun BookDetailsContent(
                                 viewModel.addReview(
                                     book.id,
                                     rating,
-                                    reviewText.ifEmpty { null }
+                                    reviewText.ifEmpty { null },
                                 )
                                 showReviewDialog = false
                                 reviewText = ""
@@ -582,12 +588,12 @@ private fun BookDetailsContent(
                             }
                         }
                     },
-                    enabled = rating > 0 // Only rating is required
+                    enabled = rating > 0, // Only rating is required
                 ) { Text("Submit") }
             },
             dismissButton = {
                 TextButton(onClick = { showReviewDialog = false }) { Text("Cancel") }
-            }
+            },
         )
     }
 }
@@ -597,30 +603,30 @@ private fun QuickInfoCard(icon: ImageVector, label: String, value: String) {
     Surface(
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
-        modifier = Modifier.padding(4.dp)
+        modifier = Modifier.padding(4.dp),
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(12.dp)
+            modifier = Modifier.padding(12.dp),
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(24.dp),
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
                 text = value,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
@@ -631,22 +637,22 @@ private fun ReviewsSection(
     reviews: List<Review>,
     onAddReview: () -> Unit,
     isLoading: Boolean,
-    error: String?
+    error: String?,
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 16.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 text = "Reviews (${reviews.size})",
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
 
             FilledTonalIconButton(onClick = onAddReview, shape = CircleShape) {
@@ -659,19 +665,19 @@ private fun ReviewsSection(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(100.dp),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) { CircularProgressIndicator() }
         } else if (error != null) {
             Text(
                 text = "Error loading reviews: $error",
                 color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(8.dp)
+                modifier = Modifier.padding(8.dp),
             )
         } else if (reviews.isEmpty()) {
             Text(
                 text = "No reviews yet. Be the first to review!",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -681,10 +687,10 @@ private fun ReviewsSection(
 private fun ActionButtons(onStartReading: () -> Unit) {
     var animatedProgress by remember { mutableFloatStateOf(0f) }
     val animatedScale by
-    animateFloatAsState(
-        targetValue = if (animatedProgress == 1f) 1f else 0.8f,
-        animationSpec = spring(dampingRatio = 0.7f)
-    )
+        animateFloatAsState(
+            targetValue = if (animatedProgress == 1f) 1f else 0.8f,
+            animationSpec = spring(dampingRatio = 0.7f),
+        )
 
     LaunchedEffect(Unit) {
         delay(300)
@@ -697,7 +703,7 @@ private fun ActionButtons(onStartReading: () -> Unit) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .graphicsLayer(scaleX = animatedScale, scaleY = animatedScale),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Button(
             onClick = onStartReading,
@@ -707,19 +713,19 @@ private fun ActionButtons(onStartReading: () -> Unit) {
             shape = RoundedCornerShape(28.dp),
             colors =
             ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary
+                containerColor = MaterialTheme.colorScheme.primary,
             ),
             elevation =
             ButtonDefaults.buttonElevation(
                 defaultElevation = 4.dp,
-                pressedElevation = 8.dp
-            )
+                pressedElevation = 8.dp,
+            ),
         ) {
             Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(24.dp))
             Spacer(modifier = Modifier.width(12.dp))
             Text(
                 "Start Reading",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
             )
         }
     }
@@ -732,7 +738,7 @@ private fun ReviewItem(review: Review, book: Book, modifier: Modifier = Modifier
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     var animatedProgress by remember { mutableFloatStateOf(0f) }
     val animatedAlpha by
-    animateFloatAsState(targetValue = animatedProgress, animationSpec = tween(500))
+        animateFloatAsState(targetValue = animatedProgress, animationSpec = tween(500))
 
     LaunchedEffect(Unit) { animatedProgress = 1f }
 
@@ -743,60 +749,66 @@ private fun ReviewItem(review: Review, book: Book, modifier: Modifier = Modifier
             .padding(vertical = 4.dp)
             .graphicsLayer(
                 alpha = animatedAlpha,
-                translationX = (1f - animatedAlpha) * 100f
+                translationX = (1f - animatedAlpha) * 100f,
             ),
         shape = RoundedCornerShape(16.dp),
         tonalElevation = 4.dp,
         shadowElevation = 2.dp,
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp)
+                .padding(20.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     repeat(5) { index ->
                         Icon(
                             imageVector =
-                            if (index < review.rating) Icons.Filled.Star
-                            else Icons.Outlined.StarOutline,
+                            if (index < review.rating) {
+                                Icons.Filled.Star
+                            } else {
+                                Icons.Outlined.StarOutline
+                            },
                             contentDescription = null,
                             tint =
-                            if (index < review.rating) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-                            modifier = Modifier.size(20.dp)
+                            if (index < review.rating) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                            },
+                            modifier = Modifier.size(20.dp),
                         )
                     }
                 }
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
                         text = review.dateAdded.substring(0, 10),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     )
 
                     IconButton(
                         onClick = { showDeleteConfirmation = true },
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(32.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Default.Delete,
                             contentDescription = "Delete review",
                             tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(20.dp),
                         )
                     }
                 }
@@ -809,9 +821,9 @@ private fun ReviewItem(review: Review, book: Book, modifier: Modifier = Modifier
                     style =
                     MaterialTheme.typography.bodyLarge.copy(
                         lineHeight =
-                        MaterialTheme.typography.bodyLarge.lineHeight * 1.3
+                        MaterialTheme.typography.bodyLarge.lineHeight * 1.3,
                     ),
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
         }
@@ -830,13 +842,13 @@ private fun ReviewItem(review: Review, book: Book, modifier: Modifier = Modifier
                     },
                     colors =
                     ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
+                        containerColor = MaterialTheme.colorScheme.error,
+                    ),
                 ) { Text("Delete") }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirmation = false }) { Text("Cancel") }
-            }
+            },
         )
     }
 }
@@ -847,7 +859,7 @@ private fun ShimmerLoadingEffect() {
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-            .shimmer()
+            .shimmer(),
     ) {
         // Cover image placeholder
         Box(
@@ -855,7 +867,7 @@ private fun ShimmerLoadingEffect() {
             Modifier
                 .fillMaxWidth()
                 .height(320.dp)
-                .background(Color.LightGray.copy(alpha = 0.5f))
+                .background(Color.LightGray.copy(alpha = 0.5f)),
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -866,7 +878,7 @@ private fun ShimmerLoadingEffect() {
             Modifier
                 .fillMaxWidth(0.7f)
                 .height(24.dp)
-                .background(Color.LightGray.copy(alpha = 0.5f))
+                .background(Color.LightGray.copy(alpha = 0.5f)),
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -877,7 +889,7 @@ private fun ShimmerLoadingEffect() {
             Modifier
                 .fillMaxWidth(0.4f)
                 .height(16.dp)
-                .background(Color.LightGray.copy(alpha = 0.5f))
+                .background(Color.LightGray.copy(alpha = 0.5f)),
         )
 
         // Add more shimmer placeholders for other content
@@ -892,13 +904,13 @@ private fun ErrorState(message: String, onRetry: () -> Unit) {
             .fillMaxSize()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Icon(
             imageVector = Icons.Default.Error,
             contentDescription = null,
             modifier = Modifier.size(48.dp),
-            tint = MaterialTheme.colorScheme.error
+            tint = MaterialTheme.colorScheme.error,
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -906,7 +918,7 @@ private fun ErrorState(message: String, onRetry: () -> Unit) {
         Text(
             text = message,
             style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
 
         Spacer(modifier = Modifier.height(16.dp))

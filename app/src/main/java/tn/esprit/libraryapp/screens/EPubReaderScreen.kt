@@ -91,7 +91,7 @@ private val languageToLocale =
         "es" to Locale("es"),
         "de" to Locale.GERMAN,
         "it" to Locale.ITALIAN,
-        "ar" to Locale("ar")
+        "ar" to Locale("ar"),
     )
 
 data class ReadingPreferences(
@@ -105,7 +105,7 @@ data class ReadingPreferences(
     val autoScroll: Boolean = false,
     val autoScrollSpeed: Float = 1f,
     val showReadingStats: Boolean = true,
-    val enableGestures: Boolean = true
+    val enableGestures: Boolean = true,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -128,7 +128,7 @@ private fun ImmersiveReaderTopBar(
             "es" to "Spanish",
             "de" to "German",
             "it" to "Italian",
-            "ar" to "Arabic"
+            "ar" to "Arabic",
         )
     }
 
@@ -141,9 +141,12 @@ private fun ImmersiveReaderTopBar(
             ) {
                 Icon(
                     imageVector =
-                    if (isSpeaking) Icons.Default.Pause
-                    else Icons.Default.PlayArrow,
-                    contentDescription = if (isSpeaking) "Stop TTS" else "Start TTS"
+                    if (isSpeaking) {
+                        Icons.Default.Pause
+                    } else {
+                        Icons.Default.PlayArrow
+                    },
+                    contentDescription = if (isSpeaking) "Stop TTS" else "Start TTS",
                 )
             }
 
@@ -152,12 +155,12 @@ private fun ImmersiveReaderTopBar(
                 if (isPdfLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        strokeWidth = 2.dp
+                        strokeWidth = 2.dp,
                     )
                 } else {
                     Icon(
                         imageVector = Icons.Default.Download,
-                        contentDescription = "Download PDF"
+                        contentDescription = "Download PDF",
                     )
                 }
             }
@@ -166,7 +169,7 @@ private fun ImmersiveReaderTopBar(
             IconButton(onClick = { showLanguageMenu = true }) {
                 Icon(
                     imageVector = Icons.Default.Translate,
-                    contentDescription = "Select Language"
+                    contentDescription = "Select Language",
                 )
             }
 
@@ -174,13 +177,13 @@ private fun ImmersiveReaderTopBar(
             IconButton(onClick = onSettingsClick) {
                 Icon(
                     imageVector = Icons.Default.Settings,
-                    contentDescription = "Reading Settings"
+                    contentDescription = "Reading Settings",
                 )
             }
 
             DropdownMenu(
                 expanded = showLanguageMenu,
-                onDismissRequest = { showLanguageMenu = false }
+                onDismissRequest = { showLanguageMenu = false },
             ) {
                 supportedLanguages.forEach { (code, name) ->
                     DropdownMenuItem(
@@ -193,11 +196,11 @@ private fun ImmersiveReaderTopBar(
                             if (code == currentLanguage) {
                                 Icon(Icons.Default.Check, null)
                             }
-                        }
+                        },
                     )
                 }
             }
-        }
+        },
     )
 }
 
@@ -205,7 +208,7 @@ private fun ImmersiveReaderTopBar(
 private fun ReadingSettingsDialog(
     preferences: ReadingPreferences,
     onPreferencesChanged: (ReadingPreferences) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -213,7 +216,7 @@ private fun ReadingSettingsDialog(
         text = {
             Column(
                 modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 // Font size slider
                 Text("Font Size")
@@ -222,7 +225,7 @@ private fun ReadingSettingsDialog(
                     onValueChange = {
                         onPreferencesChanged(preferences.copy(fontSize = it))
                     },
-                    valueRange = 12f..24f
+                    valueRange = 12f..24f,
                 )
 
                 // Line height slider
@@ -232,21 +235,21 @@ private fun ReadingSettingsDialog(
                     onValueChange = {
                         onPreferencesChanged(preferences.copy(lineHeight = it))
                     },
-                    valueRange = 1f..2f
+                    valueRange = 1f..2f,
                 )
 
                 // Theme switch
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text("Dark Mode")
                     Switch(
                         checked = preferences.isDarkMode,
                         onCheckedChange = {
                             onPreferencesChanged(preferences.copy(isDarkMode = it))
-                        }
+                        },
                     )
                 }
 
@@ -256,7 +259,7 @@ private fun ReadingSettingsDialog(
                     checked = preferences.autoScroll,
                     onCheckedChange = {
                         onPreferencesChanged(preferences.copy(autoScroll = it))
-                    }
+                    },
                 )
 
                 if (preferences.autoScroll) {
@@ -266,7 +269,7 @@ private fun ReadingSettingsDialog(
                         onValueChange = {
                             onPreferencesChanged(preferences.copy(autoScrollSpeed = it))
                         },
-                        valueRange = 0.5f..3f
+                        valueRange = 0.5f..3f,
                     )
                 }
 
@@ -276,7 +279,7 @@ private fun ReadingSettingsDialog(
                     checked = preferences.enableGestures,
                     onCheckedChange = {
                         onPreferencesChanged(preferences.copy(enableGestures = it))
-                    }
+                    },
                 )
 
                 // Add reading stats toggle
@@ -285,11 +288,11 @@ private fun ReadingSettingsDialog(
                     checked = preferences.showReadingStats,
                     onCheckedChange = {
                         onPreferencesChanged(preferences.copy(showReadingStats = it))
-                    }
+                    },
                 )
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Done") } }
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Done") } },
     )
 }
 
@@ -327,7 +330,7 @@ fun HighlightedText(
     currentWordIndex: Int,
     fontSize: TextUnit = 16.sp,
     lineHeight: TextUnit = 24.sp,
-    textColor: Color = Color.Black
+    textColor: Color = Color.Black,
 ) {
     val words = text.split(Regex("(?<=\\s)|(?=\\s)"))
     var currentIndex = 0
@@ -341,9 +344,9 @@ fun HighlightedText(
                         SpanStyle(
                             background =
                             MaterialTheme.colorScheme.primary.copy(
-                                alpha = 0.3f
+                                alpha = 0.3f,
                             ),
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.primary,
                         )
                     } else {
                         SpanStyle(color = textColor)
@@ -355,7 +358,7 @@ fun HighlightedText(
         modifier = Modifier.verticalScroll(rememberScrollState()),
         fontSize = fontSize,
         lineHeight = lineHeight,
-        color = textColor
+        color = textColor,
     )
 }
 
@@ -438,7 +441,7 @@ fun EPubReaderScreen(bookUrl: String) {
         listOf(
             MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
             MaterialTheme.colorScheme.surface,
-            MaterialTheme.colorScheme.surface
+            MaterialTheme.colorScheme.surface,
         )
 
     var showSettings by remember { mutableStateOf(false) }
@@ -522,7 +525,7 @@ fun EPubReaderScreen(bookUrl: String) {
                                 val translatedNextPage =
                                     translationManager.translateText(
                                         nextPageContent,
-                                        preferences.targetLanguage
+                                        preferences.targetLanguage,
                                     )
                                 viewModel.startSpeaking(translatedNextPage)
                             } catch (e: Exception) {
@@ -642,7 +645,7 @@ fun EPubReaderScreen(bookUrl: String) {
                             pdfProgress = 0f
                         }
                     }
-                }
+                },
             )
         },
         bottomBar = {
@@ -670,7 +673,7 @@ fun EPubReaderScreen(bookUrl: String) {
                         }
                     }
                 },
-                isListeningForCommands = isListeningForCommands
+                isListeningForCommands = isListeningForCommands,
             )
         },
         floatingActionButton = {
@@ -679,16 +682,16 @@ fun EPubReaderScreen(bookUrl: String) {
                     content?.let { currentText ->
                         viewModel.addBookmark(currentPage, currentText.take(50) + "...")
                     }
-                }
+                },
             ) { Icon(Icons.Default.BookmarkAdd, "Add Bookmark") }
-        }
+        },
     ) { paddingValues ->
         Box(
             modifier =
             Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Brush.verticalGradient(gradientColors))
+                .background(Brush.verticalGradient(gradientColors)),
         ) {
             when {
                 isLoading -> {
@@ -703,19 +706,19 @@ fun EPubReaderScreen(bookUrl: String) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(16.dp)
+                            .padding(16.dp),
                     ) {
                         // Reading Progress Arc
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(bottom = 16.dp),
-                            contentAlignment = Alignment.Center
+                            contentAlignment = Alignment.Center,
                         ) {
                             CircularProgressIndicator(
                                 progress = currentPage.toFloat() / pages.size.coerceAtLeast(1),
                                 modifier = Modifier.size(60.dp),
-                                strokeWidth = 4.dp
+                                strokeWidth = 4.dp,
                             )
                         }
 
@@ -724,12 +727,12 @@ fun EPubReaderScreen(bookUrl: String) {
                                 progress = translationProgress,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(bottom = 8.dp)
+                                    .padding(bottom = 8.dp),
                             )
                             Text(
                                 text = "Translating... ${(translationProgress * 100).toInt()}%",
                                 style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.primary
+                                color = MaterialTheme.colorScheme.primary,
                             )
                         }
 
@@ -738,7 +741,7 @@ fun EPubReaderScreen(bookUrl: String) {
                                 text = error,
                                 color = MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.labelMedium,
-                                modifier = Modifier.padding(bottom = 8.dp)
+                                modifier = Modifier.padding(bottom = 8.dp),
                             )
                         }
 
@@ -770,7 +773,7 @@ fun EPubReaderScreen(bookUrl: String) {
                                             }
                                         }
                                     }
-                                }
+                                },
                         ) {
                             Box(modifier = Modifier.fillMaxSize()) {
                                 // Background ambient effect based on theme
@@ -790,24 +793,24 @@ fun EPubReaderScreen(bookUrl: String) {
                                                         .backgroundColor
                                                         .copy(
                                                             alpha =
-                                                            0.8f
-                                                        )
-                                                )
-                                            )
-                                        )
+                                                            0.8f,
+                                                        ),
+                                                ),
+                                            ),
+                                        ),
                                 )
 
                                 // Content
                                 if (isTranslating) {
                                     CircularProgressIndicator(
-                                        modifier = Modifier.align(Alignment.Center)
+                                        modifier = Modifier.align(Alignment.Center),
                                     )
                                 } else {
                                     Column(modifier = Modifier.padding(16.dp)) {
                                         if (preferences.showReadingStats) {
                                             ReadingStatsOverlay(
                                                 statistics = viewModel.readingStats.value,
-                                                modifier = Modifier.padding(bottom = 16.dp)
+                                                modifier = Modifier.padding(bottom = 16.dp),
                                             )
                                         }
 
@@ -816,7 +819,7 @@ fun EPubReaderScreen(bookUrl: String) {
                                             currentWordIndex = currentWordIndex,
                                             fontSize = preferences.fontSize.sp,
                                             lineHeight = preferences.lineHeight.em,
-                                            textColor = preferences.theme.textColor
+                                            textColor = preferences.theme.textColor,
                                         )
                                     }
                                 }
@@ -829,7 +832,7 @@ fun EPubReaderScreen(bookUrl: String) {
                                         Modifier
                                             .fillMaxWidth()
                                             .height(2.dp)
-                                            .align(Alignment.BottomCenter)
+                                            .align(Alignment.BottomCenter),
                                     )
                                 }
                             }
@@ -839,13 +842,13 @@ fun EPubReaderScreen(bookUrl: String) {
                         AnimatedVisibility(
                             visible = true,
                             enter = slideInVertically() + fadeIn(),
-                            exit = slideOutVertically() + fadeOut()
+                            exit = slideOutVertically() + fadeOut(),
                         ) {
                             NavigationControls(
                                 currentPage = currentPage,
                                 totalPages = pages.size,
                                 onPrevious = { if (currentPage > 0) currentPage-- },
-                                onNext = { if (currentPage < pages.size - 1) currentPage++ }
+                                onNext = { if (currentPage < pages.size - 1) currentPage++ },
                             )
                         }
                     }
@@ -859,7 +862,7 @@ fun EPubReaderScreen(bookUrl: String) {
         ReadingSettingsDialog(
             preferences = preferences,
             onPreferencesChanged = { preferences = it },
-            onDismiss = { showSettings = false }
+            onDismiss = { showSettings = false },
         )
     }
 
@@ -871,7 +874,7 @@ fun EPubReaderScreen(bookUrl: String) {
                 preferences = preferences.copy(theme = theme)
                 showThemeSelector = false
             },
-            onDismiss = { showThemeSelector = false }
+            onDismiss = { showThemeSelector = false },
         )
     }
 
@@ -885,12 +888,12 @@ fun EPubReaderScreen(bookUrl: String) {
                     onBookmarkClick = { page ->
                         currentPage = page
                         showBookmarks = false
-                    }
+                    },
                 )
             },
             confirmButton = {
                 TextButton(onClick = { showBookmarks = false }) { Text("Close") }
-            }
+            },
         )
     }
 
@@ -901,10 +904,10 @@ fun EPubReaderScreen(bookUrl: String) {
             text = {
                 ReadingStatsOverlay(
                     statistics = viewModel.readingStats.value,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
             },
-            confirmButton = { TextButton(onClick = { showStats = false }) { Text("Close") } }
+            confirmButton = { TextButton(onClick = { showStats = false }) { Text("Close") } },
         )
     }
 }
@@ -914,7 +917,7 @@ private fun LoadingScreen(progress: Float) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         CircularProgressIndicator(modifier = Modifier.size(80.dp), strokeWidth = 8.dp)
         if (progress > 0f) {
@@ -922,7 +925,7 @@ private fun LoadingScreen(progress: Float) {
             Text(
                 "${(progress * 100).toInt()}%",
                 style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.primary,
             )
         }
     }
@@ -935,18 +938,18 @@ private fun ErrorScreen(errorMessage: String) {
             .fillMaxSize()
             .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Text(
             "Error",
             style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.error
+            color = MaterialTheme.colorScheme.error,
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             errorMessage,
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
@@ -956,33 +959,33 @@ private fun NavigationControls(
     currentPage: Int,
     totalPages: Int,
     onPrevious: () -> Unit,
-    onNext: () -> Unit
+    onNext: () -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         FilledTonalButton(
             onClick = onPrevious,
             enabled = currentPage > 0,
             modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
         ) { Text("Previous") }
 
         Text(
             "${currentPage + 1} / $totalPages",
             modifier = Modifier.padding(horizontal = 16.dp),
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleMedium,
         )
 
         FilledTonalButton(
             onClick = onNext,
             enabled = currentPage < totalPages - 1,
             modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
         ) { Text("Next") }
     }
 }
@@ -1040,7 +1043,7 @@ private suspend fun downloadAndParseEpub(epubUrl: String, onProgress: (Float) ->
 private suspend fun createAndOpenPdf(
     content: String,
     context: Context,
-    onProgress: (Float) -> Unit
+    onProgress: (Float) -> Unit,
 ): File {
     return withContext(Dispatchers.IO) {
         val fileName = "book_${System.currentTimeMillis()}.pdf"
@@ -1054,7 +1057,7 @@ private suspend fun createAndOpenPdf(
         val uri =
             context.contentResolver.insert(
                 MediaStore.Downloads.EXTERNAL_CONTENT_URI,
-                contentValues
+                contentValues,
             )
                 ?: throw IllegalStateException("Failed to create PDF file")
 
@@ -1106,16 +1109,16 @@ private fun ReadingStatsOverlay(statistics: ReadingStatistics, modifier: Modifie
         modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
-            .padding(16.dp)
+            .padding(16.dp),
     ) {
         Text(
             "Reading Time: ${formatDuration(statistics.timeSpentReading)}",
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium,
         )
         Text("Pages Read: ${statistics.pagesRead}", style = MaterialTheme.typography.bodyMedium)
         Text(
             "Reading Speed: ${statistics.averageReadingSpeed.roundToInt()} words/min",
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium,
         )
     }
 }
@@ -1124,7 +1127,7 @@ private fun ReadingStatsOverlay(statistics: ReadingStatistics, modifier: Modifie
 private fun BookmarksList(
     bookmarks: List<BookmarkPage>,
     onBookmarkClick: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     LazyColumn(modifier = modifier) {
         items(bookmarks.size) { bookmark ->
@@ -1135,7 +1138,7 @@ private fun BookmarksList(
                 modifier =
                 Modifier.clickable {
                     onBookmarkClick(bookmarks[bookmark].pageNumber)
-                }
+                },
             )
         }
     }
@@ -1150,16 +1153,19 @@ private fun ReaderBottomBar(
     onThemeClick: () -> Unit,
     onStatsClick: () -> Unit,
     onVoiceCommandClick: () -> Unit,
-    isListeningForCommands: Boolean
+    isListeningForCommands: Boolean,
 ) {
     BottomAppBar(
         actions = {
             IconButton(onClick = onBookmarkClick) { Icon(Icons.Default.Bookmark, "Bookmarks") }
             IconButton(onClick = { onAutoScrollToggle(!preferences.autoScroll) }) {
                 Icon(
-                    if (preferences.autoScroll) Icons.Default.Pause
-                    else Icons.Default.PlayArrow,
-                    "Auto-scroll"
+                    if (preferences.autoScroll) {
+                        Icons.Default.Pause
+                    } else {
+                        Icons.Default.PlayArrow
+                    },
+                    "Auto-scroll",
                 )
             }
             if (preferences.autoScroll) {
@@ -1167,7 +1173,7 @@ private fun ReaderBottomBar(
                     value = preferences.autoScrollSpeed,
                     onValueChange = onSpeedChange,
                     valueRange = 0.5f..3f,
-                    modifier = Modifier.width(100.dp)
+                    modifier = Modifier.width(100.dp),
                 )
             }
             IconButton(onClick = onThemeClick) { Icon(Icons.Default.Palette, "Themes") }
@@ -1175,17 +1181,26 @@ private fun ReaderBottomBar(
             IconButton(onClick = onVoiceCommandClick) {
                 Icon(
                     imageVector =
-                    if (isListeningForCommands) Icons.Default.Mic
-                    else Icons.Default.MicNone,
+                    if (isListeningForCommands) {
+                        Icons.Default.Mic
+                    } else {
+                        Icons.Default.MicNone
+                    },
                     contentDescription =
-                    if (isListeningForCommands) "Stop voice commands"
-                    else "Start voice commands",
+                    if (isListeningForCommands) {
+                        "Stop voice commands"
+                    } else {
+                        "Start voice commands"
+                    },
                     tint =
-                    if (isListeningForCommands) MaterialTheme.colorScheme.primary
-                    else LocalContentColor.current
+                    if (isListeningForCommands) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        LocalContentColor.current
+                    },
                 )
             }
-        }
+        },
     )
 }
 
@@ -1193,7 +1208,7 @@ private fun ReaderBottomBar(
 private fun ThemeSelector(
     currentTheme: ReadingTheme,
     onThemeSelect: (ReadingTheme) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -1210,7 +1225,7 @@ private fun ThemeSelector(
                             }
                             .padding(16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(ReaderThemes.themes.get(theme).name)
                         if (ReaderThemes.themes.get(theme) == currentTheme) {
@@ -1220,7 +1235,7 @@ private fun ThemeSelector(
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Done") } }
+        confirmButton = { TextButton(onClick = onDismiss) { Text("Done") } },
     )
 }
 

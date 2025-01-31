@@ -30,7 +30,6 @@ class UserRepository {
         return userService.register(registerRequest)
     }
 
-
     suspend fun changePassword(changePasswordRequest: ChangePasswordRequest): Response<ChangePasswordResponse> {
         return userService.changePassword(changePasswordRequest)
     }

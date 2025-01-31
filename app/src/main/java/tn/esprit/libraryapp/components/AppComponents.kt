@@ -32,28 +32,27 @@ fun AuthOption(
         modifier = modifier
             .border(
                 BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f)),
-                shape = RoundedCornerShape(14.dp) // Shape for the border
+                shape = RoundedCornerShape(14.dp), // Shape for the border
             )
             .clip(RoundedCornerShape(14.dp))
             .clickable { }
             .padding(horizontal = 35.dp, vertical = 12.dp),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         if (tint != null) {
             Icon(
                 painter = painterResource(image),
                 contentDescription = contentDescription,
                 tint = tint,
-                modifier = Modifier.size(30.dp)
+                modifier = Modifier.size(30.dp),
             )
         } else {
             Image(
                 painter = painterResource(image),
                 contentDescription = contentDescription,
-                modifier = Modifier.size(30.dp)
+                modifier = Modifier.size(30.dp),
             )
         }
-
     }
 }
 
@@ -70,7 +69,7 @@ fun MyTextField(
     keyboardType: KeyboardType = KeyboardType.Text,
     isPassword: Boolean = false,
     onLeadingClick: () -> Unit = {},
-    onTrailingClick: () -> Unit = {}
+    onTrailingClick: () -> Unit = {},
 ) {
     if (isPassword) {
         PasswordTextField(
@@ -82,7 +81,7 @@ fun MyTextField(
             onTextChange = onTextChange,
             hint = hint,
             onLeadingClick = onLeadingClick,
-            onTrailingClick = onTrailingClick
+            onTrailingClick = onTrailingClick,
         )
     } else {
         TextTextField(
@@ -95,7 +94,7 @@ fun MyTextField(
             hint = hint,
             keyboardType = keyboardType,
             onLeadingClick = onLeadingClick,
-            onTrailingClick = onTrailingClick
+            onTrailingClick = onTrailingClick,
         )
     }
 }
@@ -112,13 +111,13 @@ fun TextTextField(
     hint: String,
     keyboardType: KeyboardType = KeyboardType.Text,
     onLeadingClick: () -> Unit = {},
-    onTrailingClick: () -> Unit = {}
+    onTrailingClick: () -> Unit = {},
 ) {
     OutlinedTextField(
         value = textFieldState,
         onValueChange = onTextChange,
         textStyle = LocalTextStyle.current.copy(
-            color = MaterialTheme.colorScheme.onBackground
+            color = MaterialTheme.colorScheme.onBackground,
         ),
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         singleLine = true,
@@ -128,7 +127,7 @@ fun TextTextField(
                     imageVector = leadingIcon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.5F),
-                    modifier = Modifier.clickable { onLeadingClick() }
+                    modifier = Modifier.clickable { onLeadingClick() },
                 )
             }
         },
@@ -138,24 +137,24 @@ fun TextTextField(
                     imageVector = trailingIcon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.5F),
-                    modifier = Modifier.clickable { onTrailingClick() }
+                    modifier = Modifier.clickable { onTrailingClick() },
                 )
             } else if (trailingText != null) {
                 Text(
                     text = trailingText,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.clickable { onTrailingClick() }
+                    modifier = Modifier.clickable { onTrailingClick() },
                 )
             }
         },
         placeholder = {
             Text(
                 text = hint,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f)
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f),
             )
         },
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
@@ -170,13 +169,13 @@ fun PasswordTextField(
     onTextChange: (String) -> Unit,
     hint: String,
     onLeadingClick: () -> Unit = {},
-    onTrailingClick: () -> Unit = {}
+    onTrailingClick: () -> Unit = {},
 ) {
     OutlinedTextField(
         value = textFieldState,
         onValueChange = onTextChange,
         textStyle = LocalTextStyle.current.copy(
-            color = MaterialTheme.colorScheme.onBackground
+            color = MaterialTheme.colorScheme.onBackground,
         ),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         singleLine = true,
@@ -187,7 +186,7 @@ fun PasswordTextField(
                     imageVector = leadingIcon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.5F),
-                    modifier = Modifier.clickable { onLeadingClick() }
+                    modifier = Modifier.clickable { onLeadingClick() },
                 )
             }
         },
@@ -197,24 +196,23 @@ fun PasswordTextField(
                     imageVector = trailingIcon,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.5F),
-                    modifier = Modifier.clickable { onTrailingClick() }
+                    modifier = Modifier.clickable { onTrailingClick() },
                 )
             } else if (trailingText != null) {
                 Text(
                     text = trailingText,
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.clickable { onTrailingClick() }
+                    modifier = Modifier.clickable { onTrailingClick() },
                 )
             }
         },
         placeholder = {
             Text(
                 text = hint,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f)
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f),
             )
         },
-        modifier = modifier
+        modifier = modifier,
     )
 }
-

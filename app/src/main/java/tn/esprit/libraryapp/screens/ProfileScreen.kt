@@ -27,7 +27,7 @@ import tn.esprit.libraryapp.viewModel.AuthViewModel
 @Composable
 fun ProfileScreen(
     navController: NavHostController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val viewModel: AuthViewModel = viewModel()
     LocalContext.current
@@ -57,23 +57,23 @@ fun ProfileScreen(
                     }) {
                         Icon(Icons.Filled.ExitToApp, "Logout")
                     }
-                }
+                },
             )
-        }
+        },
     ) { paddingValues ->
         Column(
             modifier = modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // Update the Profile Image section
             Box(
                 modifier = Modifier
                     .size(120.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surface)
+                    .background(MaterialTheme.colorScheme.surface),
             ) {
                 userProfile?.profilePicture?.let { base64Image ->
                     if (base64Image.isNotEmpty()) {
@@ -83,7 +83,7 @@ fun ProfileScreen(
                             bitmap = bitmap.asImageBitmap(),
                             contentDescription = "Profile Picture",
                             modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
+                            contentScale = ContentScale.Crop,
                         )
 //                            Icon(
 //                                imageVector = Icons.Default.Person,
@@ -91,20 +91,19 @@ fun ProfileScreen(
 //                                modifier = Modifier.matchParentSize(),
 //                                tint = MaterialTheme.colorScheme.primary
 //                            )
-
                     } else {
                         Icon(
                             imageVector = Icons.Default.Person,
                             contentDescription = "Profile Picture",
                             modifier = Modifier.matchParentSize(),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.primary,
                         )
                     }
                 } ?: Icon(
                     imageVector = Icons.Default.Person,
                     contentDescription = "Profile Picture",
                     modifier = Modifier.matchParentSize(),
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = MaterialTheme.colorScheme.primary,
                 )
             }
 
@@ -114,13 +113,13 @@ fun ProfileScreen(
             ProfileInfoItem(
                 icon = Icons.Default.Person,
                 label = "Username",
-                value = userProfile?.username ?: "Not available"
+                value = userProfile?.username ?: "Not available",
             )
 
             ProfileInfoItem(
                 icon = Icons.Default.Email,
                 label = "Email",
-                value = userProfile?.email ?: "Not available"
+                value = userProfile?.email ?: "Not available",
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -128,7 +127,7 @@ fun ProfileScreen(
             // Action Buttons
             Button(
                 onClick = { /* Navigate to edit profile */ },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Icon(Icons.Default.Edit, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
@@ -139,7 +138,7 @@ fun ProfileScreen(
 
             OutlinedButton(
                 onClick = { /* Navigate to change password */ },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Icon(Icons.Default.Lock, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
@@ -153,33 +152,33 @@ fun ProfileScreen(
 private fun ProfileInfoItem(
     icon: ImageVector,
     label: String,
-    value: String
+    value: String,
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(vertical = 8.dp),
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
+                tint = MaterialTheme.colorScheme.primary,
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column {
                 Text(
                     text = label,
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
                 )
                 Text(
                     text = value,
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge,
                 )
             }
         }

@@ -12,7 +12,7 @@ class BookProgressRepository(private val bookProgressDao: BookProgressDao) {
             url = url,
             page = currentPage,
             progress = progress,
-            timestamp = System.currentTimeMillis()
+            timestamp = System.currentTimeMillis(),
         )
     }
 
@@ -22,7 +22,7 @@ class BookProgressRepository(private val bookProgressDao: BookProgressDao) {
             lastReadPage = 0,
             totalPages = totalPages,
             readingProgress = 0f,
-            lastReadTimestamp = System.currentTimeMillis()
+            lastReadTimestamp = System.currentTimeMillis(),
         )
         bookProgressDao.saveInitialProgress(progress)
     }

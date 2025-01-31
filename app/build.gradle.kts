@@ -9,7 +9,6 @@ android {
     namespace = "tn.esprit.libraryapp"
     compileSdk = 35
 
-
     defaultConfig {
         applicationId = "tn.esprit.libraryapp"
         minSdk = 30
@@ -25,7 +24,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }

@@ -43,46 +43,46 @@ fun SpeechScreen(speechViewModel: SpeechViewModel = viewModel()) {
             CenterAlignedTopAppBar(
                 title = { Text("Speech Assistant") },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                ),
             )
-        }
+        },
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             // Configuration Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             ) {
                 Column(
                     modifier = Modifier
                         .padding(16.dp)
                         .fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Text(
                         "Configuration",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
                     )
                     OutlinedTextField(
                         value = systemMessage,
                         onValueChange = { systemMessage = it },
                         label = { Text("System Message") },
                         modifier = Modifier.fillMaxWidth(),
-                        minLines = 2
+                        minLines = 2,
                     )
                     OutlinedTextField(
                         value = temperature,
                         onValueChange = { temperature = it },
                         label = { Text("Temperature") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     )
                 }
             }
@@ -93,16 +93,16 @@ fun SpeechScreen(speechViewModel: SpeechViewModel = viewModel()) {
                     .fillMaxWidth()
                     .weight(1f),
                 shape = RoundedCornerShape(12.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             ) {
                 Column(
                     modifier = Modifier
                         .padding(16.dp)
-                        .fillMaxSize()
+                        .fillMaxSize(),
                 ) {
                     Text(
                         "Transcript",
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
@@ -112,9 +112,9 @@ fun SpeechScreen(speechViewModel: SpeechViewModel = viewModel()) {
                             .weight(1f)
                             .background(
                                 MaterialTheme.colorScheme.surfaceVariant,
-                                RoundedCornerShape(8.dp)
+                                RoundedCornerShape(8.dp),
                             )
-                            .padding(12.dp)
+                            .padding(12.dp),
                     )
                 }
             }
@@ -122,7 +122,7 @@ fun SpeechScreen(speechViewModel: SpeechViewModel = viewModel()) {
             // Recording Controls
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+                horizontalArrangement = Arrangement.Center,
             ) {
                 FilledTonalButton(
                     onClick = {
@@ -131,20 +131,21 @@ fun SpeechScreen(speechViewModel: SpeechViewModel = viewModel()) {
                         } else {
                             speechViewModel.startRecording(
                                 systemMessage,
-                                temperature.toFloatOrNull() ?: 0.7f
+                                temperature.toFloatOrNull() ?: 0.7f,
                             )
                         }
                     },
                     colors = ButtonDefaults.filledTonalButtonColors(
-                        containerColor = if (isRecording)
+                        containerColor = if (isRecording) {
                             MaterialTheme.colorScheme.errorContainer
-                        else
+                        } else {
                             MaterialTheme.colorScheme.primaryContainer
-                    )
+                        },
+                    ),
                 ) {
                     Icon(
                         if (isRecording) Icons.Default.Close else Icons.Default.Add,
-                        contentDescription = if (isRecording) "Stop Recording" else "Start Recording"
+                        contentDescription = if (isRecording) "Stop Recording" else "Start Recording",
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(if (isRecording) "Stop Recording" else "Start Recording")
@@ -159,7 +160,7 @@ fun SpeechScreen(speechViewModel: SpeechViewModel = viewModel()) {
                         TextButton(onClick = { /* Clear error */ }) {
                             Text("Dismiss")
                         }
-                    }
+                    },
                 ) {
                     Text(error)
                 }
@@ -203,14 +204,14 @@ private fun playAudio(context: Context, audioBytes: ByteArray) {
                     AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_MEDIA)
                         .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                        .build()
+                        .build(),
                 )
                 .setAudioFormat(
                     AudioFormat.Builder()
                         .setSampleRate(sampleRate)
                         .setEncoding(audioFormat)
                         .setChannelMask(channelConfig)
-                        .build()
+                        .build(),
                 )
                 .setBufferSizeInBytes(minBufferSize * 8) // Increased buffer size
                 .setTransferMode(AudioTrack.MODE_STREAM)
@@ -227,7 +228,6 @@ private fun playAudio(context: Context, audioBytes: ByteArray) {
             .get(shortBuffer)
 
         currentAudioTrack?.write(shortBuffer, 0, shortBuffer.size, AudioTrack.WRITE_BLOCKING)
-
     } catch (e: Exception) {
         Log.e("SpeechScreen", "Error playing audio", e)
         currentAudioTrack?.release()

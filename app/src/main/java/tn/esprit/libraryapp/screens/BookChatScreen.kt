@@ -65,7 +65,7 @@ fun BookChatScreen(modifier: Modifier = Modifier) {
         ChatClient.Builder("r2mnrp6eqtza", context)
             .withPlugins(
                 StreamOfflinePluginFactory(appContext = context),
-                StreamStatePluginFactory(config = StatePluginConfig(), appContext = context)
+                StreamStatePluginFactory(config = StatePluginConfig(), appContext = context),
             )
             .logLevel(ChatLogLevel.ALL)
             .build()
@@ -141,7 +141,7 @@ class CustomChannelListViewModel(private val chatClient: ChatClient = ChatClient
                     filter = Filters.eq("type", "messaging"),
                     offset = 0,
                     limit = 100,
-                    querySort = QuerySortByField.descByName("lastMessageAt")
+                    querySort = QuerySortByField.descByName("lastMessageAt"),
                 ).apply {
                     // Enable watching for real-time updates
                     watch = true
@@ -156,7 +156,8 @@ class CustomChannelListViewModel(private val chatClient: ChatClient = ChatClient
                         val channels = result.getOrThrow()
                         channels.forEach { channel ->
                             Log.d(
-                                "ChatChannel", """
+                                "ChatChannel",
+                                """
                                 Channel Details:
                                 ID: ${channel.id}
                                 CID: ${channel.cid}
@@ -166,7 +167,7 @@ class CustomChannelListViewModel(private val chatClient: ChatClient = ChatClient
                                 Last Message At: ${channel.lastMessageAt}
                                 Member Count: ${channel.memberCount}
                                 -----------------------------
-                            """.trimIndent()
+                                """.trimIndent(),
                             )
                         }
                     } else {
@@ -183,7 +184,7 @@ class CustomChannelListViewModel(private val chatClient: ChatClient = ChatClient
 @Composable
 fun ChatChannelScreen(
     viewModel: CustomChannelListViewModel = viewModel(),
-    client: ChatClient = ChatClient.instance()
+    client: ChatClient = ChatClient.instance(),
 ) {
     var selectedChannel by remember { mutableStateOf<Channel?>(null) }
     val context = LocalContext.current
@@ -207,10 +208,10 @@ fun ChatChannelScreen(
                         user = io.getstream.video.android.model.User(
                             id = uid,
                             name = "User",
-                            image = "https://bit.ly/2TIt8NR"
+                            image = "https://bit.ly/2TIt8NR",
                         ),
                         token = client.devToken(uid),
-                        geo = io.getstream.video.android.core.GEO.GlobalEdgeNetwork
+                        geo = io.getstream.video.android.core.GEO.GlobalEdgeNetwork,
                     ).build()
                 }
 
@@ -226,7 +227,7 @@ fun ChatChannelScreen(
                             call = call,
                             onAllPermissionsGranted = {
                                 hasPermissions = true
-                            }
+                            },
                         )
 
                         if (hasPermissions) {
@@ -235,7 +236,7 @@ fun ChatChannelScreen(
                                     call.join(
                                         create = true,
                                         ring = false,
-                                        notify = false
+                                        notify = false,
                                     ).onSuccess {
                                         Log.d("VideoCall", "Successfully joined call")
                                     }.onError { error ->
@@ -259,7 +260,7 @@ fun ChatChannelScreen(
                                         call.leave()
                                     }
                                     showVideoCall = false
-                                }
+                                },
                             )
                         }
                     }
@@ -271,23 +272,23 @@ fun ChatChannelScreen(
                             context = context,
                             channelId = selectedChannel!!.cid,
                             enforceUniqueReactions = true,
-                            messageLimit = 30
+                            messageLimit = 30,
                         ),
-                        onBackPressed = { selectedChannel = null }
+                        onBackPressed = { selectedChannel = null },
                     )
 
                     // Add video call button as a floating action button
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
-                            .padding(16.dp)
+                            .padding(16.dp),
                     ) {
                         IconButton(
-                            onClick = { showVideoCall = true }
+                            onClick = { showVideoCall = true },
                         ) {
                             Icon(
                                 imageVector = Icons.Default.VideoCall,
-                                contentDescription = "Start Video Call"
+                                contentDescription = "Start Video Call",
                             )
                         }
                     }
@@ -315,7 +316,7 @@ fun ChatChannelScreen(
                             val channel = watchResult.getOrThrow()
                             Log.d(
                                 "ChatChannel",
-                                "Channel exists: ${channel.id}, Members: ${channel.members.map { it.user.id }}"
+                                "Channel exists: ${channel.id}, Members: ${channel.members.map { it.user.id }}",
                             )
 
                             if (!channel.members.map { it.user.id }.contains(uid)) {
@@ -324,7 +325,7 @@ fun ChatChannelScreen(
                                     if (addResult.isSuccess) {
                                         Log.d(
                                             "ChatChannel",
-                                            "Added user $uid to existing channel ${channel.id}"
+                                            "Added user $uid to existing channel ${channel.id}",
                                         )
                                         // Update channel data
                                         channelClient.update(
@@ -332,13 +333,13 @@ fun ChatChannelScreen(
                                             extraData = mapOf(
                                                 "name" to book.title,
                                                 "image" to (book.coverImage ?: ""),
-                                                "bookId" to book.id.toString()
-                                            )
+                                                "bookId" to book.id.toString(),
+                                            ),
                                         ).enqueue()
                                     } else {
                                         Log.e(
                                             "ChatChannel",
-                                            "Failed to add member: ${addResult.errorOrNull()}"
+                                            "Failed to add member: ${addResult.errorOrNull()}",
                                         )
                                     }
                                 }
@@ -352,20 +353,20 @@ fun ChatChannelScreen(
                                 extraData = mapOf(
                                     "name" to book.title,
                                     "image" to (book.coverImage ?: ""),
-                                    "bookId" to book.id.toString()
-                                )
+                                    "bookId" to book.id.toString(),
+                                ),
                             ).enqueue { createResult ->
                                 if (createResult.isSuccess) {
                                     Log.d(
                                         "ChatChannel",
-                                        "Created new channel: $channelId with member $uid"
+                                        "Created new channel: $channelId with member $uid",
                                     )
                                     // Verify channel creation by watching it
                                     channelClient.watch().enqueue()
                                 } else {
                                     Log.e(
                                         "ChatChannel",
-                                        "Failed to create channel: ${createResult.errorOrNull()}"
+                                        "Failed to create channel: ${createResult.errorOrNull()}",
                                     )
                                 }
                             }
@@ -380,7 +381,7 @@ fun ChatChannelScreen(
             title = "Library Chat",
             isShowingHeader = true,
             onChannelClick = { selectedChannel = it },
-            onBackPressed = {}
+            onBackPressed = {},
         )
     }
 }

@@ -19,5 +19,5 @@ data class Review(
     val comment: String,
 
     @SerializedName("createdAt")
-    val dateAdded: String
+    val dateAdded: String,
 )

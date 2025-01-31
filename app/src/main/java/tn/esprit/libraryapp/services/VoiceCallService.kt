@@ -24,7 +24,7 @@ class VoiceCallService(private val chatSocketService: ChatSocketService) {
     private val bufferSize = AudioRecord.getMinBufferSize(
         SAMPLE_RATE,
         AudioFormat.CHANNEL_IN_MONO,
-        AudioFormat.ENCODING_PCM_16BIT
+        AudioFormat.ENCODING_PCM_16BIT,
     )
 
     private var currentRoomId: String? = null
@@ -69,7 +69,7 @@ class VoiceCallService(private val chatSocketService: ChatSocketService) {
             val minBuffer = AudioRecord.getMinBufferSize(
                 SAMPLE_RATE,
                 AudioFormat.CHANNEL_IN_MONO,
-                AudioFormat.ENCODING_PCM_16BIT
+                AudioFormat.ENCODING_PCM_16BIT,
             )
 
             // Use a larger buffer for better streaming
@@ -80,7 +80,7 @@ class VoiceCallService(private val chatSocketService: ChatSocketService) {
                 SAMPLE_RATE,
                 AudioFormat.CHANNEL_IN_MONO,
                 AudioFormat.ENCODING_PCM_16BIT,
-                bufferSize
+                bufferSize,
             )
 
             audioTrack = AudioTrack.Builder()
@@ -88,14 +88,14 @@ class VoiceCallService(private val chatSocketService: ChatSocketService) {
                     AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
                         .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                        .build()
+                        .build(),
                 )
                 .setAudioFormat(
                     AudioFormat.Builder()
                         .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
                         .setSampleRate(SAMPLE_RATE)
                         .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
-                        .build()
+                        .build(),
                 )
                 .setBufferSizeInBytes(bufferSize)
                 .setTransferMode(AudioTrack.MODE_STREAM)

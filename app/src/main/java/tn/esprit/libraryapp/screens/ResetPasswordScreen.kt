@@ -27,7 +27,7 @@ import tn.esprit.libraryapp.viewModel.AuthViewModel
 fun ResetPasswordScreen(
     modifier: Modifier = Modifier,
     navController: NavHostController,
-    email: String
+    email: String,
 ) {
     val viewModel: AuthViewModel = viewModel()
     var passwordState by remember { mutableStateOf("") }
@@ -37,7 +37,7 @@ fun ResetPasswordScreen(
         modifier = modifier
             .fillMaxSize()
             .padding(horizontal = 10.dp),
-        verticalArrangement = Arrangement.SpaceAround
+        verticalArrangement = Arrangement.SpaceAround,
     ) {
         // Header section with an image and text
         Column {
@@ -47,19 +47,19 @@ fun ResetPasswordScreen(
                 contentScale = ContentScale.FillHeight,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp) // Adjust the height if necessary
+                    .height(200.dp), // Adjust the height if necessary
             )
 
             Spacer(modifier = Modifier.height(20.dp))
             Text(
                 text = "Set Your Password ",
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 30.sp
+                fontSize = 30.sp,
             )
             Text(
                 text = "In order to keep your account safe you need to create a strong password.",
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 13.sp
+                fontSize = 13.sp,
             )
         }
         Column {
@@ -69,7 +69,7 @@ fun ResetPasswordScreen(
                 hint = "Password",
                 leadingIcon = Icons.Outlined.Lock,
                 isPassword = true,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
             Spacer(modifier = Modifier.height(60.dp))
 
@@ -79,7 +79,7 @@ fun ResetPasswordScreen(
                 hint = "Confirm Password",
                 leadingIcon = Icons.Outlined.Lock,
                 isPassword = true,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
         }
 
@@ -90,15 +90,15 @@ fun ResetPasswordScreen(
                     ForgotPasswordRequest(
                         email = email,
                         password = passwordState,
-                    )
+                    ),
                 )
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text(
                 text = "Login",
                 fontSize = 17.sp,
-                modifier = Modifier.padding(vertical = 8.dp)
+                modifier = Modifier.padding(vertical = 8.dp),
             )
         }
 
@@ -107,7 +107,7 @@ fun ResetPasswordScreen(
                 Toast.makeText(
                     LocalContext.current,
                     "Password forgotten successful",
-                    Toast.LENGTH_SHORT
+                    Toast.LENGTH_SHORT,
                 ).show()
                 navController.navigate(NavigationItem.Login.route)
             } else {

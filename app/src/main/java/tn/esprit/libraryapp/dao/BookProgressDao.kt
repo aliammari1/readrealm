@@ -7,7 +7,6 @@ import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 import tn.esprit.libraryapp.models.BookProgress
 
-
 @Dao
 interface BookProgressDao {
     @Query("SELECT * FROM book_progress WHERE bookUrl = :url")
@@ -17,7 +16,7 @@ interface BookProgressDao {
     suspend fun saveProgress(progress: BookProgress)
 
     @Query(
-        "UPDATE book_progress SET lastReadPage = :page, readingProgress = :progress, lastReadTimestamp = :timestamp WHERE bookUrl = :url"
+        "UPDATE book_progress SET lastReadPage = :page, readingProgress = :progress, lastReadTimestamp = :timestamp WHERE bookUrl = :url",
     )
     suspend fun updateProgress(url: String, page: Int, progress: Float, timestamp: Long)
 

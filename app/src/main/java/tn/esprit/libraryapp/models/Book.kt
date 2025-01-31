@@ -7,7 +7,7 @@ import com.google.gson.annotations.SerializedName
 data class BookmarkBook(
     val userId: String,
     val dateAdded: String,
-    @SerializedName("_id") val id: String? = null // Optional as it might not always be present
+    @SerializedName("_id") val id: String? = null, // Optional as it might not always be present
 )
 
 data class Book(
@@ -27,7 +27,7 @@ data class Book(
     val createdAt: String? = null,
     val updatedAt: String? = null,
     val averageRating: Float? = null,
-    val totalReviews: Int? = null
+    val totalReviews: Int? = null,
 )
 
 @Entity(tableName = "book_progress")
@@ -36,5 +36,5 @@ data class BookProgress(
     val lastReadPage: Int = 0,
     val totalPages: Int = 0,
     val readingProgress: Float = 0f,
-    val lastReadTimestamp: Long = System.currentTimeMillis()
+    val lastReadTimestamp: Long = System.currentTimeMillis(),
 )
