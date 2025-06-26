@@ -64,52 +64,109 @@ export default async (context: any) => {
 
     // Otherwise, handle as serverless function
     return new Promise((resolve, reject) => {
-      // Create a mock response object
+      // Create a proper mock response object that mimics Express response
       const mockRes = {
         statusCode: 200,
-        headers: {},
-        body: '',
+        _headers: {},
+        _body: '',
+        _headersSent: false,
+        _finished: false,
+
+        get headersSent() {
+          return this._headersSent;
+        },
+
+        get finished() {
+          return this._finished;
+        },
+
         status(code: number) {
           this.statusCode = code;
           return this;
         },
+
         json(data: any) {
-          this.headers['Content-Type'] = 'application/json';
-          this.body = JSON.stringify(data);
+          this._headers['Content-Type'] = 'application/json';
+          this._body = JSON.stringify(data);
+          this._headersSent = true;
+          this._finished = true;
           resolve({
             statusCode: this.statusCode,
-            body: this.body,
-            headers: this.headers
+            body: this._body,
+            headers: this._headers
           });
           return this;
         },
+
         send(data: any) {
-          this.body = data;
+          this._body = typeof data === 'string' ? data : JSON.stringify(data);
+          this._headersSent = true;
+          this._finished = true;
           resolve({
             statusCode: this.statusCode,
-            body: this.body,
-            headers: this.headers
+            body: this._body,
+            headers: this._headers
           });
           return this;
         },
+
         end(data?: any) {
-          if (data) this.body = data;
+          if (data) {
+            this._body = typeof data === 'string' ? data : JSON.stringify(data);
+          }
+          this._headersSent = true;
+          this._finished = true;
           resolve({
             statusCode: this.statusCode,
-            body: this.body,
-            headers: this.headers
+            body: this._body,
+            headers: this._headers
           });
           return this;
         },
+
         setHeader(name: string, value: string) {
-          this.headers[name] = value;
+          this._headers[name] = value;
+          return this;
+        },
+
+        getHeader(name: string) {
+          return this._headers[name];
+        },
+
+        removeHeader(name: string) {
+          delete this._headers[name];
+          return this;
+        },
+
+        write(chunk: any) {
+          this._body += chunk;
+          return true;
+        },
+
+        writeHead(statusCode: number, headers?: any) {
+          this.statusCode = statusCode;
+          if (headers) {
+            Object.assign(this._headers, headers);
+          }
           return this;
         }
       };
 
+      // Add a timeout to prevent hanging
+      const timeout = setTimeout(() => {
+        if (!mockRes._finished) {
+          resolve({
+            statusCode: 504,
+            body: JSON.stringify({ error: 'Gateway timeout' }),
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+      }, 30000); // 30 second timeout
+
       try {
         expressApp(req, mockRes as any, (err: any) => {
-          if (err) {
+          clearTimeout(timeout);
+          if (err && !mockRes._finished) {
             console.error('Express error:', err);
             resolve({
               statusCode: 500,
@@ -119,12 +176,15 @@ export default async (context: any) => {
           }
         });
       } catch (expressError) {
+        clearTimeout(timeout);
         console.error('Express handling error:', expressError);
-        resolve({
-          statusCode: 500,
-          body: JSON.stringify({ error: 'Express handling failed' }),
-          headers: { 'Content-Type': 'application/json' }
-        });
+        if (!mockRes._finished) {
+          resolve({
+            statusCode: 500,
+            body: JSON.stringify({ error: 'Express handling failed' }),
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
       }
     });
 
