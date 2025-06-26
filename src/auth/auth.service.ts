@@ -5,7 +5,7 @@ import {
   NotFoundException,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { UserService } from 'src/user/user.service'; // Import UserService
+import { UserService } from '../user/user.service'; // Import UserService
 import { v4 as uuidv4 } from 'uuid';
 import * as bcrypt from 'bcryptjs';
 import { SignupDto } from './dto/signUpDto';
@@ -14,8 +14,8 @@ import { JwtService } from '@nestjs/jwt'; // Proper import of JwtService
 import { InjectModel } from '@nestjs/mongoose'; // Mongoose injection
 import { Model } from 'mongoose';
 import { RefreshToken } from './dto/refresh-token.schema'; // Import your RefreshToken schema
-import { MailService } from 'src/services/mail.service';
-import { VerificationService } from 'src/verification/verification.service';
+import { MailService } from '../services/mail.service';
+import { VerificationService } from '../verification/verification.service';
 
 @Injectable()
 export class AuthService {
@@ -26,7 +26,7 @@ export class AuthService {
     private readonly verificationService: VerificationService,
     @InjectModel('RefreshToken')
     private readonly refreshTokenModel: Model<RefreshToken>, // Inject Mongoose model
-  ) {}
+  ) { }
 
   async register(signupData: SignupDto) {
     const { email, password, username, profilePicture } = signupData;

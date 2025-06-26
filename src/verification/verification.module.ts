@@ -5,7 +5,7 @@ import {
 } from './entities/verification.entity';
 import { VerificationService } from './verification.service';
 import { MongooseModule } from '@nestjs/mongoose';
-import { UserModule } from 'src/user/user.module';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
@@ -17,4 +17,4 @@ import { UserModule } from 'src/user/user.module';
   providers: [VerificationService],
   exports: [VerificationService],
 })
-export class VerificationModule {}
+export class VerificationModule { }

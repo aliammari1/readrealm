@@ -4,7 +4,7 @@ import { Verification } from './entities/verification.entity';
 import { generateOtp } from './utils/otp.util';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { UserService } from 'src/user/user.service';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class VerificationService {
@@ -16,7 +16,7 @@ export class VerificationService {
     @InjectModel(Verification.name)
     private VerificationModel: Model<Verification>,
     private readonly userService: UserService,
-  ) {}
+  ) { }
 
   async generateOtp(userId: number, size = 6): Promise<string> {
     const now = new Date();
