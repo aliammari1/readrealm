@@ -24,15 +24,125 @@ const createApp = async () => {
   return app;
 };
 
-// Appwrite Function Handler
-export default async (req: any, res: any) => {
+// Appwrite Function Handler - Updated for latest runtime
+export default async (context: any) => {
+  const startTime = Date.now();
+
   try {
+    // Log the context to understand its structure
+    console.log('Context keys:', Object.keys(context || {}));
+
+    // Extract request information from context
+    const req = context.req || context.request || context;
+    const res = context.res || context.response;
+
+    // Ensure we have the necessary request data
+    if (!req) {
+      console.error('No request object found in context');
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'No request object found' }),
+        headers: { 'Content-Type': 'application/json' }
+      };
+    }
+
+    // Set default values if missing
+    req.method = req.method || 'GET';
+    req.url = req.url || req.path || '/';
+    req.headers = req.headers || {};
+    req.body = req.body || {};
+
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+
     const nestApp = await createApp();
     const expressApp = nestApp.getHttpAdapter().getInstance();
-    return expressApp(req, res);
+
+    // If we have a proper response object, use it
+    if (res && typeof res.status === 'function') {
+      return expressApp(req, res);
+    }
+
+    // Otherwise, handle as serverless function
+    return new Promise((resolve, reject) => {
+      // Create a mock response object
+      const mockRes = {
+        statusCode: 200,
+        headers: {},
+        body: '',
+        status(code: number) {
+          this.statusCode = code;
+          return this;
+        },
+        json(data: any) {
+          this.headers['Content-Type'] = 'application/json';
+          this.body = JSON.stringify(data);
+          resolve({
+            statusCode: this.statusCode,
+            body: this.body,
+            headers: this.headers
+          });
+          return this;
+        },
+        send(data: any) {
+          this.body = data;
+          resolve({
+            statusCode: this.statusCode,
+            body: this.body,
+            headers: this.headers
+          });
+          return this;
+        },
+        end(data?: any) {
+          if (data) this.body = data;
+          resolve({
+            statusCode: this.statusCode,
+            body: this.body,
+            headers: this.headers
+          });
+          return this;
+        },
+        setHeader(name: string, value: string) {
+          this.headers[name] = value;
+          return this;
+        }
+      };
+
+      try {
+        expressApp(req, mockRes as any, (err: any) => {
+          if (err) {
+            console.error('Express error:', err);
+            resolve({
+              statusCode: 500,
+              body: JSON.stringify({ error: 'Internal server error' }),
+              headers: { 'Content-Type': 'application/json' }
+            });
+          }
+        });
+      } catch (expressError) {
+        console.error('Express handling error:', expressError);
+        resolve({
+          statusCode: 500,
+          body: JSON.stringify({ error: 'Express handling failed' }),
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+    });
+
   } catch (error) {
-    console.error('Function error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    const duration = Date.now() - startTime;
+    console.error(`Function error after ${duration}ms:`, error);
+
+    // Return a safe error response
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        error: 'Internal server error',
+        message: error.message,
+        timestamp: new Date().toISOString(),
+        duration: duration
+      }),
+      headers: { 'Content-Type': 'application/json' }
+    };
   }
 };
 
