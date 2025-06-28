@@ -161,7 +161,7 @@ private suspend fun connectToSpecificGenreStream(genre: Genre, viewModel: BookVi
                 client.newCall(
                     Request.Builder()
                         .url(
-                            "http://192.168.17.105:3000/book/genre/${genre.value.lowercase()}",
+                            "https://libraryapp-nest-back.vercel.app/book/genre/${genre.value.lowercase()}",
                         )
                         .addHeader("Accept", "text/event-stream")
                         .build(),

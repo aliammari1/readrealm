@@ -11,15 +11,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.socket.client.IO
 import io.socket.client.Socket
+import java.net.URISyntaxException
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import java.net.URISyntaxException
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 
 @SuppressLint("MissingPermission")
 class SpeechViewModel : ViewModel() {
@@ -33,19 +33,19 @@ class SpeechViewModel : ViewModel() {
 
     private val sampleRate = 24000
     private val bufferSize =
-        AudioRecord.getMinBufferSize(
-            sampleRate,
-            AudioFormat.CHANNEL_IN_MONO,
-            AudioFormat.ENCODING_PCM_16BIT,
-        ) * 2 // Double the minimum buffer size
+            AudioRecord.getMinBufferSize(
+                    sampleRate,
+                    AudioFormat.CHANNEL_IN_MONO,
+                    AudioFormat.ENCODING_PCM_16BIT,
+            ) * 2 // Double the minimum buffer size
 
     private val audioRecord: AudioRecord by lazy {
         AudioRecord(
-            MediaRecorder.AudioSource.VOICE_RECOGNITION, // Changed to VOICE_RECOGNITION
-            sampleRate,
-            AudioFormat.CHANNEL_IN_MONO,
-            AudioFormat.ENCODING_PCM_16BIT,
-            bufferSize,
+                MediaRecorder.AudioSource.VOICE_RECOGNITION, // Changed to VOICE_RECOGNITION
+                sampleRate,
+                AudioFormat.CHANNEL_IN_MONO,
+                AudioFormat.ENCODING_PCM_16BIT,
+                bufferSize,
         )
     }
 
@@ -65,12 +65,12 @@ class SpeechViewModel : ViewModel() {
     private fun initSocket() {
         try {
             val options =
-                IO.Options().apply {
-                    transports = arrayOf("websocket")
-                    reconnection = true
-                    forceNew = true
-                }
-            mSocket = IO.socket("http://192.168.17.105:3000", options)
+                    IO.Options().apply {
+                        transports = arrayOf("websocket")
+                        reconnection = true
+                        forceNew = true
+                    }
+            mSocket = IO.socket("https://libraryapp-nest-back.vercel.app", options)
             mSocket?.apply {
                 connect()
 
@@ -102,7 +102,7 @@ class SpeechViewModel : ViewModel() {
                         val transcriptUpdate = args[0] as String
                         Log.d("SpeechViewModel", "Received transcript: $transcriptUpdate")
                         transcript.value +=
-                            "$transcriptUpdate" // Remove newline to keep continuous text
+                                "$transcriptUpdate" // Remove newline to keep continuous text
                     }
                 }
 
@@ -111,7 +111,7 @@ class SpeechViewModel : ViewModel() {
                         val transcriptionText = args[0] as String
                         Log.d("SpeechViewModel", "Received transcription: $transcriptionText")
                         transcript.value +=
-                            "\n$transcriptionText\n" // Add newlines for completed utterances
+                                "\n$transcriptionText\n" // Add newlines for completed utterances
                     }
                 }
 
@@ -127,25 +127,25 @@ class SpeechViewModel : ViewModel() {
                                         // Decode base64 audio data
                                         val audioBytes = Base64.decode(audioData, Base64.DEFAULT)
                                         Log.d(
-                                            "SpeechViewModel",
-                                            "Received audio data: ${audioBytes.size} bytes",
+                                                "SpeechViewModel",
+                                                "Received audio data: ${audioBytes.size} bytes",
                                         )
                                         coroutineScope.launch { _receivedAudio.emit(audioBytes) }
                                     } catch (e: Exception) {
                                         Log.e("SpeechViewModel", "Error decoding audio data", e)
                                         coroutineScope.launch {
                                             _errorMessages.emit(
-                                                "Error decoding audio: ${e.message}",
+                                                    "Error decoding audio: ${e.message}",
                                             )
                                         }
                                     }
                                 }
                             }
                             else ->
-                                Log.e(
-                                    "SpeechViewModel",
-                                    "Unexpected audio data type: ${audioData?.javaClass}",
-                                )
+                                    Log.e(
+                                            "SpeechViewModel",
+                                            "Unexpected audio data type: ${audioData?.javaClass}",
+                                    )
                         }
                     }
                 }
@@ -185,11 +185,11 @@ class SpeechViewModel : ViewModel() {
         transcript.value = ""
 
         mSocket?.emit(
-            "start",
-            JSONObject().apply {
-                put("systemMessage", systemMessage)
-                put("temperature", temperature)
-            },
+                "start",
+                JSONObject().apply {
+                    put("systemMessage", systemMessage)
+                    put("temperature", temperature)
+                },
         )
 
         // Remove isRecording assignment from here
@@ -204,7 +204,7 @@ class SpeechViewModel : ViewModel() {
                             val read = audioRecord.read(buffer, 0, buffer.size)
                             if (read > 0) {
                                 val byteBuffer =
-                                    ByteBuffer.allocate(read * 2).order(ByteOrder.LITTLE_ENDIAN)
+                                        ByteBuffer.allocate(read * 2).order(ByteOrder.LITTLE_ENDIAN)
                                 for (i in 0 until read) {
                                     byteBuffer.putShort(buffer[i])
                                 }
@@ -213,8 +213,8 @@ class SpeechViewModel : ViewModel() {
                                 val base64Audio = Base64.encodeToString(audioData, Base64.NO_WRAP)
 
                                 mSocket?.emit(
-                                    "sendAudio",
-                                    JSONObject().apply { put("audio", base64Audio) },
+                                        "sendAudio",
+                                        JSONObject().apply { put("audio", base64Audio) },
                                 )
                             }
                             kotlinx.coroutines.delay(10)

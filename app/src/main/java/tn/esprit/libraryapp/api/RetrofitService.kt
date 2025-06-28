@@ -6,7 +6,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitService {
-    private const val BASE_URL = "http://192.168.17.105:3000/"
+    private const val BASE_URL = "https://libraryapp-nest-back.vercel.app/"
 
     private val loggingInterceptor =
         HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }

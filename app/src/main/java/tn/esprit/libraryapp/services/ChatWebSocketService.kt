@@ -15,7 +15,7 @@ class ChatWebSocketService {
 
     init {
         try {
-            socket = IO.socket("http://192.168.17.105:3000/")
+            socket = IO.socket("https://libraryapp-nest-back.vercel.app/")
             setupSocketListeners()
             socket?.connect()
         } catch (e: Exception) {
@@ -43,43 +43,43 @@ class ChatWebSocketService {
 
     fun joinRoom(bookId: Int, userId: String, username: String) {
         val data =
-            JSONObject().apply {
-                put("bookId", bookId)
-                put("userId", userId)
-                put("username", username)
-            }
+                JSONObject().apply {
+                    put("bookId", bookId)
+                    put("userId", userId)
+                    put("username", username)
+                }
         socket?.emit("joinRoom", data)
     }
 
     fun leaveRoom(bookId: Int, username: String) {
         val data =
-            JSONObject().apply {
-                put("bookId", bookId)
-                put("username", username)
-            }
+                JSONObject().apply {
+                    put("bookId", bookId)
+                    put("username", username)
+                }
         socket?.emit("leaveRoom", data)
     }
 
     fun sendMessage(bookId: Int, userId: String, username: String, content: String) {
         val data =
-            JSONObject().apply {
-                put("bookId", bookId)
-                put("userId", userId)
-                put("username", username)
-                put("content", content)
-            }
+                JSONObject().apply {
+                    put("bookId", bookId)
+                    put("userId", userId)
+                    put("username", username)
+                    put("content", content)
+                }
         socket?.emit("chatMessage", data)
     }
 
     private fun parseMessage(jsonString: String): ChatMessage {
         val json = JSONObject(jsonString)
         return ChatMessage(
-            id = json.getString("id"),
-            bookId = json.getInt("bookId").toString(),
-            userId = json.getString("userId"),
-            userName = json.getString("username"),
-            content = json.getString("content"),
-            timestamp = json.getLong("timestamp"),
+                id = json.getString("id"),
+                bookId = json.getInt("bookId").toString(),
+                userId = json.getString("userId"),
+                userName = json.getString("username"),
+                content = json.getString("content"),
+                timestamp = json.getLong("timestamp"),
         )
     }
 

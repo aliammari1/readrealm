@@ -3,6 +3,7 @@ package tn.esprit.libraryapp.services
 import android.util.Log
 import io.socket.client.IO
 import io.socket.client.Socket
+import java.net.URISyntaxException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -15,7 +16,6 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import org.json.JSONObject
 import tn.esprit.libraryapp.models.ChatMessage
-import java.net.URISyntaxException
 
 class ChatSocketService {
     private var socket: Socket? = null
@@ -34,11 +34,11 @@ class ChatSocketService {
     init {
         try {
             val options =
-                IO.Options.builder()
-                    .setTransports(arrayOf("websocket"))
-                    .setForceNew(true)
-                    .build()
-            socket = IO.socket("http://192.168.17.105:3000/", options)
+                    IO.Options.builder()
+                            .setTransports(arrayOf("websocket"))
+                            .setForceNew(true)
+                            .build()
+            socket = IO.socket("https://libraryapp-nest-back.vercel.app/", options)
             setupSocketListeners()
         } catch (e: URISyntaxException) {
             e.printStackTrace()
@@ -56,30 +56,30 @@ class ChatSocketService {
                     try {
                         val messagesArray = data as JSONArray
                         val messages =
-                            (0 until messagesArray.length()).map { index ->
-                                val jsonMessage = messagesArray.getJSONObject(index)
-                                ChatMessage(
-                                    id = jsonMessage.optString("_id"),
-                                    bookId = jsonMessage.getString("bookId"),
-                                    userId = jsonMessage.getString("userId"),
-                                    userName = jsonMessage.getString("username"),
-                                    content = jsonMessage.getString("content"),
-                                    timestamp =
-                                    try {
-                                        val dateStr =
-                                            jsonMessage.getString("createdAt")
-                                        java.text.SimpleDateFormat(
-                                            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-                                            java.util.Locale.US,
-                                        )
-                                            .parse(dateStr)
-                                            ?.time
-                                            ?: System.currentTimeMillis()
-                                    } catch (e: Exception) {
-                                        System.currentTimeMillis()
-                                    },
-                                )
-                            }
+                                (0 until messagesArray.length()).map { index ->
+                                    val jsonMessage = messagesArray.getJSONObject(index)
+                                    ChatMessage(
+                                            id = jsonMessage.optString("_id"),
+                                            bookId = jsonMessage.getString("bookId"),
+                                            userId = jsonMessage.getString("userId"),
+                                            userName = jsonMessage.getString("username"),
+                                            content = jsonMessage.getString("content"),
+                                            timestamp =
+                                                    try {
+                                                        val dateStr =
+                                                                jsonMessage.getString("createdAt")
+                                                        java.text.SimpleDateFormat(
+                                                                        "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                                                                        java.util.Locale.US,
+                                                                )
+                                                                .parse(dateStr)
+                                                                ?.time
+                                                                ?: System.currentTimeMillis()
+                                                    } catch (e: Exception) {
+                                                        System.currentTimeMillis()
+                                                    },
+                                    )
+                                }
                         _previousMessages.value = messages
                     } catch (e: Exception) {
                         Log.e("ChatSocketService", "Error parsing previous messages", e)
@@ -91,15 +91,15 @@ class ChatSocketService {
                 args.firstOrNull()?.let { data ->
                     val jsonData = data as JSONObject
                     val message =
-                        ChatMessage(
-                            id = jsonData.optString("_id"),
-                            bookId = jsonData.getString("bookId"),
-                            userId = jsonData.getString("userId"),
-                            userName = jsonData.getString("username"),
-                            content = jsonData.getString("content"),
-                            timestamp = jsonData.optLong("createdAt")
-                                ?: System.currentTimeMillis(),
-                        )
+                            ChatMessage(
+                                    id = jsonData.optString("_id"),
+                                    bookId = jsonData.getString("bookId"),
+                                    userId = jsonData.getString("userId"),
+                                    userName = jsonData.getString("username"),
+                                    content = jsonData.getString("content"),
+                                    timestamp = jsonData.optLong("createdAt")
+                                                    ?: System.currentTimeMillis(),
+                            )
                     messageChannel.trySend(message)
                 }
             }
@@ -134,7 +134,7 @@ class ChatSocketService {
                         val base64Audio = jsonData.getString("audioChunk")
                         // Convert Base64 string back to ByteArray
                         val audioChunk =
-                            android.util.Base64.decode(base64Audio, android.util.Base64.NO_WRAP)
+                                android.util.Base64.decode(base64Audio, android.util.Base64.NO_WRAP)
                         scope.launch { _voiceData.emit(audioChunk) }
                     } catch (e: Exception) {
                         Log.e("ChatSocket", "Error handling voice data", e)
@@ -177,69 +177,69 @@ class ChatSocketService {
 
     fun joinRoom(bookId: String, userId: String, username: String) {
         val data =
-            JSONObject().apply {
-                put("bookId", bookId)
-                put("userId", userId)
-                put("username", username)
-            }
+                JSONObject().apply {
+                    put("bookId", bookId)
+                    put("userId", userId)
+                    put("username", username)
+                }
         socket?.emit("joinRoom", data)
     }
 
     fun leaveRoom(bookId: String, username: String) {
         val data =
-            JSONObject().apply {
-                put("bookId", bookId)
-                put("username", username)
-            }
+                JSONObject().apply {
+                    put("bookId", bookId)
+                    put("username", username)
+                }
         socket?.emit("leaveRoom", data)
     }
 
     fun sendMessage(bookId: String, userId: String, username: String, content: String) {
         val data =
-            JSONObject().apply {
-                put("bookId", bookId)
-                put("userId", userId)
-                put("username", username)
-                put("content", content)
-            }
+                JSONObject().apply {
+                    put("bookId", bookId)
+                    put("userId", userId)
+                    put("username", username)
+                    put("content", content)
+                }
         socket?.emit("chatMessage", data)
     }
 
     fun startVoiceCall(bookId: String, userId: String, username: String) {
         val data =
-            JSONObject().apply {
-                put("bookId", bookId)
-                put("userId", userId)
-                put("username", username)
-            }
+                JSONObject().apply {
+                    put("bookId", bookId)
+                    put("userId", userId)
+                    put("username", username)
+                }
         socket?.emit("voiceCallStart", data)
     }
 
     fun joinVoiceCall(roomId: String, userId: String, username: String) {
         val data =
-            JSONObject().apply {
-                put("roomId", roomId)
-                put("userId", userId)
-                put("username", username)
-            }
+                JSONObject().apply {
+                    put("roomId", roomId)
+                    put("userId", userId)
+                    put("username", username)
+                }
         socket?.emit("voiceCallJoin", data)
     }
 
     fun sendVoiceData(roomId: String, userId: String, audioChunk: ByteArray) {
         try {
             val data =
-                JSONObject().apply {
-                    put("roomId", roomId)
-                    put("userId", userId)
-                    // Convert ByteArray to Base64 string for transmission
-                    put(
-                        "audioChunk",
-                        android.util.Base64.encodeToString(
-                            audioChunk,
-                            android.util.Base64.NO_WRAP,
-                        ),
-                    )
-                }
+                    JSONObject().apply {
+                        put("roomId", roomId)
+                        put("userId", userId)
+                        // Convert ByteArray to Base64 string for transmission
+                        put(
+                                "audioChunk",
+                                android.util.Base64.encodeToString(
+                                        audioChunk,
+                                        android.util.Base64.NO_WRAP,
+                                ),
+                        )
+                    }
             socket?.emit("voiceStream", data)
         } catch (e: Exception) {
             Log.e("ChatSocket", "Error sending voice data", e)
@@ -253,10 +253,10 @@ class ChatSocketService {
 
     fun declineCall(roomId: String, username: String) {
         val data =
-            JSONObject().apply {
-                put("roomId", roomId)
-                put("username", username)
-            }
+                JSONObject().apply {
+                    put("roomId", roomId)
+                    put("username", username)
+                }
         socket?.emit("declineCall", data)
     }
 
