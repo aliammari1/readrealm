@@ -33,8 +33,8 @@ class AuthViewModel() : ViewModel() {
     private val _generateEmailResult = MutableStateFlow<Result<GenerateEmailResponse>?>(null)
     private val _userProfile = MutableStateFlow<User?>(null)
     private val _name = MutableStateFlow("")
-    private val _email = MutableStateFlow("ali.ammari@esprit.tn")
-    private val _password = MutableStateFlow("password")
+    private val _email = MutableStateFlow("")
+    private val _password = MutableStateFlow("")
 
     val loginResult: StateFlow<Result<LoginResponse>?> = _loginResult
     val registerResult: StateFlow<Result<RegisterResponse>?> = _registerResult

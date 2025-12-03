@@ -10,6 +10,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import tn.esprit.libraryapp.screens.*
+import tn.esprit.libraryapp.screens.experience.BookToExperienceScreen
+import tn.esprit.libraryapp.screens.experience.ExploreHubScreen
 
 @Composable
 fun AppNavHost(
@@ -81,6 +83,11 @@ fun AppNavHost(
         composable(NavigationItem.BookChannel.route) {
             BookChatScreen()
         }
+        
+        // Explore - Experience Hub for selecting books to explore
+        composable(NavigationItem.Explore.route) {
+            ExploreHubScreen(navController = navController)
+        }
         composable(
             route = "book_chat/{bookId}",
             arguments = listOf(
@@ -91,6 +98,29 @@ fun AppNavHost(
             BookChatScreen(
                 bookId = bookId,
                 viewModel = viewModel(),
+            )
+        }
+        
+        // Book to Experience - Immersive Literary Worlds
+        composable(
+            route = "book_experience/{bookId}/{bookTitle}/{bookContent}",
+            arguments = listOf(
+                navArgument("bookId") { type = NavType.StringType },
+                navArgument("bookTitle") { type = NavType.StringType },
+                navArgument("bookContent") { 
+                    type = NavType.StringType
+                    defaultValue = ""
+                },
+            ),
+        ) { backStackEntry ->
+            val bookId = backStackEntry.arguments?.getString("bookId") ?: ""
+            val bookTitle = Uri.decode(backStackEntry.arguments?.getString("bookTitle") ?: "")
+            val bookContent = Uri.decode(backStackEntry.arguments?.getString("bookContent") ?: "")
+            BookToExperienceScreen(
+                bookId = bookId,
+                bookTitle = bookTitle,
+                bookContent = bookContent,
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }

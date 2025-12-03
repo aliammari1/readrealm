@@ -2,9 +2,13 @@ package tn.esprit.libraryapp.screens
 
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.VideoCall
 import androidx.compose.material3.Icon
@@ -21,9 +25,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -47,6 +59,7 @@ import io.getstream.chat.android.state.plugin.factory.StreamStatePluginFactory
 import io.getstream.video.android.compose.permission.LaunchCallPermissions
 import io.getstream.video.android.compose.theme.VideoTheme
 import io.getstream.video.android.compose.ui.components.call.activecall.CallContent
+import io.getstream.video.android.core.GEO
 import io.getstream.video.android.core.StreamVideoBuilder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -55,6 +68,14 @@ import kotlinx.coroutines.launch
 import tn.esprit.libraryapp.models.Book
 import tn.esprit.libraryapp.repository.BookRepository
 import tn.esprit.libraryapp.services.TokenManagerProvider
+import tn.esprit.libraryapp.ui.theme.*
+import kotlin.math.cos
+import kotlin.math.sin
+
+// ═══════════════════════════════════════════════════════════════════
+// ✨ WIZARD'S DIALOGUE HALL ✨
+// A mystical chat interface for book discussions
+// ═══════════════════════════════════════════════════════════════════
 
 @Preview(showBackground = true)
 @Composable
@@ -71,7 +92,6 @@ fun BookChatScreen(modifier: Modifier = Modifier) {
             .build()
     }
 
-    // Add DisposableEffect to handle cleanup
     DisposableEffect(Unit) {
         onDispose {
             client.disconnect(true).enqueue { result ->
@@ -89,27 +109,203 @@ fun BookChatScreen(modifier: Modifier = Modifier) {
     }
 
     userId?.let { uid ->
-        // Create user with admin role to bypass permissions
         val user = User(
             id = uid,
             name = "User",
             image = "https://bit.ly/2TIt8NR",
         )
 
-        // Use token with admin rights
         val token = client.devToken(user.id)
         client.connectUser(user = user, token = token).execute()
 
-        ChatTheme {
-            when (client.clientState.initializationState.collectAsState().value) {
-                InitializationState.COMPLETE -> ChatChannelScreen(client = client)
-                InitializationState.INITIALIZING -> Text("Initializing...")
-                InitializationState.NOT_INITIALIZED -> Text("Not initialized...")
-                else -> Text("Unknown state")
+        Box(modifier = modifier.fillMaxSize()) {
+            // Mystical chat background
+            MysticalChatBackground()
+            
+            // Floating magical particles
+            FloatingChatParticles()
+            
+            ChatTheme {
+                when (client.clientState.initializationState.collectAsState().value) {
+                    InitializationState.COMPLETE -> {
+                        EnchantedChatChannelScreen(client = client)
+                    }
+                    InitializationState.INITIALIZING -> {
+                        MysticalLoadingState(message = "Connecting to the arcane network...")
+                    }
+                    InitializationState.NOT_INITIALIZED -> {
+                        MysticalLoadingState(message = "Preparing magical channels...")
+                    }
+                    else -> {
+                        MysticalLoadingState(message = "Unknown mystical state...")
+                    }
+                }
             }
         }
     }
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// MYSTICAL CHAT BACKGROUND
+// ═══════════════════════════════════════════════════════════════════
+
+@Composable
+private fun MysticalChatBackground() {
+    Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            DeepLibraryBrown,
+                            MysticPurple.copy(alpha = 0.3f),
+                            InkBlue.copy(alpha = 0.4f),
+                            DeepLibraryBrown
+                        )
+                    )
+                )
+        )
+        
+        // Mystical pattern overlay
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            // Draw subtle magical circles
+            val centerX = size.width / 2
+            val centerY = size.height / 3
+            
+            for (i in 1..4) {
+                drawCircle(
+                    color = GildedGold.copy(alpha = 0.05f),
+                    radius = 80f * i,
+                    center = Offset(centerX, centerY)
+                )
+            }
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// FLOATING CHAT PARTICLES
+// ═══════════════════════════════════════════════════════════════════
+
+@Composable
+private fun FloatingChatParticles() {
+    val infiniteTransition = rememberInfiniteTransition(label = "chatParticles")
+    val time by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(20000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "chatParticleTime"
+    )
+    
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val particleCount = 20
+        for (i in 0 until particleCount) {
+            val phase = i.toFloat() / particleCount
+            val x = size.width * ((sin(time * 2 * Math.PI + phase * Math.PI * 4) + 1) / 2).toFloat()
+            val y = size.height * ((phase + time * 0.5f) % 1f)
+            val alpha = (sin(time * 3 * Math.PI + i) + 1) / 4
+            
+            drawCircle(
+                color = CandlelightGlow.copy(alpha = alpha.toFloat()),
+                radius = 2f + (i % 2),
+                center = Offset(x, y)
+            )
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MYSTICAL LOADING STATE
+// ═══════════════════════════════════════════════════════════════════
+
+@Composable
+private fun MysticalLoadingState(message: String) {
+    val rotateAnimation = rememberInfiniteTransition(label = "loadRotate")
+    val rotation by rotateAnimation.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "rotation"
+    )
+    
+    val pulseAnimation by rotateAnimation.animateFloat(
+        initialValue = 0.8f,
+        targetValue = 1.2f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse"
+    )
+    
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Rotating magical runes
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .graphicsLayer { rotationZ = rotation },
+                contentAlignment = Alignment.Center
+            ) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val runeCount = 6
+                    for (i in 0 until runeCount) {
+                        val angle = (360f / runeCount) * i
+                        val radian = Math.toRadians(angle.toDouble())
+                        val x = center.x + (size.minDimension / 2 - 15) * cos(radian).toFloat()
+                        val y = center.y + (size.minDimension / 2 - 15) * sin(radian).toFloat()
+                        drawCircle(
+                            color = GildedGold,
+                            radius = 8.dp.toPx(),
+                            center = Offset(x, y)
+                        )
+                    }
+                }
+                
+                // Inner orb
+                Box(
+                    modifier = Modifier
+                        .size((60 * pulseAnimation).dp)
+                        .background(
+                            Brush.radialGradient(
+                                colors = listOf(
+                                    MysticPurple,
+                                    MysticPurple.copy(alpha = 0.5f),
+                                    Color.Transparent
+                                )
+                            ),
+                            shape = CircleShape
+                        )
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Text(
+                text = message,
+                fontSize = 14.sp,
+                fontStyle = FontStyle.Italic,
+                color = CandlelightGlow
+            )
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ENCHANTED CHAT CHANNEL SCREEN
+// ═══════════════════════════════════════════════════════════════════
 
 class CustomChannelListViewModel(private val chatClient: ChatClient = ChatClient.instance()) :
     ViewModel() {
@@ -143,11 +339,8 @@ class CustomChannelListViewModel(private val chatClient: ChatClient = ChatClient
                     limit = 100,
                     querySort = QuerySortByField.descByName("lastMessageAt"),
                 ).apply {
-                    // Enable watching for real-time updates
                     watch = true
-                    // Enable member presence
                     presence = true
-                    // Include state in response
                     state = true
                 }
 
@@ -182,7 +375,7 @@ class CustomChannelListViewModel(private val chatClient: ChatClient = ChatClient
 }
 
 @Composable
-fun ChatChannelScreen(
+fun EnchantedChatChannelScreen(
     viewModel: CustomChannelListViewModel = viewModel(),
     client: ChatClient = ChatClient.instance(),
 ) {
@@ -211,7 +404,7 @@ fun ChatChannelScreen(
                             image = "https://bit.ly/2TIt8NR",
                         ),
                         token = client.devToken(uid),
-                        geo = io.getstream.video.android.core.GEO.GlobalEdgeNetwork,
+                        geo = GEO.GlobalEdgeNetwork,
                     ).build()
                 }
 
@@ -277,42 +470,33 @@ fun ChatChannelScreen(
                         onBackPressed = { selectedChannel = null },
                     )
 
-                    // Add video call button as a floating action button
+                    // Mystical video call button
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
-                            .padding(16.dp),
+                            .padding(16.dp)
                     ) {
-                        IconButton(
-                            onClick = { showVideoCall = true },
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.VideoCall,
-                                contentDescription = "Start Video Call",
-                            )
-                        }
+                        MysticalVideoCallButton(
+                            onClick = { showVideoCall = true }
+                        )
                     }
                 }
             }
             return@let
         }
 
-        // Add this LaunchedEffect to query channels when screen loads
         LaunchedEffect(Unit) {
             viewModel.queryAllChannels()
         }
 
-        // Create/Update channels for bookmarked books
         LaunchedEffect(bookmarkedBooks) {
             bookmarkedBooks.forEach { book ->
                 val channelId = "book-${book.id}"
                 val channelClient = client.channel("messaging", channelId)
 
-                // First, try to watch the channel to check if it exists
                 channelClient.watch().enqueue { watchResult ->
                     when {
                         watchResult.isSuccess -> {
-                            // Channel exists, check if user is a member
                             val channel = watchResult.getOrThrow()
                             Log.d(
                                 "ChatChannel",
@@ -320,14 +504,12 @@ fun ChatChannelScreen(
                             )
 
                             if (!channel.members.map { it.user.id }.contains(uid)) {
-                                // User is not a member, add them
                                 channelClient.addMembers(listOf(uid)).enqueue { addResult ->
                                     if (addResult.isSuccess) {
                                         Log.d(
                                             "ChatChannel",
                                             "Added user $uid to existing channel ${channel.id}",
                                         )
-                                        // Update channel data
                                         channelClient.update(
                                             message = Message(text = "User joined the discussion"),
                                             extraData = mapOf(
@@ -347,7 +529,6 @@ fun ChatChannelScreen(
                         }
 
                         else -> {
-                            // Channel doesn't exist, create it
                             channelClient.create(
                                 memberIds = listOf(uid),
                                 extraData = mapOf(
@@ -361,7 +542,6 @@ fun ChatChannelScreen(
                                         "ChatChannel",
                                         "Created new channel: $channelId with member $uid",
                                     )
-                                    // Verify channel creation by watching it
                                     channelClient.watch().enqueue()
                                 } else {
                                     Log.e(
@@ -376,12 +556,148 @@ fun ChatChannelScreen(
             }
         }
 
-        ChannelsScreen(
-            viewModelFactory = ChannelViewModelFactory(client),
-            title = "Library Chat",
-            isShowingHeader = true,
-            onChannelClick = { selectedChannel = it },
-            onBackPressed = {},
-        )
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Mystical header
+            EnchantedChatHeader()
+            
+            // Channels list
+            ChannelsScreen(
+                viewModelFactory = ChannelViewModelFactory(client),
+                title = "",
+                isShowingHeader = false,
+                onChannelClick = { selectedChannel = it },
+                onBackPressed = {},
+            )
+        }
     }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ENCHANTED CHAT HEADER
+// ═══════════════════════════════════════════════════════════════════
+
+@Composable
+private fun EnchantedChatHeader() {
+    val glowAnimation = rememberInfiniteTransition(label = "headerGlow")
+    val glowAlpha by glowAnimation.animateFloat(
+        initialValue = 0.5f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "glowAlpha"
+    )
+    
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                Brush.horizontalGradient(
+                    colors = listOf(
+                        DeepLibraryBrown,
+                        MysticPurple.copy(alpha = 0.5f),
+                        DeepLibraryBrown
+                    )
+                )
+            )
+            .border(
+                width = 1.dp,
+                brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        GildedGold.copy(alpha = 0.3f),
+                        GildedGold.copy(alpha = glowAlpha),
+                        GildedGold.copy(alpha = 0.3f)
+                    )
+                ),
+                shape = CircleShape
+            )
+            .padding(20.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "💬",
+                fontSize = 28.sp
+            )
+            
+            Spacer(modifier = Modifier.width(12.dp))
+            
+            Column {
+                Text(
+                    text = "Wizard's Dialogue Hall",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = GildedGold
+                )
+                Text(
+                    text = "Discuss tomes with fellow readers",
+                    fontSize = 12.sp,
+                    fontStyle = FontStyle.Italic,
+                    color = CandlelightGlow.copy(alpha = 0.7f)
+                )
+            }
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MYSTICAL VIDEO CALL BUTTON
+// ═══════════════════════════════════════════════════════════════════
+
+@Composable
+private fun MysticalVideoCallButton(onClick: () -> Unit) {
+    val pulseAnimation = rememberInfiniteTransition(label = "videoPulse")
+    val pulseScale by pulseAnimation.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulseScale"
+    )
+    
+    Box(
+        modifier = Modifier
+            .size(50.dp)
+            .graphicsLayer { scaleX = pulseScale; scaleY = pulseScale }
+            .background(
+                Brush.radialGradient(
+                    colors = listOf(
+                        MysticPurple,
+                        MysticPurple.copy(alpha = 0.5f)
+                    )
+                ),
+                shape = CircleShape
+            )
+            .border(
+                width = 2.dp,
+                color = GildedGold,
+                shape = CircleShape
+            )
+            .clip(CircleShape)
+    ) {
+        IconButton(
+            onClick = onClick,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Icon(
+                imageVector = Icons.Default.VideoCall,
+                contentDescription = "Start Video Call",
+                tint = GildedGold,
+                modifier = Modifier.size(28.dp)
+            )
+        }
+    }
+}
+
+// Keep original function name for compatibility
+@Composable
+fun ChatChannelScreen(
+    viewModel: CustomChannelListViewModel = viewModel(),
+    client: ChatClient = ChatClient.instance(),
+) {
+    EnchantedChatChannelScreen(viewModel = viewModel, client = client)
 }

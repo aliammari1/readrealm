@@ -2,9 +2,11 @@ package tn.esprit.libraryapp.screens
 
 import android.widget.Toast
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
@@ -13,6 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,19 +23,29 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -43,9 +56,20 @@ import androidx.navigation.NavHostController
 import tn.esprit.libraryapp.NavigationItem
 import tn.esprit.libraryapp.R
 import tn.esprit.libraryapp.components.MyTextField
-import tn.esprit.libraryapp.components.ParticleEffect
 import tn.esprit.libraryapp.models.LoginRequest
 import tn.esprit.libraryapp.viewModel.AuthViewModel
+import kotlin.math.cos
+import kotlin.math.sin
+
+// Immersive Library Theme Colors
+private val DeepLibraryBrown = Color(0xFF1A0F0A)
+private val RichMahogany = Color(0xFF4A2C2A)
+private val WarmLeather = Color(0xFF8B5A2B)
+private val GildedGold = Color(0xFFD4AF37)
+private val AncientParchment = Color(0xFFF5E6C8)
+private val CandlelightGlow = Color(0xFFFFE4B5)
+private val MysticPurple = Color(0xFF2D1B4E)
+private val InkBlue = Color(0xFF1B2838)
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -61,489 +85,763 @@ fun LoginScreen(
     val email by viewModel.email.collectAsState()
     val password by viewModel.password.collectAsState()
     val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp.dp
 
     LaunchedEffect(loginResult) {
         loginResult?.let {
             if (it.isSuccess) {
-                Toast.makeText(context, "Login successful", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Welcome to ReadRealm!", Toast.LENGTH_SHORT).show()
                 viewModel.clearLoginResult()
                 navController.navigate(NavigationItem.Home.route) {
                     popUpTo(NavigationItem.Login.route) { inclusive = true }
                 }
             } else {
-                Toast.makeText(context, "Login failed", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "The realm remains sealed...", Toast.LENGTH_SHORT).show()
                 viewModel.clearLoginResult()
             }
         }
     }
 
-    val infiniteTransition = rememberInfiniteTransition(label = "")
-    val scale by
-        infiniteTransition.animateFloat(
-            initialValue = 0.97f,
-            targetValue = 1.03f,
-            animationSpec =
-            infiniteRepeatable(
-                animation = tween(3000, easing = FastOutSlowInEasing),
-                repeatMode = RepeatMode.Reverse,
-            ),
-            label = "",
-        )
+    // Magical Animations
+    val infiniteTransition = rememberInfiniteTransition(label = "magical_effects")
+    
+    val candleFlicker by infiniteTransition.animateFloat(
+        initialValue = 0.7f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "candle_flicker",
+    )
 
-    val rotation by
-        infiniteTransition.animateFloat(
-            initialValue = -5f,
-            targetValue = 5f,
-            animationSpec =
-            infiniteRepeatable(
-                animation = tween(4000, easing = FastOutSlowInEasing),
-                repeatMode = RepeatMode.Reverse,
-            ),
-            label = "",
-        )
+    val magicDust by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(20000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "magic_dust",
+    )
+
+    val bookFloat by infiniteTransition.animateFloat(
+        initialValue = -8f,
+        targetValue = 8f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3500, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "book_float",
+    )
+
+    val glowIntensity by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 0.7f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2500, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "glow_intensity",
+    )
 
     val scrollState = rememberScrollState()
-    300.dp
 
     Box(modifier = modifier.fillMaxSize()) {
-        // Enhanced background with dynamic particles
-        ParticleEffect()
-
-        // Animated gradient background
-        Box(
-            modifier =
-            Modifier
-                .fillMaxSize()
-                .background(
-                    brush =
-                    Brush.verticalGradient(
-                        colors =
-                        listOf(
-                            MaterialTheme.colorScheme
-                                .primary.copy(
-                                    alpha = 0.15f,
-                                ),
-                            MaterialTheme.colorScheme
-                                .secondary.copy(
-                                    alpha = 0.1f,
-                                ),
-                            MaterialTheme.colorScheme
-                                .tertiary.copy(
-                                    alpha = 0.05f,
-                                ),
-                            MaterialTheme.colorScheme
-                                .surface,
-                        ),
-                    ),
-                ),
+        // Enchanted Library Background
+        EnchantedLibraryBackground(
+            candleFlicker = candleFlicker,
+            magicDust = magicDust,
         )
 
-        // 3D Floating Books Background
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .alpha(0.1f),
-        ) {
-            repeat(12) { index ->
-                val rotation by
-                    rememberInfiniteTransition(label = "")
-                        .animateFloat(
-                            initialValue = 0f,
-                            targetValue = 360f,
-                            animationSpec =
-                            infiniteRepeatable(
-                                animation =
-                                tween(20000, easing = LinearEasing),
-                                repeatMode = RepeatMode.Restart,
-                            ),
-                            label = "",
-                        )
+        // Floating Magic Particles
+        MagicalParticles(rotation = magicDust)
 
-                Box(
-                    modifier =
-                    Modifier
-                        .size(160.dp)
-                        .offset(x = (index * 100).dp, y = (index * 80).dp)
-                        .graphicsLayer {
-                            rotationZ = rotation + index * 30
-                            scaleX = 0.8f
-                            scaleY = 0.8f
-                        },
-                ) {
-                    Icon(
-                        imageVector = Icons.Outlined.MenuBook,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                    )
-                }
-            }
-        }
-
+        // Main Content
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            // Enhanced header section
-            Box(
-                modifier =
-                Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        alpha = 1f - (scrollState.value * 0.002f).coerceAtMost(0.3f)
-                        translationY = -scrollState.value * 0.3f
-                    },
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    Box(
-                        modifier =
-                        Modifier
-                            .size(120.dp)
-                            .shadow(20.dp, CircleShape)
-                            .background(
-                                brush =
-                                Brush.radialGradient(
-                                    colors =
-                                    listOf(
-                                        MaterialTheme
-                                            .colorScheme
-                                            .primary
-                                            .copy(
-                                                alpha =
-                                                0.2f,
-                                            ),
-                                        MaterialTheme
-                                            .colorScheme
-                                            .primary
-                                            .copy(
-                                                alpha =
-                                                0.1f,
-                                            ),
-                                    ),
-                                ),
-                                shape = CircleShape,
-                            )
-                            .padding(24.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.AutoStories,
-                            contentDescription = null,
-                            modifier =
-                            Modifier
-                                .fillMaxSize()
-                                .graphicsLayer {
-                                    scaleX = scale
-                                    scaleY = scale
-                                    rotationZ = rotation * 2
-                                },
-                            tint = MaterialTheme.colorScheme.primary,
-                        )
-                    }
+            Spacer(modifier = Modifier.height(screenHeight * 0.08f))
 
-                    Spacer(modifier = Modifier.height(0.dp))
-                    Text(
-                        buildAnnotatedString {
-                            withStyle(
-                                SpanStyle(
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontSize = 36.sp,
-                                    fontWeight = FontWeight.Light,
-                                    letterSpacing = 2.sp,
-                                ),
-                            ) { append("Welcome to") }
-                            append("\n\n") // Added extra newline for more spacing
-                            withStyle(
-                                SpanStyle(
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontSize = 52.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    letterSpacing = 0.sp,
-                                    shadow =
-                                    Shadow(
-                                        color =
-                                        MaterialTheme.colorScheme
-                                            .primary.copy(
-                                                alpha = 0.5f,
-                                            ),
-                                        offset = Offset(0f, 4f),
-                                        blurRadius = 8f,
-                                    ),
-                                ),
-                            ) { append("ReadRealm") }
-                        },
-                        textAlign = TextAlign.Center,
-                        modifier =
-                        Modifier
-                            .graphicsLayer {
-                                scaleX = scale
-                                scaleY = scale
-                            }
-                            .padding(vertical = 8.dp), // Added vertical padding
-                    )
+            // Magical Book Portal Header
+            MagicalBookHeader(
+                bookFloat = bookFloat,
+                glowIntensity = glowIntensity,
+                candleFlicker = candleFlicker,
+            )
 
-                    Text(
-                        "Where Stories Come Alive", // Updated tagline
-                        style =
-                        MaterialTheme.typography.titleMedium.copy(
-                            color =
-                            MaterialTheme.colorScheme.onSurface.copy(
-                                alpha = 0.7f,
-                            ),
-                            fontWeight = FontWeight.Medium,
-                            letterSpacing = 1.sp,
-                        ),
-                        modifier = Modifier.padding(top = 8.dp),
-                    )
-                }
-            }
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // Enhanced main content
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp),
-            ) {
-                // Enhanced login card
-                Card(
-                    modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .shadow(
-                            elevation = 20.dp,
-                            shape = RoundedCornerShape(32.dp),
-                            spotColor =
-                            MaterialTheme.colorScheme.primary.copy(
-                                alpha = 0.2f,
-                            ),
-                        )
-                        .clip(RoundedCornerShape(32.dp))
-                        .background(
-                            brush =
-                            Brush.verticalGradient(
-                                colors =
-                                listOf(
-                                    MaterialTheme
-                                        .colorScheme
-                                        .surface
-                                        .copy(
-                                            alpha =
-                                            0.95f,
-                                        ),
-                                    MaterialTheme
-                                        .colorScheme
-                                        .surface
-                                        .copy(
-                                            alpha =
-                                            0.98f,
-                                        ),
-                                ),
-                            ),
-                        ),
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
-                    ) {
-                        Text(
-                            "Sign In",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                        )
+            // Ancient Tome Login Card
+            AncientTomeCard(
+                email = email,
+                password = password,
+                isChecked = isChecked,
+                onEmailChange = { viewModel.onEmailChange(it) },
+                onPasswordChange = { viewModel.onPasswordChange(it) },
+                onCheckedChange = { isChecked = it },
+                onForgotPassword = { isSheetOpen = true },
+                onLogin = { viewModel.login(LoginRequest(email, password)) },
+            )
 
-                        MyTextField(
-                            textFieldState = email,
-                            onTextChange = { viewModel.onEmailChange(it) },
-                            hint = "Email",
-                            leadingIcon = Icons.Outlined.Email,
-                            trailingIcon = Icons.Outlined.Check,
-                            keyboardType = KeyboardType.Email,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
+            Spacer(modifier = Modifier.height(24.dp))
 
-                        MyTextField(
-                            textFieldState = password,
-                            onTextChange = { viewModel.onPasswordChange(it) },
-                            hint = "Password",
-                            leadingIcon = Icons.Outlined.Lock,
-                            isPassword = true,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
+            // Mystical Divider
+            MysticalDivider()
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Checkbox(
-                                    checked = isChecked,
-                                    onCheckedChange = { isChecked = it },
-                                    colors =
-                                    CheckboxDefaults.colors(
-                                        checkedColor =
-                                        MaterialTheme.colorScheme.primary,
-                                    ),
-                                )
-                                Text("Remember me")
-                            }
-                            TextButton(onClick = { isSheetOpen = true }) {
-                                Text("Forgot password?")
-                            }
-                        }
+            Spacer(modifier = Modifier.height(20.dp))
 
-                        Button(
-                            onClick = { viewModel.login(LoginRequest(email, password)) },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                        ) {
-                            Text(
-                                "Login",
-                                modifier = Modifier.padding(vertical = 8.dp),
-                                style = MaterialTheme.typography.titleMedium,
-                            )
-                        }
-                    }
-                }
+            // Social Login Runes
+            SocialLoginRunes()
 
-                // Enhanced social login section
-                Card(
-                    modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .shadow(
-                            elevation = 8.dp,
-                            shape = RoundedCornerShape(24.dp),
-                            spotColor =
-                            MaterialTheme.colorScheme.primary.copy(
-                                alpha = 0.1f,
-                            ),
-                        ),
-                    colors =
-                    CardDefaults.cardColors(
-                        containerColor =
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
-                    ),
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Text(
-                            "Continue with",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+            Spacer(modifier = Modifier.height(28.dp))
 
-                        Spacer(modifier = Modifier.height(16.dp))
+            // Join the Realm Prompt
+            JoinRealmPrompt(
+                glowIntensity = glowIntensity,
+                onJoinClick = { navController.navigate(NavigationItem.Register.route) },
+            )
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                        ) {
-                            SocialLoginButton(
-                                icon = R.drawable.google,
-                                onClick = { /* Handle Google login */ },
-                                backgroundColor = MaterialTheme.colorScheme.surface,
-                            )
-                            SocialLoginButton(
-                                icon = R.drawable.facebook,
-                                onClick = { /* Handle Facebook login */ },
-                                backgroundColor = MaterialTheme.colorScheme.surface,
-                            )
-                            SocialLoginButton(
-                                icon = R.drawable.instagram,
-                                onClick = { /* Handle Instagram login */ },
-                                backgroundColor = MaterialTheme.colorScheme.surface,
-                            )
-                        }
-                    }
-                }
-
-                // Enhanced registration prompt
-                Card(
-                    modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 32.dp)
-                        .shadow(
-                            elevation = 4.dp,
-                            shape = RoundedCornerShape(20.dp),
-                            spotColor =
-                            MaterialTheme.colorScheme.primary.copy(
-                                alpha = 0.1f,
-                            ),
-                        ),
-                    colors =
-                    CardDefaults.cardColors(
-                        containerColor =
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
-                    ),
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text("New to BookHaven? ", style = MaterialTheme.typography.bodyLarge)
-                        Text(
-                            "Join Now",
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold,
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier =
-                            Modifier
-                                .clickable {
-                                    navController.navigate(NavigationItem.Register.route)
-                                }
-                                .graphicsLayer {
-                                    scaleX = scale
-                                    scaleY = scale
-                                },
-                        )
-                    }
-                }
-            }
+            Spacer(modifier = Modifier.height(40.dp))
         }
     }
 
     // Forgot password bottom sheet
     if (isSheetOpen) {
-        ModalBottomSheet(sheetState = sheetState, onDismissRequest = { isSheetOpen = false }) {
+        ModalBottomSheet(
+            sheetState = sheetState,
+            onDismissRequest = { isSheetOpen = false },
+            containerColor = AncientParchment,
+            scrimColor = DeepLibraryBrown.copy(alpha = 0.7f),
+        ) {
             ForgotScreen(navController = navController)
         }
     }
 }
 
 @Composable
-private fun SocialLoginButton(icon: Int, onClick: () -> Unit, backgroundColor: Color) {
+private fun EnchantedLibraryBackground(
+    candleFlicker: Float,
+    magicDust: Float,
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Deep library gradient
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            DeepLibraryBrown,
+                            Color(0xFF0D0705),
+                            Color(0xFF251520), // Muted purple-brown
+                            Color(0xFF1A2028), // Muted ink blue
+                        ),
+                    ),
+                ),
+        )
+
+        // Candlelight glow effect at top
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(300.dp)
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            CandlelightGlow.copy(alpha = 0.15f * candleFlicker),
+                            Color.Transparent,
+                        ),
+                        center = Offset(500f, 100f),
+                        radius = 600f,
+                    ),
+                ),
+        )
+
+        // Secondary warm glow
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(400.dp)
+                .offset(y = 100.dp)
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            GildedGold.copy(alpha = 0.08f * candleFlicker),
+                            Color.Transparent,
+                        ),
+                        center = Offset(200f, 300f),
+                        radius = 500f,
+                    ),
+                ),
+        )
+
+        // Vignette overlay
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.6f),
+                        ),
+                        radius = 1000f,
+                    ),
+                ),
+        )
+
+        // Bookshelf shadows on edges
+        Row(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .width(40.dp)
+                    .fillMaxHeight()
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.7f),
+                                Color.Transparent,
+                            ),
+                        ),
+                    ),
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Box(
+                modifier = Modifier
+                    .width(40.dp)
+                    .fillMaxHeight()
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.7f),
+                            ),
+                        ),
+                    ),
+            )
+        }
+    }
+}
+
+@Composable
+private fun MagicalParticles(rotation: Float) {
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val particleCount = 30
+        for (i in 0 until particleCount) {
+            val angle = (rotation + i * (360f / particleCount)) * (Math.PI / 180f)
+            val radius = 200f + (i % 5) * 80f
+            val x = size.width / 2 + (cos(angle) * radius).toFloat()
+            val y = size.height / 3 + (sin(angle) * radius * 0.5f).toFloat()
+            
+            val particleSize = (2f + (i % 3) * 1.5f)
+            val alpha = (0.2f + (i % 4) * 0.1f).coerceIn(0f, 0.6f)
+            
+            drawCircle(
+                color = GildedGold.copy(alpha = alpha),
+                radius = particleSize,
+                center = Offset(x, y),
+            )
+        }
+    }
+}
+
+@Composable
+private fun MagicalBookHeader(
+    bookFloat: Float,
+    glowIntensity: Float,
+    candleFlicker: Float,
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(horizontal = 24.dp),
+    ) {
+        // Magical floating book icon
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.offset(y = bookFloat.dp),
+        ) {
+            // Outer magical glow
+            Box(
+                modifier = Modifier
+                    .size(160.dp)
+                    .blur(40.dp)
+                    .background(
+                        brush = Brush.radialGradient(
+                            colors = listOf(
+                                GildedGold.copy(alpha = glowIntensity * 0.4f),
+                                MysticPurple.copy(alpha = glowIntensity * 0.2f),
+                                Color.Transparent,
+                            ),
+                        ),
+                        shape = CircleShape,
+                    ),
+            )
+
+            // Inner glow ring
+            Box(
+                modifier = Modifier
+                    .size(130.dp)
+                    .border(
+                        width = 2.dp,
+                        brush = Brush.sweepGradient(
+                            colors = listOf(
+                                GildedGold.copy(alpha = 0.6f),
+                                Color.Transparent,
+                                GildedGold.copy(alpha = 0.3f),
+                                Color.Transparent,
+                            ),
+                        ),
+                        shape = CircleShape,
+                    ),
+            )
+
+            // Book icon container
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .shadow(
+                        elevation = 24.dp,
+                        shape = CircleShape,
+                        spotColor = GildedGold.copy(alpha = 0.5f),
+                    )
+                    .background(
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                RichMahogany,
+                                WarmLeather,
+                                RichMahogany,
+                            ),
+                        ),
+                        shape = CircleShape,
+                    )
+                    .border(
+                        width = 3.dp,
+                        brush = Brush.linearGradient(
+                            colors = listOf(
+                                GildedGold,
+                                GildedGold.copy(alpha = 0.5f),
+                                GildedGold,
+                            ),
+                        ),
+                        shape = CircleShape,
+                    )
+                    .padding(20.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.AutoStories,
+                    contentDescription = "ReadRealm",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            scaleX = 0.9f + (candleFlicker * 0.1f)
+                            scaleY = 0.9f + (candleFlicker * 0.1f)
+                        },
+                    tint = CandlelightGlow,
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(28.dp))
+
+        // Title with magical styling
+        Text(
+            text = "ReadRealm",
+            style = MaterialTheme.typography.displayMedium.copy(
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 6.sp,
+                shadow = Shadow(
+                    color = GildedGold.copy(alpha = 0.8f),
+                    offset = Offset(0f, 4f),
+                    blurRadius = 16f,
+                ),
+            ),
+            color = AncientParchment,
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Subtitle
+        Text(
+            text = "— Enter the Realm of Stories —",
+            style = MaterialTheme.typography.bodyLarge.copy(
+                fontStyle = FontStyle.Italic,
+                letterSpacing = 2.sp,
+            ),
+            color = GildedGold.copy(alpha = 0.8f),
+        )
+    }
+}
+
+@Composable
+private fun AncientTomeCard(
+    email: String,
+    password: String,
+    isChecked: Boolean,
+    onEmailChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onCheckedChange: (Boolean) -> Unit,
+    onForgotPassword: () -> Unit,
+    onLogin: () -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .shadow(
+                elevation = 32.dp,
+                shape = RoundedCornerShape(24.dp),
+                spotColor = Color.Black.copy(alpha = 0.6f),
+            ),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            AncientParchment,
+                            AncientParchment.copy(alpha = 0.95f),
+                            Color(0xFFE8D4B8),
+                        ),
+                    ),
+                )
+                .border(
+                    width = 3.dp,
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            GildedGold,
+                            WarmLeather,
+                            GildedGold,
+                        ),
+                    ),
+                    shape = RoundedCornerShape(24.dp),
+                ),
+        ) {
+            // Decorative corner ornaments
+            Box(modifier = Modifier.fillMaxWidth()) {
+                // Top left ornament
+                OrnamentCorner(
+                    modifier = Modifier.align(Alignment.TopStart).padding(8.dp),
+                )
+                // Top right ornament
+                OrnamentCorner(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(8.dp)
+                        .rotate(90f),
+                )
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(28.dp),
+                verticalArrangement = Arrangement.spacedBy(18.dp),
+            ) {
+                // Header with icon
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Key,
+                        contentDescription = null,
+                        tint = RichMahogany,
+                        modifier = Modifier.size(28.dp),
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        "Unlock Your Story",
+                        style = MaterialTheme.typography.headlineSmall.copy(
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.sp,
+                        ),
+                        color = DeepLibraryBrown,
+                    )
+                }
+
+                // Decorative line
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(2.dp)
+                        .background(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    WarmLeather.copy(alpha = 0.5f),
+                                    GildedGold.copy(alpha = 0.7f),
+                                    WarmLeather.copy(alpha = 0.5f),
+                                    Color.Transparent,
+                                ),
+                            ),
+                        ),
+                )
+
+                // Email field
+                Column {
+                    Text(
+                        "Scribe's Mark (Email)",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                        ),
+                        color = RichMahogany,
+                        modifier = Modifier.padding(bottom = 6.dp, start = 4.dp),
+                    )
+                    MyTextField(
+                        textFieldState = email,
+                        onTextChange = onEmailChange,
+                        hint = "your.name@realm.com",
+                        leadingIcon = Icons.Outlined.Email,
+                        keyboardType = KeyboardType.Email,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+
+                // Password field
+                Column {
+                    Text(
+                        "Secret Incantation (Password)",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                        ),
+                        color = RichMahogany,
+                        modifier = Modifier.padding(bottom = 6.dp, start = 4.dp),
+                    )
+                    MyTextField(
+                        textFieldState = password,
+                        onTextChange = onPasswordChange,
+                        hint = "Enter your secret phrase",
+                        leadingIcon = Icons.Outlined.Lock,
+                        isPassword = true,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+
+                // Remember me & Forgot password
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(
+                            checked = isChecked,
+                            onCheckedChange = onCheckedChange,
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = RichMahogany,
+                                uncheckedColor = WarmLeather.copy(alpha = 0.6f),
+                                checkmarkColor = CandlelightGlow,
+                            ),
+                        )
+                        Text(
+                            "Remember my tome",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = DeepLibraryBrown.copy(alpha = 0.8f),
+                        )
+                    }
+                    TextButton(onClick = onForgotPassword) {
+                        Text(
+                            "Lost the key?",
+                            color = RichMahogany,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                }
+
+                // Login button
+                Button(
+                    onClick = onLogin,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(58.dp)
+                        .shadow(12.dp, RoundedCornerShape(16.dp), spotColor = RichMahogany),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                    contentPadding = PaddingValues(),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                brush = Brush.horizontalGradient(
+                                    colors = listOf(
+                                        RichMahogany,
+                                        WarmLeather,
+                                        RichMahogany,
+                                    ),
+                                ),
+                            )
+                            .border(
+                                width = 2.dp,
+                                brush = Brush.horizontalGradient(
+                                    colors = listOf(
+                                        GildedGold.copy(alpha = 0.5f),
+                                        GildedGold,
+                                        GildedGold.copy(alpha = 0.5f),
+                                    ),
+                                ),
+                                shape = RoundedCornerShape(16.dp),
+                            ),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.MenuBook,
+                                contentDescription = null,
+                                tint = CandlelightGlow,
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                "Open the Tome",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 2.sp,
+                                ),
+                                color = CandlelightGlow,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OrnamentCorner(modifier: Modifier = Modifier) {
+    Canvas(modifier = modifier.size(24.dp)) {
+        val color = GildedGold.copy(alpha = 0.6f)
+        drawLine(
+            color = color,
+            start = Offset(0f, 0f),
+            end = Offset(size.width, 0f),
+            strokeWidth = 2f,
+        )
+        drawLine(
+            color = color,
+            start = Offset(0f, 0f),
+            end = Offset(0f, size.height),
+            strokeWidth = 2f,
+        )
+        drawCircle(
+            color = color,
+            radius = 4f,
+            center = Offset(4f, 4f),
+        )
+    }
+}
+
+@Composable
+private fun MysticalDivider() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 32.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(1.dp)
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            GildedGold.copy(alpha = 0.5f),
+                        ),
+                    ),
+                ),
+        )
+        
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .size(8.dp)
+                .rotate(45f)
+                .background(GildedGold.copy(alpha = 0.6f)),
+        )
+        
+        Text(
+            "or use ancient portals",
+            style = MaterialTheme.typography.bodySmall.copy(
+                fontStyle = FontStyle.Italic,
+            ),
+            color = AncientParchment.copy(alpha = 0.7f),
+        )
+        
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .size(8.dp)
+                .rotate(45f)
+                .background(GildedGold.copy(alpha = 0.6f)),
+        )
+        
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(1.dp)
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(
+                            GildedGold.copy(alpha = 0.5f),
+                            Color.Transparent,
+                        ),
+                    ),
+                ),
+        )
+    }
+}
+
+@Composable
+private fun SocialLoginRunes() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 48.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+    ) {
+        SocialRuneButton(
+            icon = R.drawable.google,
+            onClick = { },
+        )
+        SocialRuneButton(
+            icon = R.drawable.facebook,
+            onClick = { },
+        )
+        SocialRuneButton(
+            icon = R.drawable.instagram,
+            onClick = { },
+        )
+    }
+}
+
+@Composable
+private fun SocialRuneButton(icon: Int, onClick: () -> Unit) {
     var isPressed by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(targetValue = if (isPressed) 0.92f else 1f, label = "")
+    val scale by animateFloatAsState(targetValue = if (isPressed) 0.9f else 1f, label = "")
 
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(16.dp),
-        color = backgroundColor,
-        modifier =
-        Modifier
-            .size(65.dp)
+        color = AncientParchment.copy(alpha = 0.95f),
+        modifier = Modifier
+            .size(70.dp)
             .shadow(
-                elevation = if (isPressed) 4.dp else 8.dp,
+                elevation = if (isPressed) 4.dp else 16.dp,
                 shape = RoundedCornerShape(16.dp),
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                spotColor = Color.Black.copy(alpha = 0.4f),
             )
             .graphicsLayer {
                 scaleX = scale
@@ -557,15 +855,96 @@ private fun SocialLoginButton(icon: Int, onClick: () -> Unit, backgroundColor: C
                         isPressed = false
                     },
                 )
-            },
+            }
+            .border(
+                width = 2.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        GildedGold.copy(alpha = 0.6f),
+                        WarmLeather.copy(alpha = 0.4f),
+                        GildedGold.copy(alpha = 0.6f),
+                    ),
+                ),
+                shape = RoundedCornerShape(16.dp),
+            ),
     ) {
-        Image(
-            painter = painterResource(icon),
-            contentDescription = null,
-            modifier = Modifier
-                .padding(14.dp)
-                .fillMaxSize(),
-            contentScale = ContentScale.Fit,
-        )
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            Image(
+                painter = painterResource(icon),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(32.dp),
+                contentScale = ContentScale.Fit,
+            )
+        }
+    }
+}
+
+@Composable
+private fun JoinRealmPrompt(
+    glowIntensity: Float,
+    onJoinClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .background(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        MysticPurple.copy(alpha = 0.15f),
+                        Color.Transparent,
+                    ),
+                ),
+            )
+            .border(
+                width = 1.dp,
+                brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        GildedGold.copy(alpha = 0.4f * glowIntensity),
+                        Color.Transparent,
+                    ),
+                ),
+                shape = RoundedCornerShape(20.dp),
+            )
+            .padding(vertical = 20.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                "New to the Realm? ",
+                style = MaterialTheme.typography.bodyLarge,
+                color = AncientParchment.copy(alpha = 0.8f),
+            )
+            Text(
+                "Begin Your Journey",
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                ),
+                color = GildedGold,
+                modifier = Modifier
+                    .clickable(onClick = onJoinClick)
+                    .graphicsLayer {
+                        scaleX = 1f + (glowIntensity - 0.5f) * 0.1f
+                        scaleY = 1f + (glowIntensity - 0.5f) * 0.1f
+                    },
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                imageVector = Icons.Filled.ArrowForward,
+                contentDescription = null,
+                tint = GildedGold,
+                modifier = Modifier.size(20.dp),
+            )
+        }
     }
 }

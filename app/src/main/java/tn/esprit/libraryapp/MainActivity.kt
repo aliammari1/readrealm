@@ -111,9 +111,9 @@ fun BottomNavigationBar(navController: NavHostController) {
     val items =
         listOf(
             NavigationItem.Home,
+            NavigationItem.Explore,
             NavigationItem.Bookmarks,
             NavigationItem.BookChannel,
-            NavigationItem.Speech,
             NavigationItem.Profile,
         )
 

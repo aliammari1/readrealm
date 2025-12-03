@@ -13,3 +13,17 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Keystore and signing files
+keystore/
+*.jks
+*.keystore
+*-signing.properties
+
+# Gradle signing properties (if stored in separate file)
+signing.properties
+
+# Generated AAB/APK files (optional, can be committed if needed)
+*.aab
+*.apk
+*.apks

@@ -21,6 +21,7 @@ class AppNavigation {
             Screen.PROFILE -> navController.navigate(NavigationItem.Profile.route)
             Screen.BOOK_CHANNEL -> navController.navigate(NavigationItem.BookChannel.route)
             Screen.BOOK_CHAT -> navController.navigate(NavigationItem.BookChat.route)
+            Screen.BOOK_EXPERIENCE -> navController.navigate(NavigationItem.BookExperience.route)
         }
     }
 }
@@ -39,6 +40,7 @@ enum class Screen {
     PROFILE,
     BOOK_CHANNEL,
     BOOK_CHAT,
+    BOOK_EXPERIENCE,
 }
 
 sealed class NavigationItem(val route: String, val icon: ImageVector, val title: String) {
@@ -55,4 +57,6 @@ sealed class NavigationItem(val route: String, val icon: ImageVector, val title:
     object Profile : NavigationItem("profile", Icons.Filled.Person, "Profile")
     object BookChannel : NavigationItem("book_channel", Icons.Filled.List, "Book Channel")
     object BookChat : NavigationItem("book_chat/{bookId}", Icons.Filled.Chat, "Book Chat")
+    object Explore : NavigationItem("explore", Icons.Filled.Explore, "Explore")
+    object BookExperience : NavigationItem("book_experience/{bookId}/{bookTitle}", Icons.Filled.Explore, "Book Experience")
 }

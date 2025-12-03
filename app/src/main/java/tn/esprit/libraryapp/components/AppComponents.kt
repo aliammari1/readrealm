@@ -3,6 +3,7 @@ package tn.esprit.libraryapp.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
@@ -20,6 +22,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+
+// Library theme colors
+private val LeatherBrown = Color(0xFF8B4513)
+private val AntiqueGold = Color(0xFFDAA520)
+private val Parchment = Color(0xFFF5DEB3)
+private val DarkMahogany = Color(0xFF3C1810)
+private val WarmCream = Color(0xFFFFF8DC)
 
 @Composable
 fun AuthOption(
@@ -31,10 +40,16 @@ fun AuthOption(
     Box(
         modifier = modifier
             .border(
-                BorderStroke(1.dp, MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f)),
-                shape = RoundedCornerShape(14.dp), // Shape for the border
+                BorderStroke(2.dp, Brush.linearGradient(
+                    colors = listOf(
+                        AntiqueGold.copy(alpha = 0.5f),
+                        LeatherBrown.copy(alpha = 0.3f),
+                    )
+                )),
+                shape = RoundedCornerShape(14.dp),
             )
             .clip(RoundedCornerShape(14.dp))
+            .background(WarmCream.copy(alpha = 0.9f))
             .clickable { }
             .padding(horizontal = 35.dp, vertical = 12.dp),
         contentAlignment = Alignment.Center,
@@ -117,16 +132,28 @@ fun TextTextField(
         value = textFieldState,
         onValueChange = onTextChange,
         textStyle = LocalTextStyle.current.copy(
-            color = MaterialTheme.colorScheme.onBackground,
+            color = DarkMahogany,
+            fontWeight = FontWeight.Medium,
         ),
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         singleLine = true,
+        shape = RoundedCornerShape(12.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = LeatherBrown,
+            unfocusedBorderColor = LeatherBrown.copy(alpha = 0.4f),
+            focusedContainerColor = WarmCream.copy(alpha = 0.5f),
+            unfocusedContainerColor = WarmCream.copy(alpha = 0.3f),
+            cursorColor = LeatherBrown,
+            focusedLeadingIconColor = LeatherBrown,
+            unfocusedLeadingIconColor = LeatherBrown.copy(alpha = 0.6f),
+            focusedTrailingIconColor = AntiqueGold,
+            unfocusedTrailingIconColor = AntiqueGold.copy(alpha = 0.6f),
+        ),
         leadingIcon = {
             if (leadingIcon != null) {
                 Icon(
                     imageVector = leadingIcon,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.5F),
                     modifier = Modifier.clickable { onLeadingClick() },
                 )
             }
@@ -136,13 +163,12 @@ fun TextTextField(
                 Icon(
                     imageVector = trailingIcon,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.5F),
                     modifier = Modifier.clickable { onTrailingClick() },
                 )
             } else if (trailingText != null) {
                 Text(
                     text = trailingText,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = LeatherBrown,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.clickable { onTrailingClick() },
                 )
@@ -151,7 +177,7 @@ fun TextTextField(
         placeholder = {
             Text(
                 text = hint,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f),
+                color = LeatherBrown.copy(alpha = 0.5f),
             )
         },
         modifier = modifier,
@@ -175,17 +201,29 @@ fun PasswordTextField(
         value = textFieldState,
         onValueChange = onTextChange,
         textStyle = LocalTextStyle.current.copy(
-            color = MaterialTheme.colorScheme.onBackground,
+            color = DarkMahogany,
+            fontWeight = FontWeight.Medium,
         ),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         singleLine = true,
         visualTransformation = PasswordVisualTransformation(),
+        shape = RoundedCornerShape(12.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = LeatherBrown,
+            unfocusedBorderColor = LeatherBrown.copy(alpha = 0.4f),
+            focusedContainerColor = WarmCream.copy(alpha = 0.5f),
+            unfocusedContainerColor = WarmCream.copy(alpha = 0.3f),
+            cursorColor = LeatherBrown,
+            focusedLeadingIconColor = LeatherBrown,
+            unfocusedLeadingIconColor = LeatherBrown.copy(alpha = 0.6f),
+            focusedTrailingIconColor = AntiqueGold,
+            unfocusedTrailingIconColor = AntiqueGold.copy(alpha = 0.6f),
+        ),
         leadingIcon = {
             if (leadingIcon != null) {
                 Icon(
                     imageVector = leadingIcon,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.5F),
                     modifier = Modifier.clickable { onLeadingClick() },
                 )
             }
@@ -195,13 +233,12 @@ fun PasswordTextField(
                 Icon(
                     imageVector = trailingIcon,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.5F),
                     modifier = Modifier.clickable { onTrailingClick() },
                 )
             } else if (trailingText != null) {
                 Text(
                     text = trailingText,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = LeatherBrown,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.clickable { onTrailingClick() },
                 )
@@ -210,7 +247,7 @@ fun PasswordTextField(
         placeholder = {
             Text(
                 text = hint,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(0.4f),
+                color = LeatherBrown.copy(alpha = 0.5f),
             )
         },
         modifier = modifier,

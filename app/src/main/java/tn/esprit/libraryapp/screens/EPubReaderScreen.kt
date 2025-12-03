@@ -10,12 +10,17 @@ import android.os.Environment
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -33,16 +38,32 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
@@ -53,6 +74,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.mlkit.common.model.DownloadConditions
 import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.Translation
+import com.google.mlkit.nl.translate.Translator
 import com.google.mlkit.nl.translate.TranslatorOptions
 import com.itextpdf.text.Document
 import com.itextpdf.text.Paragraph
@@ -72,6 +94,7 @@ import org.jsoup.parser.Parser
 import tn.esprit.libraryapp.models.BookmarkPage
 import tn.esprit.libraryapp.models.ReadingStatistics
 import tn.esprit.libraryapp.models.ReadingTheme
+import tn.esprit.libraryapp.ui.theme.*
 import tn.esprit.libraryapp.utils.ReaderThemes
 import tn.esprit.libraryapp.utils.VoiceCommand
 import tn.esprit.libraryapp.utils.VoiceCommandHandler
@@ -81,8 +104,12 @@ import java.io.File
 import java.io.InputStreamReader
 import java.util.Locale
 import java.util.zip.ZipFile
+import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.roundToInt
+import kotlin.math.sin
+import kotlin.random.Random
 
 private val languageToLocale =
     mapOf(
@@ -108,9 +135,400 @@ data class ReadingPreferences(
     val enableGestures: Boolean = true,
 )
 
+// ═══════════════════════════════════════════════════════════════════
+// ANCIENT TOME READING EXPERIENCE - Enchanted Reader Components
+// ═══════════════════════════════════════════════════════════════════
+
+/**
+ * Mystical reading chamber background with floating dust particles
+ * and candlelight ambiance
+ */
+@Composable
+private fun AncientReadingChamber(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "chamber")
+    
+    // Candlelight flicker effect
+    val candleFlicker by infiniteTransition.animateFloat(
+        initialValue = 0.85f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "candle"
+    )
+    
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        DeepLibraryBrown,
+                        Color(0xFF1A0D07),
+                        DeepLibraryBrown.copy(alpha = 0.95f)
+                    )
+                )
+            )
+    ) {
+        // Floating dust particles
+        FloatingDustParticles()
+        
+        // Candlelight glow corners
+        CandlelightCorners(flicker = candleFlicker)
+        
+        content()
+    }
+}
+
+@Composable
+private fun FloatingDustParticles() {
+    // Simple static dust effect
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        val dustPositions = listOf(
+            Offset(size.width * 0.2f, size.height * 0.3f),
+            Offset(size.width * 0.7f, size.height * 0.15f),
+            Offset(size.width * 0.4f, size.height * 0.6f),
+            Offset(size.width * 0.85f, size.height * 0.45f),
+            Offset(size.width * 0.15f, size.height * 0.75f),
+            Offset(size.width * 0.6f, size.height * 0.85f),
+            Offset(size.width * 0.9f, size.height * 0.7f),
+            Offset(size.width * 0.35f, size.height * 0.2f),
+        )
+        
+        dustPositions.forEachIndexed { index, position ->
+            drawCircle(
+                color = CandlelightGlow.copy(alpha = 0.2f + (index % 3) * 0.1f),
+                radius = 2f + (index % 4),
+                center = position
+            )
+        }
+    }
+}
+
+@Composable
+private fun CandlelightCorners(flicker: Float) {
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        // Top left candle glow
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    CandlelightGlow.copy(alpha = 0.15f * flicker),
+                    Color.Transparent
+                ),
+                center = Offset(0f, 0f),
+                radius = size.width * 0.4f
+            ),
+            radius = size.width * 0.4f,
+            center = Offset(0f, 0f)
+        )
+        
+        // Top right candle glow
+        drawCircle(
+            brush = Brush.radialGradient(
+                colors = listOf(
+                    CandlelightGlow.copy(alpha = 0.12f * flicker),
+                    Color.Transparent
+                ),
+                center = Offset(size.width, 0f),
+                radius = size.width * 0.35f
+            ),
+            radius = size.width * 0.35f,
+            center = Offset(size.width, 0f)
+        )
+    }
+}
+
+/**
+ * Ancient tome page design with weathered parchment texture
+ */
+@Composable
+private fun AncientTomePage(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(
+                elevation = 16.dp,
+                shape = CutCornerShape(topEnd = 24.dp),
+                ambientColor = Color.Black.copy(alpha = 0.4f)
+            )
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        AncientParchment,
+                        AncientParchment.copy(alpha = 0.95f),
+                        Color(0xFFE8D4B0)
+                    )
+                ),
+                shape = CutCornerShape(topEnd = 24.dp)
+            )
+            .border(
+                width = 3.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        WarmLeather,
+                        GildedGold.copy(alpha = 0.6f),
+                        WarmLeather
+                    )
+                ),
+                shape = CutCornerShape(topEnd = 24.dp)
+            )
+    ) {
+        // Page aging texture
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            // Coffee stain effect
+            drawCircle(
+                color = WarmLeather.copy(alpha = 0.05f),
+                radius = 80f,
+                center = Offset(size.width * 0.8f, size.height * 0.3f)
+            )
+            
+            // Edge darkening
+            drawRect(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        WarmLeather.copy(alpha = 0.1f),
+                        Color.Transparent,
+                        Color.Transparent,
+                        WarmLeather.copy(alpha = 0.1f)
+                    )
+                )
+            )
+        }
+        
+        // Decorative corner flourish
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(8.dp)
+                .size(40.dp)
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val gold = GildedGold.copy(alpha = 0.4f)
+                drawLine(
+                    color = gold,
+                    start = Offset(0f, size.height),
+                    end = Offset(0f, 0f),
+                    strokeWidth = 2f
+                )
+                drawLine(
+                    color = gold,
+                    start = Offset(0f, 0f),
+                    end = Offset(size.width, 0f),
+                    strokeWidth = 2f
+                )
+                // Decorative curl
+                drawArc(
+                    color = gold,
+                    startAngle = 90f,
+                    sweepAngle = 90f,
+                    useCenter = false,
+                    style = Stroke(width = 1.5f),
+                    size = Size(30f, 30f),
+                    topLeft = Offset(5f, 5f)
+                )
+            }
+        }
+        
+        content()
+    }
+}
+
+/**
+ * Mystical progress arc showing reading journey
+ */
+@Composable
+private fun MysticalProgressArc(
+    progress: Float,
+    currentPage: Int,
+    totalPages: Int,
+    modifier: Modifier = Modifier
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "arc")
+    val runeGlow by infiniteTransition.animateFloat(
+        initialValue = 0.6f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "glow"
+    )
+    
+    Box(
+        modifier = modifier
+            .size(100.dp)
+            .padding(8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val sweepAngle = 270f * progress
+            
+            // Background rune circle
+            drawArc(
+                color = WarmLeather.copy(alpha = 0.3f),
+                startAngle = 135f,
+                sweepAngle = 270f,
+                useCenter = false,
+                style = Stroke(width = 8f, cap = StrokeCap.Round)
+            )
+            
+            // Progress arc with mystical gradient
+            drawArc(
+                brush = Brush.sweepGradient(
+                    colors = listOf(
+                        MysticPurple,
+                        GildedGold,
+                        MysticPurple
+                    )
+                ),
+                startAngle = 135f,
+                sweepAngle = sweepAngle,
+                useCenter = false,
+                style = Stroke(
+                    width = 8f,
+                    cap = StrokeCap.Round,
+                    pathEffect = PathEffect.cornerPathEffect(4f)
+                )
+            )
+            
+            // Glowing endpoint
+            if (progress > 0) {
+                val angle = Math.toRadians((135 + sweepAngle).toDouble())
+                val radius = size.width / 2 - 4
+                val endX = center.x + radius * cos(angle).toFloat()
+                val endY = center.y + radius * sin(angle).toFloat()
+                
+                drawCircle(
+                    color = GildedGold.copy(alpha = runeGlow),
+                    radius = 8f,
+                    center = Offset(endX, endY)
+                )
+            }
+        }
+        
+        // Center page indicator
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "${currentPage + 1}",
+                color = GildedGold,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Serif
+            )
+            Text(
+                text = "of $totalPages",
+                color = AncientParchment.copy(alpha = 0.7f),
+                fontSize = 10.sp,
+                fontFamily = FontFamily.Serif
+            )
+        }
+    }
+}
+
+/**
+ * Enchanted Reader Control Runes - mystical floating action buttons
+ */
+@Composable
+private fun EnchantedControlRune(
+    icon: @Composable () -> Unit,
+    onClick: () -> Unit,
+    isActive: Boolean = false,
+    isLoading: Boolean = false,
+    modifier: Modifier = Modifier
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "rune")
+    val glowPulse by infiniteTransition.animateFloat(
+        initialValue = 0.5f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse"
+    )
+    
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(8000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "rotate"
+    )
+    
+    Box(
+        modifier = modifier
+            .size(48.dp)
+            .drawBehind {
+                if (isActive) {
+                    drawCircle(
+                        brush = Brush.radialGradient(
+                            colors = listOf(
+                                GildedGold.copy(alpha = 0.4f * glowPulse),
+                                Color.Transparent
+                            )
+                        ),
+                        radius = size.width * 0.8f
+                    )
+                }
+            }
+            .background(
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        if (isActive) MysticPurple else RichMahogany,
+                        if (isActive) MysticPurple.copy(alpha = 0.7f) else WarmLeather.copy(alpha = 0.8f)
+                    )
+                ),
+                shape = CircleShape
+            )
+            .border(
+                width = 2.dp,
+                brush = Brush.sweepGradient(
+                    colors = listOf(
+                        GildedGold.copy(alpha = if (isActive) 0.8f else 0.4f),
+                        WarmLeather,
+                        GildedGold.copy(alpha = if (isActive) 0.8f else 0.4f)
+                    )
+                ),
+                shape = CircleShape
+            )
+            .clickable(enabled = !isLoading, onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .size(24.dp)
+                    .rotate(rotation),
+                strokeWidth = 2.dp,
+                color = GildedGold
+            )
+        } else {
+            Box(
+                modifier = Modifier.scale(if (isActive) 1.1f else 1f)
+            ) {
+                icon()
+            }
+        }
+    }
+}
+
+/**
+ * Enchanted Reader Header - Mystical scroll-like top bar
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ImmersiveReaderTopBar(
+private fun EnchantedReaderHeader(
     progress: Float,
     onSettingsClick: () -> Unit,
     onLanguageSelect: (String) -> Unit,
@@ -123,177 +541,387 @@ private fun ImmersiveReaderTopBar(
     var showLanguageMenu by remember { mutableStateOf(false) }
     val supportedLanguages = remember {
         mapOf(
-            "en" to "English",
-            "fr" to "French",
-            "es" to "Spanish",
-            "de" to "German",
-            "it" to "Italian",
-            "ar" to "Arabic",
+            "en" to "🇬🇧 English",
+            "fr" to "🇫🇷 French",
+            "es" to "🇪🇸 Spanish",
+            "de" to "🇩🇪 German",
+            "it" to "🇮🇹 Italian",
+            "ar" to "🇸🇦 Arabic",
         )
     }
-
-    TopAppBar(
-        title = { Text("Reader") },
-        actions = {
-            // TTS Button
-            IconButton(
-                onClick = onTtsClick,
+    
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        DeepLibraryBrown,
+                        DeepLibraryBrown.copy(alpha = 0.9f),
+                        Color.Transparent
+                    )
+                )
+            )
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    ) {
+        // Decorative scroll ends
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Title with mystical styling
+            Column {
+                Text(
+                    text = "📖 Ancient Tome",
+                    color = GildedGold,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.Serif
+                )
+                Text(
+                    text = "Reading Chamber",
+                    color = AncientParchment.copy(alpha = 0.7f),
+                    fontSize = 12.sp,
+                    fontStyle = FontStyle.Italic,
+                    fontFamily = FontFamily.Serif
+                )
+            }
+            
+            // Control runes row
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector =
-                    if (isSpeaking) {
-                        Icons.Default.Pause
-                    } else {
-                        Icons.Default.PlayArrow
+                // TTS Oracle Rune
+                EnchantedControlRune(
+                    icon = {
+                        Icon(
+                            imageVector = if (isSpeaking) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            contentDescription = if (isSpeaking) "Silence Oracle" else "Summon Oracle",
+                            tint = if (isSpeaking) GildedGold else AncientParchment,
+                            modifier = Modifier.size(20.dp)
+                        )
                     },
-                    contentDescription = if (isSpeaking) "Stop TTS" else "Start TTS",
+                    onClick = onTtsClick,
+                    isActive = isSpeaking
                 )
-            }
-
-            // PDF Download Button
-            IconButton(onClick = onPdfClick, enabled = !isPdfLoading) {
-                if (isPdfLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        strokeWidth = 2.dp,
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.Download,
-                        contentDescription = "Download PDF",
-                    )
-                }
-            }
-
-            // Translation Button
-            IconButton(onClick = { showLanguageMenu = true }) {
-                Icon(
-                    imageVector = Icons.Default.Translate,
-                    contentDescription = "Select Language",
+                
+                // PDF Scroll Creation Rune
+                EnchantedControlRune(
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Download,
+                            contentDescription = "Create Scroll",
+                            tint = AncientParchment,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
+                    onClick = onPdfClick,
+                    isLoading = isPdfLoading
                 )
-            }
-
-            // Settings Button
-            IconButton(onClick = onSettingsClick) {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = "Reading Settings",
-                )
-            }
-
-            DropdownMenu(
-                expanded = showLanguageMenu,
-                onDismissRequest = { showLanguageMenu = false },
-            ) {
-                supportedLanguages.forEach { (code, name) ->
-                    DropdownMenuItem(
-                        text = { Text(name) },
-                        onClick = {
-                            onLanguageSelect(code)
-                            showLanguageMenu = false
+                
+                // Translation Rune
+                Box {
+                    EnchantedControlRune(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Translate,
+                                contentDescription = "Translate Runes",
+                                tint = AncientParchment,
+                                modifier = Modifier.size(20.dp)
+                            )
                         },
-                        leadingIcon = {
-                            if (code == currentLanguage) {
-                                Icon(Icons.Default.Check, null)
-                            }
-                        },
+                        onClick = { showLanguageMenu = true }
                     )
+                    
+                    DropdownMenu(
+                        expanded = showLanguageMenu,
+                        onDismissRequest = { showLanguageMenu = false },
+                        modifier = Modifier.background(RichMahogany)
+                    ) {
+                        supportedLanguages.forEach { (code, name) ->
+                            DropdownMenuItem(
+                                text = { 
+                                    Text(
+                                        name, 
+                                        color = if (code == currentLanguage) GildedGold else AncientParchment
+                                    ) 
+                                },
+                                onClick = {
+                                    onLanguageSelect(code)
+                                    showLanguageMenu = false
+                                },
+                                leadingIcon = {
+                                    if (code == currentLanguage) {
+                                        Icon(
+                                            Icons.Default.Check, 
+                                            null,
+                                            tint = GildedGold
+                                        )
+                                    }
+                                },
+                            )
+                        }
+                    }
                 }
+                
+                // Arcane Settings Rune
+                EnchantedControlRune(
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Arcane Settings",
+                            tint = AncientParchment,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
+                    onClick = onSettingsClick
+                )
             }
-        },
-    )
+        }
+    }
 }
 
+/**
+ * Arcane Settings Grimoire - Mystical settings panel
+ */
 @Composable
-private fun ReadingSettingsDialog(
+private fun ArcaneSettingsGrimoire(
     preferences: ReadingPreferences,
     onPreferencesChanged: (ReadingPreferences) -> Unit,
     onDismiss: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Reading Settings") },
+        containerColor = DeepLibraryBrown,
+        titleContentColor = GildedGold,
+        title = { 
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text("⚙️", fontSize = 24.sp)
+                Column {
+                    Text(
+                        "Arcane Settings",
+                        fontFamily = FontFamily.Serif,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "Customize your reading experience",
+                        fontSize = 12.sp,
+                        color = AncientParchment.copy(alpha = 0.7f),
+                        fontStyle = FontStyle.Italic
+                    )
+                }
+            }
+        },
         text = {
             Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(8.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp),
             ) {
-                // Font size slider
-                Text("Font Size")
-                Slider(
-                    value = preferences.fontSize,
-                    onValueChange = {
-                        onPreferencesChanged(preferences.copy(fontSize = it))
-                    },
-                    valueRange = 12f..24f,
-                )
-
-                // Line height slider
-                Text("Line Height")
-                Slider(
-                    value = preferences.lineHeight,
-                    onValueChange = {
-                        onPreferencesChanged(preferences.copy(lineHeight = it))
-                    },
-                    valueRange = 1f..2f,
-                )
-
-                // Theme switch
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
+                // Font Size Rune
+                ArcaneSettingItem(
+                    icon = "📜",
+                    title = "Script Size",
+                    subtitle = "${preferences.fontSize.toInt()}pt"
                 ) {
-                    Text("Dark Mode")
-                    Switch(
-                        checked = preferences.isDarkMode,
-                        onCheckedChange = {
-                            onPreferencesChanged(preferences.copy(isDarkMode = it))
+                    Slider(
+                        value = preferences.fontSize,
+                        onValueChange = {
+                            onPreferencesChanged(preferences.copy(fontSize = it))
                         },
+                        valueRange = 12f..24f,
+                        colors = SliderDefaults.colors(
+                            thumbColor = GildedGold,
+                            activeTrackColor = MysticPurple,
+                            inactiveTrackColor = WarmLeather.copy(alpha = 0.3f)
+                        )
                     )
                 }
 
-                // Add Auto-scroll settings
-                Text("Auto-scroll")
-                Switch(
+                // Line Height Rune
+                ArcaneSettingItem(
+                    icon = "📏",
+                    title = "Line Spacing",
+                    subtitle = "×${String.format("%.1f", preferences.lineHeight)}"
+                ) {
+                    Slider(
+                        value = preferences.lineHeight,
+                        onValueChange = {
+                            onPreferencesChanged(preferences.copy(lineHeight = it))
+                        },
+                        valueRange = 1f..2f,
+                        colors = SliderDefaults.colors(
+                            thumbColor = GildedGold,
+                            activeTrackColor = MysticPurple,
+                            inactiveTrackColor = WarmLeather.copy(alpha = 0.3f)
+                        )
+                    )
+                }
+
+                HorizontalDivider(color = WarmLeather.copy(alpha = 0.3f))
+
+                // Dark Mode Toggle
+                ArcaneToggleItem(
+                    icon = "🌙",
+                    title = "Night Reading",
+                    subtitle = "Dark chamber mode",
+                    checked = preferences.isDarkMode,
+                    onCheckedChange = {
+                        onPreferencesChanged(preferences.copy(isDarkMode = it))
+                    }
+                )
+
+                // Auto-scroll Toggle
+                ArcaneToggleItem(
+                    icon = "🔄",
+                    title = "Auto-Scroll Spell",
+                    subtitle = "Enchanted page turning",
                     checked = preferences.autoScroll,
                     onCheckedChange = {
                         onPreferencesChanged(preferences.copy(autoScroll = it))
-                    },
+                    }
                 )
 
-                if (preferences.autoScroll) {
-                    Text("Scroll Speed")
-                    Slider(
-                        value = preferences.autoScrollSpeed,
-                        onValueChange = {
-                            onPreferencesChanged(preferences.copy(autoScrollSpeed = it))
-                        },
-                        valueRange = 0.5f..3f,
-                    )
+                // Auto-scroll Speed
+                AnimatedVisibility(visible = preferences.autoScroll) {
+                    ArcaneSettingItem(
+                        icon = "⚡",
+                        title = "Scroll Speed",
+                        subtitle = "×${String.format("%.1f", preferences.autoScrollSpeed)}"
+                    ) {
+                        Slider(
+                            value = preferences.autoScrollSpeed,
+                            onValueChange = {
+                                onPreferencesChanged(preferences.copy(autoScrollSpeed = it))
+                            },
+                            valueRange = 0.5f..3f,
+                            colors = SliderDefaults.colors(
+                                thumbColor = GildedGold,
+                                activeTrackColor = PhoenixOrange,
+                                inactiveTrackColor = WarmLeather.copy(alpha = 0.3f)
+                            )
+                        )
+                    }
                 }
 
-                // Add gesture control toggle
-                Text("Enable Gestures")
-                Switch(
+                HorizontalDivider(color = WarmLeather.copy(alpha = 0.3f))
+
+                // Gesture Control Toggle
+                ArcaneToggleItem(
+                    icon = "👆",
+                    title = "Gesture Magic",
+                    subtitle = "Swipe to turn pages",
                     checked = preferences.enableGestures,
                     onCheckedChange = {
                         onPreferencesChanged(preferences.copy(enableGestures = it))
-                    },
+                    }
                 )
 
-                // Add reading stats toggle
-                Text("Show Reading Stats")
-                Switch(
+                // Reading Stats Toggle
+                ArcaneToggleItem(
+                    icon = "📊",
+                    title = "Reading Wisdom",
+                    subtitle = "Show statistics overlay",
                     checked = preferences.showReadingStats,
                     onCheckedChange = {
                         onPreferencesChanged(preferences.copy(showReadingStats = it))
-                    },
+                    }
                 )
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Done") } },
+        confirmButton = { 
+            TextButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.textButtonColors(contentColor = GildedGold)
+            ) { 
+                Text("✨ Apply", fontFamily = FontFamily.Serif) 
+            } 
+        },
     )
+}
+
+@Composable
+private fun ArcaneSettingItem(
+    icon: String,
+    title: String,
+    subtitle: String,
+    content: @Composable () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(icon, fontSize = 20.sp)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    title,
+                    color = AncientParchment,
+                    fontWeight = FontWeight.Medium,
+                    fontFamily = FontFamily.Serif
+                )
+                Text(
+                    subtitle,
+                    color = GildedGold.copy(alpha = 0.7f),
+                    fontSize = 12.sp
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        content()
+    }
+}
+
+@Composable
+private fun ArcaneToggleItem(
+    icon: String,
+    title: String,
+    subtitle: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCheckedChange(!checked) }
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(icon, fontSize = 20.sp)
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                title,
+                color = AncientParchment,
+                fontWeight = FontWeight.Medium,
+                fontFamily = FontFamily.Serif
+            )
+            Text(
+                subtitle,
+                color = GildedGold.copy(alpha = 0.7f),
+                fontSize = 12.sp
+            )
+        }
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = GildedGold,
+                checkedTrackColor = MysticPurple,
+                uncheckedThumbColor = WarmLeather,
+                uncheckedTrackColor = DeepLibraryBrown
+            )
+        )
+    }
 }
 
 @Composable
@@ -325,12 +953,12 @@ private fun calculateWordsPerPage(content: String, fontSize: Int = 16): Int {
 }
 
 @Composable
-fun HighlightedText(
+fun EnchantedHighlightedText(
     text: String,
     currentWordIndex: Int,
     fontSize: TextUnit = 16.sp,
     lineHeight: TextUnit = 24.sp,
-    textColor: Color = Color.Black,
+    textColor: Color = DeepLibraryBrown,
 ) {
     val words = text.split(Regex("(?<=\\s)|(?=\\s)"))
     var currentIndex = 0
@@ -342,11 +970,9 @@ fun HighlightedText(
                 val style =
                     if (currentIndex == currentWordIndex) {
                         SpanStyle(
-                            background =
-                            MaterialTheme.colorScheme.primary.copy(
-                                alpha = 0.3f,
-                            ),
-                            color = MaterialTheme.colorScheme.primary,
+                            background = MysticPurple.copy(alpha = 0.3f),
+                            color = MysticPurple,
+                            fontWeight = FontWeight.Bold
                         )
                     } else {
                         SpanStyle(color = textColor)
@@ -359,15 +985,16 @@ fun HighlightedText(
         fontSize = fontSize,
         lineHeight = lineHeight,
         color = textColor,
+        fontFamily = FontFamily.Serif
     )
 }
 
 class TranslationManager(private val context: Context) {
-    private val translators = mutableMapOf<String, com.google.mlkit.nl.translate.Translator>()
+    private val translators = mutableMapOf<String, Translator>()
     private val _downloadProgress = MutableStateFlow(0f)
     val downloadProgress = _downloadProgress.asStateFlow()
 
-    fun getTranslator(targetLanguage: String): com.google.mlkit.nl.translate.Translator {
+    fun getTranslator(targetLanguage: String): Translator {
         return translators.getOrPut(targetLanguage) {
             val options =
                 TranslatorOptions.Builder()
@@ -414,6 +1041,7 @@ class TranslationManager(private val context: Context) {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EPubReaderScreen(bookUrl: String) {
@@ -436,13 +1064,6 @@ fun EPubReaderScreen(bookUrl: String) {
     val progress by viewModel.readingProgress.collectAsState()
     val isSpeaking by viewModel.isSpeaking
     val currentWordIndex by viewModel.currentWordIndex
-
-    val gradientColors =
-        listOf(
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-            MaterialTheme.colorScheme.surface,
-            MaterialTheme.colorScheme.surface,
-        )
 
     var showSettings by remember { mutableStateOf(false) }
     var preferences by remember { mutableStateOf(ReadingPreferences(isDarkMode = true)) }
@@ -606,269 +1227,313 @@ fun EPubReaderScreen(bookUrl: String) {
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        topBar = {
-            ImmersiveReaderTopBar(
-                progress = currentPage.toFloat() / pages.size,
-                onSettingsClick = { showSettings = true },
-                onLanguageSelect = { newLang ->
-                    preferences = preferences.copy(targetLanguage = newLang)
-                    updateTtsLanguage(newLang) // Add this line
-                    scope.launch { content?.let { translateContent(it) } }
-                },
-                currentLanguage = preferences.targetLanguage,
-                isSpeaking = isSpeaking,
-                onTtsClick = {
-                    if (isSpeaking) {
-                        viewModel.pauseSpeaking()
-                    } else {
-                        // Use translatedContent if available, otherwise use original
-                        // content
-                        (translatedContent ?: content)?.let { textToSpeak ->
-                            viewModel.startSpeaking(textToSpeak)
-                        }
-                    }
-                },
-                isPdfLoading = isPdfLoading,
-                onPdfClick = {
-                    scope.launch {
-                        isPdfLoading = true
-                        pdfProgress = 0f
-                        try {
-                            createAndOpenPdf(epubContent, context) { progress ->
-                                pdfProgress = progress
-                            }
-                            snackbarHostState.showSnackbar("PDF saved and opened")
-                        } catch (e: Exception) {
-                            snackbarHostState.showSnackbar("Error: ${e.message}")
-                        } finally {
-                            isPdfLoading = false
-                            pdfProgress = 0f
-                        }
-                    }
-                },
-            )
-        },
-        bottomBar = {
-            ReaderBottomBar(
-                preferences = preferences,
-                onAutoScrollToggle = { enabled ->
-                    preferences = preferences.copy(autoScroll = enabled)
-                    viewModel.toggleAutoScroll(enabled, preferences.autoScrollSpeed)
-                },
-                onSpeedChange = { speed ->
-                    preferences = preferences.copy(autoScrollSpeed = speed)
-                    if (preferences.autoScroll) {
-                        viewModel.toggleAutoScroll(true, speed)
-                    }
-                },
-                onBookmarkClick = { showBookmarks = true },
-                onThemeClick = { showThemeSelector = true },
-                onStatsClick = { showStats = true },
-                onVoiceCommandClick = {
-                    if (isListeningForCommands) {
-                        voiceCommandHandler.stopListening()
-                    } else {
-                        voiceCommandHandler.startListening { command ->
-                            handleVoiceCommand(command)
-                        }
-                    }
-                },
-                isListeningForCommands = isListeningForCommands,
-            )
-        },
+        containerColor = DeepLibraryBrown,
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    content?.let { currentText ->
-                        viewModel.addBookmark(currentPage, currentText.take(50) + "...")
-                    }
-                },
-            ) { Icon(Icons.Default.BookmarkAdd, "Add Bookmark") }
+            // Enchanted bookmark ribbon FAB
+            Box(
+                modifier = Modifier
+                    .size(56.dp)
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(DragonsBlood, PhoenixOrange)
+                        ),
+                        shape = CircleShape
+                    )
+                    .border(
+                        2.dp,
+                        GildedGold.copy(alpha = 0.5f),
+                        CircleShape
+                    )
+                    .clickable {
+                        content?.let { currentText ->
+                            viewModel.addBookmark(currentPage, currentText.take(50) + "...")
+                        }
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.BookmarkAdd, 
+                    "Add Bookmark",
+                    tint = AncientParchment
+                )
+            }
         },
     ) { paddingValues ->
-        Box(
-            modifier =
-            Modifier
+        AncientReadingChamber(
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Brush.verticalGradient(gradientColors)),
         ) {
             when {
                 isLoading -> {
-                    LoadingScreen(downloadProgress)
+                    MysticalLoadingScroll(downloadProgress)
                 }
 
                 error != null -> {
-                    ErrorScreen(error!!)
+                    AncientErrorRune(error!!)
                 }
 
                 currentContent != null -> {
                     Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        // Reading Progress Arc
-                        Box(
+                        // Enchanted Header
+                        EnchantedReaderHeader(
+                            progress = currentPage.toFloat() / pages.size,
+                            onSettingsClick = { showSettings = true },
+                            onLanguageSelect = { newLang ->
+                                preferences = preferences.copy(targetLanguage = newLang)
+                                updateTtsLanguage(newLang)
+                                scope.launch { content?.let { translateContent(it) } }
+                            },
+                            currentLanguage = preferences.targetLanguage,
+                            isSpeaking = isSpeaking,
+                            onTtsClick = {
+                                if (isSpeaking) {
+                                    viewModel.pauseSpeaking()
+                                } else {
+                                    (translatedContent ?: content)?.let { textToSpeak ->
+                                        viewModel.startSpeaking(textToSpeak)
+                                    }
+                                }
+                            },
+                            isPdfLoading = isPdfLoading,
+                            onPdfClick = {
+                                scope.launch {
+                                    isPdfLoading = true
+                                    pdfProgress = 0f
+                                    try {
+                                        createAndOpenPdf(epubContent, context) { progress ->
+                                            pdfProgress = progress
+                                        }
+                                        snackbarHostState.showSnackbar("📜 Scroll created and opened!")
+                                    } catch (e: Exception) {
+                                        snackbarHostState.showSnackbar("⚠️ Spell failed: ${e.message}")
+                                    } finally {
+                                        isPdfLoading = false
+                                        pdfProgress = 0f
+                                    }
+                                }
+                            },
+                        )
+                        
+                        // Main reading area
+                        Column(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(bottom = 16.dp),
-                            contentAlignment = Alignment.Center,
+                                .weight(1f)
+                                .padding(horizontal = 16.dp)
                         ) {
-                            CircularProgressIndicator(
-                                progress = currentPage.toFloat() / pages.size.coerceAtLeast(1),
-                                modifier = Modifier.size(60.dp),
-                                strokeWidth = 4.dp,
-                            )
-                        }
-
-                        if (isTranslating) {
-                            LinearProgressIndicator(
-                                progress = translationProgress,
+                            // Mystical Progress Arc
+                            Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(bottom = 8.dp),
-                            )
-                            Text(
-                                text = "Translating... ${(translationProgress * 100).toInt()}%",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                            )
-                        }
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                MysticalProgressArc(
+                                    progress = currentPage.toFloat() / pages.size.coerceAtLeast(1),
+                                    currentPage = currentPage,
+                                    totalPages = pages.size
+                                )
+                            }
 
-                        translationError?.let { error ->
-                            Text(
-                                text = error,
-                                color = MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.labelMedium,
-                                modifier = Modifier.padding(bottom = 8.dp),
-                            )
-                        }
+                            // Translation progress
+                            if (isTranslating) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(bottom = 8.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .height(4.dp)
+                                            .background(
+                                                WarmLeather.copy(alpha = 0.3f),
+                                                RoundedCornerShape(2.dp)
+                                            )
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxHeight()
+                                                .fillMaxWidth(translationProgress)
+                                                .background(
+                                                    brush = Brush.horizontalGradient(
+                                                        colors = listOf(MysticPurple, GildedGold)
+                                                    ),
+                                                    RoundedCornerShape(2.dp)
+                                                )
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "🔮 Translating runes... ${(translationProgress * 100).toInt()}%",
+                                        fontSize = 12.sp,
+                                        color = MysticPurple,
+                                        fontStyle = FontStyle.Italic
+                                    )
+                                }
+                            }
 
-                        // Content Card
-                        Card(
-                            modifier =
-                            Modifier
-                                .weight(1f)
-                                .shadow(8.dp, RoundedCornerShape(16.dp))
-                                .clip(RoundedCornerShape(16.dp))
-                                .pointerInput(Unit) {
-                                    if (preferences.enableGestures) {
-                                        detectDragGestures { change, dragAmount ->
-                                            change.consume()
-                                            if (abs(dragAmount.x) >
-                                                abs(dragAmount.y)
-                                            ) {
-                                                if (dragAmount.x > 0 &&
-                                                    currentPage > 0
-                                                ) {
-                                                    scope.launch { currentPage-- }
-                                                } else if (dragAmount.x < 0 &&
-                                                    currentPage <
-                                                    pages.size -
-                                                    1
-                                                ) {
-                                                    scope.launch { currentPage++ }
+                            translationError?.let { errorMsg ->
+                                Text(
+                                    text = "⚠️ $errorMsg",
+                                    color = DragonsBlood,
+                                    fontSize = 12.sp,
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                            }
+
+                            // Ancient Tome Page with content
+                            AncientTomePage(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .pointerInput(Unit) {
+                                        if (preferences.enableGestures) {
+                                            detectDragGestures { change, dragAmount ->
+                                                change.consume()
+                                                if (abs(dragAmount.x) > abs(dragAmount.y)) {
+                                                    if (dragAmount.x > 0 && currentPage > 0) {
+                                                        scope.launch { currentPage-- }
+                                                    } else if (dragAmount.x < 0 && currentPage < pages.size - 1) {
+                                                        scope.launch { currentPage++ }
+                                                    }
                                                 }
                                             }
                                         }
                                     }
-                                },
-                        ) {
-                            Box(modifier = Modifier.fillMaxSize()) {
-                                // Background ambient effect based on theme
-                                Box(
-                                    modifier =
-                                    Modifier
-                                        .fillMaxSize()
-                                        .background(
-                                            Brush.radialGradient(
-                                                colors =
-                                                listOf(
-                                                    preferences
-                                                        .theme
-                                                        .backgroundColor,
-                                                    preferences
-                                                        .theme
-                                                        .backgroundColor
-                                                        .copy(
-                                                            alpha =
-                                                            0.8f,
-                                                        ),
-                                                ),
-                                            ),
-                                        ),
-                                )
-
-                                // Content
-                                if (isTranslating) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.align(Alignment.Center),
-                                    )
-                                } else {
-                                    Column(modifier = Modifier.padding(16.dp)) {
+                            ) {
+                                Box(modifier = Modifier.fillMaxSize()) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(20.dp)
+                                    ) {
+                                        // Reading stats at top
                                         if (preferences.showReadingStats) {
-                                            ReadingStatsOverlay(
+                                            MysticalReadingWisdom(
                                                 statistics = viewModel.readingStats.value,
-                                                modifier = Modifier.padding(bottom = 16.dp),
+                                                modifier = Modifier.padding(bottom = 12.dp)
                                             )
                                         }
 
-                                        HighlightedText(
-                                            text = currentContent!!,
-                                            currentWordIndex = currentWordIndex,
-                                            fontSize = preferences.fontSize.sp,
-                                            lineHeight = preferences.lineHeight.em,
-                                            textColor = preferences.theme.textColor,
-                                        )
+                                        // Content with highlighted text
+                                        if (isTranslating) {
+                                            Box(
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Column(
+                                                    horizontalAlignment = Alignment.CenterHorizontally
+                                                ) {
+                                                    Text("🔮", fontSize = 48.sp)
+                                                    Spacer(modifier = Modifier.height(16.dp))
+                                                    Text(
+                                                        "Deciphering ancient runes...",
+                                                        color = WarmLeather,
+                                                        fontStyle = FontStyle.Italic
+                                                    )
+                                                }
+                                            }
+                                        } else {
+                                            EnchantedHighlightedText(
+                                                text = currentContent!!,
+                                                currentWordIndex = currentWordIndex,
+                                                fontSize = preferences.fontSize.sp,
+                                                lineHeight = preferences.lineHeight.em,
+                                                textColor = DeepLibraryBrown
+                                            )
+                                        }
+                                    }
+
+                                    // Auto-scroll magic trail
+                                    if (preferences.autoScroll) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(3.dp)
+                                                .align(Alignment.BottomCenter)
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxHeight()
+                                                    .fillMaxWidth(viewModel.autoScrollProgress.value)
+                                                    .background(
+                                                        brush = Brush.horizontalGradient(
+                                                            colors = listOf(
+                                                                MysticPurple,
+                                                                GildedGold,
+                                                                PhoenixOrange
+                                                            )
+                                                        )
+                                                    )
+                                            )
+                                        }
                                     }
                                 }
+                            }
 
-                                // Auto-scroll progress indicator
-                                if (preferences.autoScroll) {
-                                    LinearProgressIndicator(
-                                        progress = viewModel.autoScrollProgress.value,
-                                        modifier =
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .height(2.dp)
-                                            .align(Alignment.BottomCenter),
-                                    )
-                                }
+                            // Mystical Page Turner
+                            AnimatedVisibility(
+                                visible = true,
+                                enter = slideInVertically() + fadeIn(),
+                                exit = slideOutVertically() + fadeOut(),
+                            ) {
+                                MysticalPageTurner(
+                                    currentPage = currentPage,
+                                    totalPages = pages.size,
+                                    onPrevious = { if (currentPage > 0) currentPage-- },
+                                    onNext = { if (currentPage < pages.size - 1) currentPage++ },
+                                )
                             }
                         }
-
-                        // Navigation Controls
-                        AnimatedVisibility(
-                            visible = true,
-                            enter = slideInVertically() + fadeIn(),
-                            exit = slideOutVertically() + fadeOut(),
-                        ) {
-                            NavigationControls(
-                                currentPage = currentPage,
-                                totalPages = pages.size,
-                                onPrevious = { if (currentPage > 0) currentPage-- },
-                                onNext = { if (currentPage < pages.size - 1) currentPage++ },
-                            )
-                        }
+                        
+                        // Enchanted Bottom Controls
+                        EnchantedControlsBar(
+                            preferences = preferences,
+                            onAutoScrollToggle = { enabled ->
+                                preferences = preferences.copy(autoScroll = enabled)
+                                viewModel.toggleAutoScroll(enabled, preferences.autoScrollSpeed)
+                            },
+                            onSpeedChange = { speed ->
+                                preferences = preferences.copy(autoScrollSpeed = speed)
+                                if (preferences.autoScroll) {
+                                    viewModel.toggleAutoScroll(true, speed)
+                                }
+                            },
+                            onBookmarkClick = { showBookmarks = true },
+                            onThemeClick = { showThemeSelector = true },
+                            onStatsClick = { showStats = true },
+                            onVoiceCommandClick = {
+                                if (isListeningForCommands) {
+                                    voiceCommandHandler.stopListening()
+                                } else {
+                                    voiceCommandHandler.startListening { command ->
+                                        handleVoiceCommand(command)
+                                    }
+                                }
+                            },
+                            isListeningForCommands = isListeningForCommands,
+                        )
                     }
                 }
             }
         }
     }
 
-    // Show settings dialog
+    // Arcane Settings Grimoire
     if (showSettings) {
-        ReadingSettingsDialog(
+        ArcaneSettingsGrimoire(
             preferences = preferences,
             onPreferencesChanged = { preferences = it },
             onDismiss = { showSettings = false },
         )
     }
 
-    // Add dialogs
+    // Enchanted Theme Selector
     if (showThemeSelector) {
-        ThemeSelector(
+        EnchantedThemeSelector(
             currentTheme = preferences.theme,
             onThemeSelect = { theme ->
                 preferences = preferences.copy(theme = theme)
@@ -878,12 +1543,27 @@ fun EPubReaderScreen(bookUrl: String) {
         )
     }
 
+    // Magical Bookmarks Dialog
     if (showBookmarks) {
         AlertDialog(
             onDismissRequest = { showBookmarks = false },
-            title = { Text("Bookmarks") },
+            containerColor = DeepLibraryBrown,
+            titleContentColor = GildedGold,
+            title = { 
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text("🔖", fontSize = 24.sp)
+                    Text(
+                        "Magical Bookmarks",
+                        fontFamily = FontFamily.Serif,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
             text = {
-                BookmarksList(
+                MagicalBookmarkScroll(
                     bookmarks = viewModel.bookmarks.value,
                     onBookmarkClick = { page ->
                         currentPage = page
@@ -892,70 +1572,310 @@ fun EPubReaderScreen(bookUrl: String) {
                 )
             },
             confirmButton = {
-                TextButton(onClick = { showBookmarks = false }) { Text("Close") }
+                TextButton(
+                    onClick = { showBookmarks = false },
+                    colors = ButtonDefaults.textButtonColors(contentColor = GildedGold)
+                ) { 
+                    Text("Close", fontFamily = FontFamily.Serif) 
+                }
             },
         )
     }
 
+    // Reading Statistics Dialog
     if (showStats) {
         AlertDialog(
             onDismissRequest = { showStats = false },
-            title = { Text("Reading Statistics") },
+            containerColor = DeepLibraryBrown,
+            titleContentColor = GildedGold,
+            title = { 
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text("📊", fontSize = 24.sp)
+                    Text(
+                        "Reading Wisdom",
+                        fontFamily = FontFamily.Serif,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
             text = {
-                ReadingStatsOverlay(
+                MysticalReadingWisdom(
                     statistics = viewModel.readingStats.value,
                     modifier = Modifier.fillMaxWidth(),
                 )
             },
-            confirmButton = { TextButton(onClick = { showStats = false }) { Text("Close") } },
+            confirmButton = { 
+                TextButton(
+                    onClick = { showStats = false },
+                    colors = ButtonDefaults.textButtonColors(contentColor = GildedGold)
+                ) { 
+                    Text("Close", fontFamily = FontFamily.Serif) 
+                } 
+            },
         )
     }
 }
 
+/**
+ * Mystical Loading Scroll - Ancient tome materializing
+ */
 @Composable
-private fun LoadingScreen(progress: Float) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        CircularProgressIndicator(modifier = Modifier.size(80.dp), strokeWidth = 8.dp)
-        if (progress > 0f) {
+private fun MysticalLoadingScroll(progress: Float) {
+    val infiniteTransition = rememberInfiniteTransition(label = "loading")
+    
+    val rotation by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(3000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "rotation"
+    )
+    
+    val pulseScale by infiniteTransition.animateFloat(
+        initialValue = 0.95f,
+        targetValue = 1.05f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1500),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse"
+    )
+    
+    AncientReadingChamber {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            // Magical tome appearing
+            Box(
+                modifier = Modifier
+                    .size(150.dp)
+                    .scale(pulseScale),
+                contentAlignment = Alignment.Center
+            ) {
+                // Outer mystical circle
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    rotate(rotation) {
+                        drawCircle(
+                            brush = Brush.sweepGradient(
+                                colors = listOf(
+                                    MysticPurple,
+                                    GildedGold,
+                                    MysticPurple.copy(alpha = 0.5f),
+                                    GildedGold.copy(alpha = 0.5f),
+                                    MysticPurple
+                                )
+                            ),
+                            style = Stroke(
+                                width = 4f,
+                                pathEffect = PathEffect.dashPathEffect(floatArrayOf(15f, 10f))
+                            )
+                        )
+                    }
+                    
+                    // Rune symbols around circle
+                    val runeAngles = listOf(0f, 60f, 120f, 180f, 240f, 300f)
+                    runeAngles.forEach { angle ->
+                        rotate(angle + rotation * 0.5f) {
+                            drawCircle(
+                                color = GildedGold.copy(alpha = 0.7f),
+                                radius = 6f,
+                                center = Offset(center.x, center.y - size.width / 2 + 20f)
+                            )
+                        }
+                    }
+                }
+                
+                // Center book icon
+                Text(
+                    text = "📖",
+                    fontSize = 48.sp,
+                    modifier = Modifier.alpha(pulseScale)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            // Progress indicator
+            if (progress > 0f) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        "Summoning Ancient Text...",
+                        color = AncientParchment,
+                        fontSize = 16.sp,
+                        fontFamily = FontFamily.Serif,
+                        fontStyle = FontStyle.Italic
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // Custom mystical progress bar
+                    Box(
+                        modifier = Modifier
+                            .width(200.dp)
+                            .height(8.dp)
+                            .background(
+                                WarmLeather.copy(alpha = 0.3f),
+                                RoundedCornerShape(4.dp)
+                            )
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(progress)
+                                .background(
+                                    brush = Brush.horizontalGradient(
+                                        colors = listOf(MysticPurple, GildedGold)
+                                    ),
+                                    RoundedCornerShape(4.dp)
+                                )
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        "${(progress * 100).toInt()}%",
+                        color = GildedGold,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.Serif
+                    )
+                }
+            } else {
+                Text(
+                    "Opening the Ancient Tome...",
+                    color = AncientParchment,
+                    fontSize = 16.sp,
+                    fontFamily = FontFamily.Serif,
+                    fontStyle = FontStyle.Italic
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Ancient Error Rune - When dark magic fails
+ */
+@Composable
+private fun AncientErrorRune(errorMessage: String) {
+    val infiniteTransition = rememberInfiniteTransition(label = "error")
+    
+    val flicker by infiniteTransition.animateFloat(
+        initialValue = 0.7f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(500),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "flicker"
+    )
+    
+    AncientReadingChamber {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            // Broken seal symbol
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .alpha(flicker),
+                contentAlignment = Alignment.Center
+            ) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    // Cracked circle
+                    drawCircle(
+                        color = DragonsBlood.copy(alpha = 0.6f),
+                        style = Stroke(
+                            width = 4f,
+                            pathEffect = PathEffect.dashPathEffect(floatArrayOf(20f, 10f, 5f, 10f))
+                        )
+                    )
+                    
+                    // X mark
+                    drawLine(
+                        color = DragonsBlood,
+                        start = Offset(size.width * 0.3f, size.height * 0.3f),
+                        end = Offset(size.width * 0.7f, size.height * 0.7f),
+                        strokeWidth = 6f,
+                        cap = StrokeCap.Round
+                    )
+                    drawLine(
+                        color = DragonsBlood,
+                        start = Offset(size.width * 0.7f, size.height * 0.3f),
+                        end = Offset(size.width * 0.3f, size.height * 0.7f),
+                        strokeWidth = 6f,
+                        cap = StrokeCap.Round
+                    )
+                }
+            }
+            
             Spacer(modifier = Modifier.height(24.dp))
+            
             Text(
-                "${(progress * 100).toInt()}%",
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.primary,
+                "The Spell Has Failed",
+                color = DragonsBlood,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Serif
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        DragonsBlood.copy(alpha = 0.1f),
+                        RoundedCornerShape(12.dp)
+                    )
+                    .border(
+                        1.dp,
+                        DragonsBlood.copy(alpha = 0.3f),
+                        RoundedCornerShape(12.dp)
+                    )
+                    .padding(16.dp)
+            ) {
+                Text(
+                    errorMessage,
+                    color = AncientParchment.copy(alpha = 0.9f),
+                    fontSize = 14.sp,
+                    fontFamily = FontFamily.Serif,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Text(
+                "🔮 Try summoning the tome again",
+                color = MysticPurple,
+                fontSize = 14.sp,
+                fontStyle = FontStyle.Italic
             )
         }
     }
 }
 
+/**
+ * Mystical Page Turner - Navigation with magical gestures
+ */
 @Composable
-private fun ErrorScreen(errorMessage: String) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(
-            "Error",
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.error,
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            errorMessage,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-        )
-    }
-}
-
-@Composable
-private fun NavigationControls(
+private fun MysticalPageTurner(
     currentPage: Int,
     totalPages: Int,
     onPrevious: () -> Unit,
@@ -968,25 +1888,109 @@ private fun NavigationControls(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        FilledTonalButton(
-            onClick = onPrevious,
-            enabled = currentPage > 0,
-            modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(12.dp),
-        ) { Text("Previous") }
+        // Previous page button - Left scroll edge
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(48.dp)
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = if (currentPage > 0) 
+                            listOf(MysticPurple.copy(alpha = 0.3f), Color.Transparent)
+                        else 
+                            listOf(WarmLeather.copy(alpha = 0.2f), Color.Transparent)
+                    ),
+                    shape = RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp)
+                )
+                .clickable(enabled = currentPage > 0) { onPrevious() },
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    Icons.Default.ChevronLeft,
+                    contentDescription = "Previous",
+                    tint = if (currentPage > 0) GildedGold else WarmLeather.copy(alpha = 0.5f)
+                )
+                Text(
+                    "Previous",
+                    color = if (currentPage > 0) AncientParchment else WarmLeather.copy(alpha = 0.5f),
+                    fontFamily = FontFamily.Serif
+                )
+            }
+        }
 
-        Text(
-            "${currentPage + 1} / $totalPages",
-            modifier = Modifier.padding(horizontal = 16.dp),
-            style = MaterialTheme.typography.titleMedium,
-        )
+        // Page indicator - Ancient seal
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(RichMahogany, DeepLibraryBrown)
+                    ),
+                    shape = CircleShape
+                )
+                .border(
+                    2.dp,
+                    Brush.sweepGradient(
+                        colors = listOf(GildedGold, WarmLeather, GildedGold)
+                    ),
+                    CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    "${currentPage + 1}",
+                    color = GildedGold,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    "/ $totalPages",
+                    color = AncientParchment.copy(alpha = 0.7f),
+                    fontSize = 9.sp
+                )
+            }
+        }
 
-        FilledTonalButton(
-            onClick = onNext,
-            enabled = currentPage < totalPages - 1,
-            modifier = Modifier.weight(1f),
-            shape = RoundedCornerShape(12.dp),
-        ) { Text("Next") }
+        // Next page button - Right scroll edge
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(48.dp)
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = if (currentPage < totalPages - 1)
+                            listOf(Color.Transparent, MysticPurple.copy(alpha = 0.3f))
+                        else
+                            listOf(Color.Transparent, WarmLeather.copy(alpha = 0.2f))
+                    ),
+                    shape = RoundedCornerShape(topStart = 24.dp, bottomStart = 24.dp)
+                )
+                .clickable(enabled = currentPage < totalPages - 1) { onNext() },
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    "Next",
+                    color = if (currentPage < totalPages - 1) AncientParchment else WarmLeather.copy(alpha = 0.5f),
+                    fontFamily = FontFamily.Serif
+                )
+                Icon(
+                    Icons.Default.ChevronRight,
+                    contentDescription = "Next",
+                    tint = if (currentPage < totalPages - 1) GildedGold else WarmLeather.copy(alpha = 0.5f)
+                )
+            }
+        }
     }
 }
 
@@ -1102,50 +2106,174 @@ private suspend fun createAndOpenPdf(
     }
 }
 
+/**
+ * Mystical Reading Wisdom - Enchanted statistics overlay
+ */
 @Composable
-private fun ReadingStatsOverlay(statistics: ReadingStatistics, modifier: Modifier = Modifier) {
-    Column(
-        modifier =
-        modifier
+private fun MysticalReadingWisdom(statistics: ReadingStatistics, modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
-            .padding(16.dp),
+            .background(
+                brush = Brush.horizontalGradient(
+                    colors = listOf(
+                        DeepLibraryBrown.copy(alpha = 0.9f),
+                        RichMahogany.copy(alpha = 0.8f),
+                        DeepLibraryBrown.copy(alpha = 0.9f)
+                    )
+                ),
+                shape = RoundedCornerShape(12.dp)
+            )
+            .border(
+                1.dp,
+                GildedGold.copy(alpha = 0.3f),
+                RoundedCornerShape(12.dp)
+            )
+            .padding(12.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        Text(
-            "Reading Time: ${formatDuration(statistics.timeSpentReading)}",
-            style = MaterialTheme.typography.bodyMedium,
+        // Time crystal
+        WisdomCrystal(
+            icon = "⏳",
+            value = formatDuration(statistics.timeSpentReading),
+            label = "Time"
         )
-        Text("Pages Read: ${statistics.pagesRead}", style = MaterialTheme.typography.bodyMedium)
-        Text(
-            "Reading Speed: ${statistics.averageReadingSpeed.roundToInt()} words/min",
-            style = MaterialTheme.typography.bodyMedium,
+        
+        // Pages read scroll
+        WisdomCrystal(
+            icon = "📜",
+            value = "${statistics.pagesRead}",
+            label = "Pages"
+        )
+        
+        // Speed feather
+        WisdomCrystal(
+            icon = "🪶",
+            value = "${statistics.averageReadingSpeed.roundToInt()}",
+            label = "Words/min"
         )
     }
 }
 
 @Composable
-private fun BookmarksList(
+private fun WisdomCrystal(
+    icon: String,
+    value: String,
+    label: String
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(icon, fontSize = 20.sp)
+        Text(
+            value,
+            color = GildedGold,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = FontFamily.Serif
+        )
+        Text(
+            label,
+            color = AncientParchment.copy(alpha = 0.7f),
+            fontSize = 10.sp
+        )
+    }
+}
+
+/**
+ * Magical Bookmark Scroll - List of enchanted bookmarks
+ */
+@Composable
+private fun MagicalBookmarkScroll(
     bookmarks: List<BookmarkPage>,
     onBookmarkClick: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyColumn(modifier = modifier) {
-        items(bookmarks.size) { bookmark ->
-            ListItem(
-                headlineContent = { Text("Page ${bookmarks[bookmark].pageNumber + 1}") },
-                supportingContent = { Text(bookmarks[bookmark].snippet) },
-                leadingContent = { Icon(Icons.Default.Bookmark, null) },
-                modifier =
-                Modifier.clickable {
-                    onBookmarkClick(bookmarks[bookmark].pageNumber)
-                },
+    if (bookmarks.isEmpty()) {
+        Column(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("🔖", fontSize = 48.sp, modifier = Modifier.alpha(0.5f))
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                "No bookmarks yet",
+                color = AncientParchment.copy(alpha = 0.7f),
+                fontFamily = FontFamily.Serif
             )
+            Text(
+                "Tap the ribbon to mark your place",
+                color = WarmLeather,
+                fontSize = 12.sp,
+                fontStyle = FontStyle.Italic
+            )
+        }
+    } else {
+        LazyColumn(modifier = modifier) {
+            items(bookmarks.size) { index ->
+                val bookmark = bookmarks[index]
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onBookmarkClick(bookmark.pageNumber) }
+                        .padding(vertical = 8.dp, horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Ribbon icon
+                    Box(
+                        modifier = Modifier
+                            .width(4.dp)
+                            .height(40.dp)
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(DragonsBlood, PhoenixOrange)
+                                ),
+                                shape = RoundedCornerShape(2.dp)
+                            )
+                    )
+                    
+                    Spacer(modifier = Modifier.width(12.dp))
+                    
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "Page ${bookmark.pageNumber + 1}",
+                            color = GildedGold,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.Serif
+                        )
+                        Text(
+                            bookmark.snippet,
+                            color = AncientParchment.copy(alpha = 0.8f),
+                            fontSize = 12.sp,
+                            maxLines = 2
+                        )
+                    }
+                    
+                    Icon(
+                        Icons.Default.ChevronRight,
+                        contentDescription = null,
+                        tint = WarmLeather
+                    )
+                }
+                
+                if (index < bookmarks.size - 1) {
+                    HorizontalDivider(
+                        color = WarmLeather.copy(alpha = 0.2f),
+                        modifier = Modifier.padding(start = 20.dp)
+                    )
+                }
+            }
         }
     }
 }
 
+/**
+ * Enchanted Controls Bar - Bottom mystical controls
+ */
 @Composable
-private fun ReaderBottomBar(
+private fun EnchantedControlsBar(
     preferences: ReadingPreferences,
     onAutoScrollToggle: (Boolean) -> Unit,
     onSpeedChange: (Float) -> Unit,
@@ -1155,90 +2283,214 @@ private fun ReaderBottomBar(
     onVoiceCommandClick: () -> Unit,
     isListeningForCommands: Boolean,
 ) {
-    BottomAppBar(
-        actions = {
-            IconButton(onClick = onBookmarkClick) { Icon(Icons.Default.Bookmark, "Bookmarks") }
-            IconButton(onClick = { onAutoScrollToggle(!preferences.autoScroll) }) {
-                Icon(
-                    if (preferences.autoScroll) {
-                        Icons.Default.Pause
-                    } else {
-                        Icons.Default.PlayArrow
-                    },
-                    "Auto-scroll",
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(
+                        Color.Transparent,
+                        DeepLibraryBrown.copy(alpha = 0.95f),
+                        DeepLibraryBrown
+                    )
                 )
+            )
+            .padding(horizontal = 8.dp, vertical = 12.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Bookmark rune
+            EnchantedControlRune(
+                icon = {
+                    Icon(
+                        Icons.Default.Bookmark,
+                        "Bookmarks",
+                        tint = AncientParchment,
+                        modifier = Modifier.size(20.dp)
+                    )
+                },
+                onClick = onBookmarkClick
+            )
+            
+            // Auto-scroll rune
+            EnchantedControlRune(
+                icon = {
+                    Icon(
+                        if (preferences.autoScroll) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        "Auto-scroll",
+                        tint = if (preferences.autoScroll) GildedGold else AncientParchment,
+                        modifier = Modifier.size(20.dp)
+                    )
+                },
+                onClick = { onAutoScrollToggle(!preferences.autoScroll) },
+                isActive = preferences.autoScroll
+            )
+            
+            // Speed slider (visible when auto-scroll is on)
+            AnimatedVisibility(visible = preferences.autoScroll) {
+                Box(
+                    modifier = Modifier
+                        .width(80.dp)
+                        .background(
+                            WarmLeather.copy(alpha = 0.3f),
+                            RoundedCornerShape(8.dp)
+                        )
+                        .padding(horizontal = 8.dp)
+                ) {
+                    Slider(
+                        value = preferences.autoScrollSpeed,
+                        onValueChange = onSpeedChange,
+                        valueRange = 0.5f..3f,
+                        colors = SliderDefaults.colors(
+                            thumbColor = GildedGold,
+                            activeTrackColor = MysticPurple,
+                            inactiveTrackColor = WarmLeather.copy(alpha = 0.3f)
+                        ),
+                        modifier = Modifier.height(24.dp)
+                    )
+                }
             }
-            if (preferences.autoScroll) {
-                Slider(
-                    value = preferences.autoScrollSpeed,
-                    onValueChange = onSpeedChange,
-                    valueRange = 0.5f..3f,
-                    modifier = Modifier.width(100.dp),
-                )
-            }
-            IconButton(onClick = onThemeClick) { Icon(Icons.Default.Palette, "Themes") }
-            IconButton(onClick = onStatsClick) { Icon(Icons.Default.Timeline, "Reading Stats") }
-            IconButton(onClick = onVoiceCommandClick) {
-                Icon(
-                    imageVector =
-                    if (isListeningForCommands) {
-                        Icons.Default.Mic
-                    } else {
-                        Icons.Default.MicNone
-                    },
-                    contentDescription =
-                    if (isListeningForCommands) {
-                        "Stop voice commands"
-                    } else {
-                        "Start voice commands"
-                    },
-                    tint =
-                    if (isListeningForCommands) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        LocalContentColor.current
-                    },
-                )
-            }
-        },
-    )
+            
+            // Theme palette rune
+            EnchantedControlRune(
+                icon = {
+                    Icon(
+                        Icons.Default.Palette,
+                        "Themes",
+                        tint = AncientParchment,
+                        modifier = Modifier.size(20.dp)
+                    )
+                },
+                onClick = onThemeClick
+            )
+            
+            // Stats rune
+            EnchantedControlRune(
+                icon = {
+                    Icon(
+                        Icons.Default.Timeline,
+                        "Reading Stats",
+                        tint = AncientParchment,
+                        modifier = Modifier.size(20.dp)
+                    )
+                },
+                onClick = onStatsClick
+            )
+            
+            // Voice command rune
+            EnchantedControlRune(
+                icon = {
+                    Icon(
+                        if (isListeningForCommands) Icons.Default.Mic else Icons.Default.MicNone,
+                        if (isListeningForCommands) "Stop voice" else "Voice commands",
+                        tint = if (isListeningForCommands) PhoenixOrange else AncientParchment,
+                        modifier = Modifier.size(20.dp)
+                    )
+                },
+                onClick = onVoiceCommandClick,
+                isActive = isListeningForCommands
+            )
+        }
+    }
 }
 
+/**
+ * Enchanted Theme Selector - Mystical reading ambiance chooser
+ */
 @Composable
-private fun ThemeSelector(
+private fun EnchantedThemeSelector(
     currentTheme: ReadingTheme,
     onThemeSelect: (ReadingTheme) -> Unit,
     onDismiss: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Select Theme") },
+        containerColor = DeepLibraryBrown,
+        titleContentColor = GildedGold,
+        title = { 
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text("🎨", fontSize = 24.sp)
+                Text(
+                    "Reading Ambiance",
+                    fontFamily = FontFamily.Serif,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        },
         text = {
             LazyColumn {
-                items(ReaderThemes.themes.size) { theme ->
+                items(ReaderThemes.themes.size) { index ->
+                    val theme = ReaderThemes.themes[index]
+                    val isSelected = theme == currentTheme
+                    
                     Row(
-                        modifier =
-                        Modifier
+                        modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {
-                                onThemeSelect(ReaderThemes.themes.get(theme))
-                            }
-                            .padding(16.dp),
+                            .clickable { onThemeSelect(theme) }
+                            .background(
+                                if (isSelected) MysticPurple.copy(alpha = 0.2f) 
+                                else Color.Transparent,
+                                RoundedCornerShape(8.dp)
+                            )
+                            .padding(12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(ReaderThemes.themes.get(theme).name)
-                        if (ReaderThemes.themes.get(theme) == currentTheme) {
-                            Icon(Icons.Default.Check, null)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            // Theme preview circle
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .background(
+                                        theme.backgroundColor,
+                                        CircleShape
+                                    )
+                                    .border(
+                                        2.dp,
+                                        theme.textColor.copy(alpha = 0.5f),
+                                        CircleShape
+                                    )
+                            )
+                            
+                            Text(
+                                theme.name,
+                                color = AncientParchment,
+                                fontFamily = FontFamily.Serif
+                            )
+                        }
+                        
+                        if (isSelected) {
+                            Icon(
+                                Icons.Default.Check,
+                                null,
+                                tint = GildedGold
+                            )
                         }
                     }
                 }
             }
         },
-        confirmButton = { TextButton(onClick = onDismiss) { Text("Done") } },
+        confirmButton = { 
+            TextButton(
+                onClick = onDismiss,
+                colors = ButtonDefaults.textButtonColors(contentColor = GildedGold)
+            ) { 
+                Text("✨ Done", fontFamily = FontFamily.Serif) 
+            } 
+        },
     )
 }
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Preview(showBackground = true)
 @Composable
 fun EPubReaderScreenPreview() {
