@@ -1,7 +1,7 @@
 import { IsString } from 'class-validator';
 
 export class ChangePasswordDto {
-  static oldPassword(oldPassword: any) {
+  static oldPassword() {
     throw new Error('Method not implemented.');
   }
   @IsString()

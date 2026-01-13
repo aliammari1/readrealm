@@ -25,7 +25,13 @@ import { ConfigModule } from '@nestjs/config';
     {
       provide: 'SERVICES',
       useFactory: (...services) => services,
-      inject: [BookService, TTSService, EpubService, ReviewService, BookmarkService],
+      inject: [
+        BookService,
+        TTSService,
+        EpubService,
+        ReviewService,
+        BookmarkService,
+      ],
     },
     BookService,
     TTSService,

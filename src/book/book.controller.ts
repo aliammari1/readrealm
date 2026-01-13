@@ -15,7 +15,6 @@ import { BookService } from './book.service';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
 import { Response } from 'express';
-import { ToggleBookmarkDto } from './dto/toggle-bookmark.dto';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { TTSService } from './tts.service';
 import { ReviewService } from './review.service';
@@ -121,7 +120,9 @@ export class BookController {
         toggleBookmarkDto.userId,
       );
     } catch (error) {
-      throw new BadRequestException(error.message || 'Failed to toggle bookmark');
+      throw new BadRequestException(
+        error.message || 'Failed to toggle bookmark',
+      );
     }
   }
 
@@ -130,7 +131,7 @@ export class BookController {
     @Param('genre') genre: string,
     @Query('offset') offset = '0',
     @Query('limit') limit = '10',
-    @Res() res: Response
+    @Res() res: Response,
   ) {
     const parsedOffset = parseInt(offset, 10);
     const parsedLimit = Math.min(parseInt(limit, 10), 50); // Cap at 50 items
@@ -148,7 +149,11 @@ export class BookController {
 
     try {
       let count = 0;
-      for await (const book of this.bookService.findBooksByGenre(genre, parsedOffset, parsedLimit)) {
+      for await (const book of this.bookService.findBooksByGenre(
+        genre,
+        parsedOffset,
+        parsedLimit,
+      )) {
         if (count >= parsedLimit) break;
         res.write(`data: ${JSON.stringify(book)}\n\n`);
         count++;

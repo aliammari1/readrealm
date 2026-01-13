@@ -3,18 +3,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
 import { HttpService } from '@nestjs/axios';
-import { map, mergeMap, toArray } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 import { Book, BookDocument } from './entities/book.entity';
-import { forkJoin, firstValueFrom, from } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { AzureOpenAI } from 'openai';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Review } from './entities/review.entity';
-import { CreateReviewDto } from './dto/create-review.dto';
-import * as Sentiment from 'sentiment';
-import { link } from 'fs';
 import { EpubService } from './epub.service';
 import { ReviewService } from './review.service';
 import { BookmarkService } from './bookmark.service';
@@ -23,7 +19,8 @@ import { BookmarkService } from './bookmark.service';
 export class BookService {
   // 1. Constants and Configurations
   private readonly OPEN_LIBRARY_API_ENDPOINT = 'https://openlibrary.org';
-  private readonly OPEN_LIBRARY_COVER_ENDPOINT = 'https://covers.openlibrary.org';
+  private readonly OPEN_LIBRARY_COVER_ENDPOINT =
+    'https://covers.openlibrary.org';
   private readonly GUTEDEX_API_ENDPOINT = 'https://gutendex.com';
   private azureTtsKey: string;
   private azureTtsEndpoint: string;
@@ -89,9 +86,9 @@ export class BookService {
 
   // 3. Book Search and Details Methods
   searchBooks(title: string) {
-    let titleEncoded = encodeURIComponent(title);
-    let searchUrl = `${this.OPEN_LIBRARY_API_ENDPOINT}/search.json?q=${titleEncoded}&fields=*,availability&limit=12&lang=en`;
-    let books = this.httpService.get(searchUrl).pipe(
+    const titleEncoded = encodeURIComponent(title);
+    const searchUrl = `${this.OPEN_LIBRARY_API_ENDPOINT}/search.json?q=${titleEncoded}&fields=*,availability&limit=12&lang=en`;
+    const books = this.httpService.get(searchUrl).pipe(
       map((searchResponse) => {
         return searchResponse.data.docs.map((searchResult) => {
           const book = {
@@ -119,7 +116,9 @@ export class BookService {
 
       // If not in database, fetch from OpenLibrary API
       const response = await firstValueFrom(
-        this.httpService.get(`${this.OPEN_LIBRARY_API_ENDPOINT}/works/OL${id}W.json`)
+        this.httpService.get(
+          `${this.OPEN_LIBRARY_API_ENDPOINT}/works/OL${id}W.json`,
+        ),
       );
 
       const bookDetails = response.data;
@@ -136,11 +135,14 @@ export class BookService {
         description = await this.getBookSummary(bookDetails.title);
       } catch (error) {
         console.log('Failed to fetch book summary:', error);
-        description = bookDetails.description?.value || bookDetails.description || '';
+        description =
+          bookDetails.description?.value || bookDetails.description || '';
       }
 
       const bookData = {
-        id: Number(bookDetails.key.split('/')[2].replace('OL', '').replace('W', '')),
+        id: Number(
+          bookDetails.key.split('/')[2].replace('OL', '').replace('W', ''),
+        ),
         title: bookDetails.title,
         author: bookDetails.authors?.[0]?.name || 'Unknown',
         publicationYear: bookDetails.first_publish_year || 1970,
@@ -148,9 +150,7 @@ export class BookService {
         coverImage: bookDetails.covers
           ? `${this.OPEN_LIBRARY_COVER_ENDPOINT}/b/id/${bookDetails.covers[0]}-M.jpg`
           : null,
-        genre: bookDetails.subjects
-          ? bookDetails.subjects[0]
-          : 'Unknown',
+        genre: bookDetails.subjects ? bookDetails.subjects[0] : 'Unknown',
         textData: '',
         link: epubLink || '',
         bookmarks: [],
@@ -164,21 +164,27 @@ export class BookService {
       const book = await this.bookModel.findOneAndUpdate(
         { id: bookData.id },
         bookData,
-        { 
+        {
           new: true,
           upsert: true,
-          setDefaultsOnInsert: true
-        }
+          setDefaultsOnInsert: true,
+        },
       );
 
       return book;
     } catch (error) {
       console.error('Error in getBookDetails:', error);
-      throw new NotFoundException(`Book with ID ${id} not found: ${error.message}`);
+      throw new NotFoundException(
+        `Book with ID ${id} not found: ${error.message}`,
+      );
     }
   }
 
-  async *findBooksByGenre(genre: string, offset = 0, limit = 10): AsyncGenerator<Book & { total: number, offset: number, limit: number }> {
+  async *findBooksByGenre(
+    genre: string,
+    offset = 0,
+    limit = 10,
+  ): AsyncGenerator<Book & { total: number; offset: number; limit: number }> {
     if (genre.toLowerCase() === 'all') {
       return;
     }
@@ -209,7 +215,7 @@ export class BookService {
           const response = await firstValueFrom(
             this.httpService.get(
               `${this.OPEN_LIBRARY_API_ENDPOINT}/subjects/${genre}.json?limit=${limit}&offset=${offset}&details=true`,
-            )
+            ),
           );
 
           const works = response.data.works;
@@ -221,7 +227,9 @@ export class BookService {
             const batchPromises = batch.map(async (work) => {
               // Optimize data transformation
               const bookData = {
-                id: Number(work.key.split('/')[2].replace('OL', '').replace('W', '')),
+                id: Number(
+                  work.key.split('/')[2].replace('OL', '').replace('W', ''),
+                ),
                 title: work.title,
                 author: work.authors?.[0]?.name || 'Unknown',
                 publicationYear: work.first_publish_year,
@@ -239,7 +247,7 @@ export class BookService {
                 total,
                 description: work.description?.value || work.description || '',
                 offset,
-                limit
+                limit,
               };
 
               // Only fetch epub link if needed
@@ -271,9 +279,13 @@ export class BookService {
         } catch (error) {
           retryCount++;
           if (retryCount === maxRetries) {
-            throw new Error(`Failed to fetch books for genre ${genre} after ${maxRetries} attempts: ${error.message}`);
+            throw new Error(
+              `Failed to fetch books for genre ${genre} after ${maxRetries} attempts: ${error.message}`,
+            );
           }
-          await new Promise(resolve => setTimeout(resolve, 1000 * retryCount)); // Exponential backoff
+          await new Promise((resolve) =>
+            setTimeout(resolve, 1000 * retryCount),
+          ); // Exponential backoff
         }
       }
     } catch (error) {
@@ -313,9 +325,11 @@ export class BookService {
         coverImage: bookData.formats['image/jpeg'],
         genre: bookData.subjects.length > 0 ? bookData.subjects[0] : 'Unknown',
         textData: '',
-        link:         bookData.formats['text/plain; charset=utf-8'] ||
-        bookData.formats['text/plain; charset=us-ascii'] ||
-        bookData.formats['text/plain'] || '', // Ensure it's never undefined
+        link:
+          bookData.formats['text/plain; charset=utf-8'] ||
+          bookData.formats['text/plain; charset=us-ascii'] ||
+          bookData.formats['text/plain'] ||
+          '', // Ensure it's never undefined
       };
 
       const textUrl =
@@ -354,7 +368,7 @@ export class BookService {
     if (title == '') {
       return 'No text data provided';
     }
-    let book = await this.getBookByTitle(title);
+    const book = await this.getBookByTitle(title);
     if (!book || book.length == 0) {
       return 'Book not found';
     }
