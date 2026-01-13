@@ -28,4 +28,4 @@ import { VerificationModule } from '../verification/verification.module';
   providers: [AuthService, MailService],
   controllers: [AuthController],
 })
-export class AuthModule { }
+export class AuthModule {}

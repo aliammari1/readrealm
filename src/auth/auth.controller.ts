@@ -1,25 +1,13 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UseGuards,
-  Put,
-  Req,
-} from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Put, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signUpDto';
 import { AuthGaurd } from '../guards/authentification.guards';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { loginDto } from './dto/loginDto';
-import { VerifyEmailDto } from './dto/verify-email.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @Post('register')
   // @UseGuards(RoleGaurd)

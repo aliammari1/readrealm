@@ -15,7 +15,7 @@ export class LoggerMiddleware implements NestMiddleware {
 
     res.send = function (body) {
       responseBody = body;
-      return oldSend.apply(res, arguments);
+      return oldSend.apply(res);
     };
 
     res.on('finish', () => {

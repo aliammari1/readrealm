@@ -1,11 +1,12 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { Server } from 'socket.io';
 import { LowLevelRTClient, SessionUpdateMessage } from 'rt-client';
 import { SocketGateway } from './socket.gateway';
 import { ConfigService } from '@nestjs/config';
 import { unlink, writeFile } from 'fs/promises';
-import * as ffmpeg from 'fluent-ffmpeg';
-import * as ffmpegPath from '@ffmpeg-installer/ffmpeg';
+import { ffmpegPath, isFfmpegAvailable } from 'node-av/ffmpeg';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
+const execFileAsync = promisify(execFile);
 import { join } from 'path';
 import { mkdir } from 'fs/promises';
 
@@ -103,7 +104,7 @@ export class SpeechRealtimeService {
   processAudioRecordingBuffer(data: Buffer, socketId: string) {
     try {
       const uint8Array = new Uint8Array(data);
-      let buffer = this.bufferMap.get(socketId) || new Uint8Array(0);
+      const buffer = this.bufferMap.get(socketId) || new Uint8Array(0);
 
       // Combine arrays exactly like reference code
       const newBuffer = new Uint8Array(buffer.length + uint8Array.length);
@@ -224,46 +225,47 @@ export class SpeechRealtimeService {
       const filePath = join(this.uploadsDir, filename);
       const tempPcmPath = join(this.uploadsDir, `${filename}.pcm`);
 
-      // // console.log(`Saving audio to: ${filePath}`);
-
       // Save raw PCM data to temporary file
       await writeFile(tempPcmPath, Buffer.from(buffer));
 
-      // Set ffmpeg path
-      ffmpeg.setFfmpegPath(ffmpegPath.path);
+      // Use node-av provided ffmpeg binary
+      if (!isFfmpegAvailable()) {
+        throw new Error(
+          'FFmpeg binary not available (node-av). Install node-av or ensure ffmpeg binaries are available.',
+        );
+      }
 
-      // Convert PCM to MP3
-      return new Promise((resolve, reject) => {
-        ffmpeg()
-          .input(tempPcmPath)
-          .inputOptions([
-            '-f s16le', // Input format: signed 16-bit little-endian
-            '-ar 24000', // Sample rate: 24kHz
-            '-ac 1', // Channels: mono
-          ])
-          .toFormat('mp3')
-          .outputOptions([
-            '-acodec libmp3lame',
-            '-ab 128k', // Bitrate: 128kbps
-          ])
-          .on('start', (command) => {
-            // // console.log('FFmpeg process started:', command);
-          })
-          .on('end', () => {
-            // // console.log('Audio conversion completed:', filePath);
-            // Clean up temporary PCM file
-            unlink(tempPcmPath)
-              .then(() => resolve(true))
-              .catch((err) =>
-                console.error('Error cleaning up temp file:', err),
-              );
-          })
-          .on('error', (err) => {
-            console.error('Error converting to MP3:', err);
-            reject(err);
-          })
-          .save(filePath);
-      });
+      const ff = ffmpegPath();
+      const args = [
+        '-f',
+        's16le',
+        '-ar',
+        String(this.sampleRate),
+        '-ac',
+        '1',
+        '-i',
+        tempPcmPath,
+        '-acodec',
+        'libmp3lame',
+        '-ab',
+        '128k',
+        '-y',
+        filePath,
+      ];
+
+      try {
+        await execFileAsync(ff, args);
+        await unlink(tempPcmPath);
+        return true;
+      } catch (err) {
+        console.error('Error converting to MP3:', err);
+        try {
+          await unlink(tempPcmPath);
+        } catch (error) {
+          console.error('Error deleting temp PCM file:', error);
+        }
+        throw err;
+      }
     } catch (error) {
       console.error('Error saving audio:', error);
       throw error;

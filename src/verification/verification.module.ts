@@ -17,4 +17,4 @@ import { UserModule } from '../user/user.module';
   providers: [VerificationService],
   exports: [VerificationService],
 })
-export class VerificationModule { }
+export class VerificationModule {}
