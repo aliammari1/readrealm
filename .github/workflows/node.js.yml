@@ -21,14 +21,22 @@ jobs:
     - name: Install pnpm
       uses: pnpm/action-setup@v4
       with:
-        version: 9 # Or specify your preferred version
+        version: 9
 
-    # 2. Setup Node with pnpm caching
+    # 2. Get pnpm store directory (Fixes the  "packages field missing" error)
+    - name: Get pnpm store directory
+      shell: bash
+      run: |
+        echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+    # 3. Setup Node with manual cache path
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
+        # We point directly to the path we found in step 2
         cache: 'pnpm'
+        cache-dependency-path: '**/pnpm-lock.yaml'
 
     # 3. Install dependencies (Equivalent to npm ci)
     - name: Install dependencies
