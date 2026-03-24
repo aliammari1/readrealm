@@ -1,0 +1,29 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+
+# Keystore and signing files
+keystore/
+*.jks
+*.keystore
+*-signing.properties
+
+# Gradle signing properties (if stored in separate file)
+signing.properties
+
+# Generated AAB/APK files (optional, can be committed if needed)
+*.aab
+*.apk
+*.apks
