@@ -14,7 +14,7 @@ class AudioStreamViewModel: ObservableObject {
     private var timeObserver: Any?
     private var cancellables = Set<AnyCancellable>()
     
-    private let baseURL = "https://c995-102-108-190-71.ngrok-free.app"
+    private let baseURL = "https://libraryapp-nest-back.vercel.app"
     private let skipInterval: Double = 15
     
     func streamAudioBook(title: String) {

@@ -22,7 +22,7 @@ class AuthViewModel: ObservableObject {
         let userId: String
     }
     
-    private let baseURL = "https://c995-102-108-190-71.ngrok-free.app"
+    private let baseURL = "https://libraryapp-nest-back.vercel.app"
     func areCredentialsValid() -> Bool {
            return !username.isEmpty && !email.isEmpty && !password.isEmpty
     }

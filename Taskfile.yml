@@ -1,0 +1,33 @@
+version: "3"
+
+tasks:
+  setup:
+    desc: First-time setup
+    cmds:
+      - task: api:install
+      - task: dashboard:install
+
+  api:install:
+    dir: apps/api
+    cmds:
+      - npm ci
+
+  api:dev:
+    dir: apps/api
+    cmds:
+      - npm run start:dev
+
+  android:build:
+    dir: apps/android
+    cmds:
+      - ./gradlew assembleDebug
+
+  dashboard:install:
+    dir: apps/dashboard
+    cmds:
+      - flutter pub get
+
+  dashboard:run:
+    dir: apps/dashboard
+    cmds:
+      - flutter run

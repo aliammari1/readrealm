@@ -9,8 +9,7 @@ import '../services/face_recognition_service.dart';
 import 'package:path_provider/path_provider.dart';
 
 class AuthProvider with ChangeNotifier {
-  final String _baseUrl = 'http://localhost:3000';
-  //final String _baseUrl = 'http://192.168.159.105:3000';
+  final String _baseUrl = 'https://libraryapp-nest-back.vercel.app';
   final _secureStorage = const FlutterSecureStorage();
   late final ApiClient _apiClient;
   final FaceRecognitionService _faceService = FaceRecognitionService();
@@ -36,10 +35,7 @@ class AuthProvider with ChangeNotifier {
       final response = await http.post(
         Uri.parse('$_baseUrl/auth/login'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'email': email,
-          'password': password,
-        }),
+        body: json.encode({'email': email, 'password': password}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -47,14 +43,16 @@ class AuthProvider with ChangeNotifier {
         print('Login response: ${response.body}'); // Debug line
 
         if (data['accessToken'] != null && data['userId'] != null) {
-          _setState(_state.copyWith(
-            isAuthenticated: true,
-            userId: data['userId'],
-            accessToken: data['accessToken'],
-            refreshToken: data['refreshToken'],
-            isLoading: false,
-            error: null,
-          ));
+          _setState(
+            _state.copyWith(
+              isAuthenticated: true,
+              userId: data['userId'],
+              accessToken: data['accessToken'],
+              refreshToken: data['refreshToken'],
+              isLoading: false,
+              error: null,
+            ),
+          );
           await _fetchCurrentUser();
         } else {
           throw Exception('Invalid response format');
@@ -63,11 +61,13 @@ class AuthProvider with ChangeNotifier {
         throw Exception('Authentication failed: ${response.statusCode}');
       }
     } catch (e) {
-      _setState(_state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-        isAuthenticated: false,
-      ));
+      _setState(
+        _state.copyWith(
+          isLoading: false,
+          error: e.toString(),
+          isAuthenticated: false,
+        ),
+      );
       throw e;
     }
   }
@@ -92,10 +92,7 @@ class AuthProvider with ChangeNotifier {
 
       _setState(_state.copyWith(isLoading: false));
     } catch (e) {
-      _setState(_state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      ));
+      _setState(_state.copyWith(isLoading: false, error: e.toString()));
       throw e;
     }
   }
@@ -178,13 +175,14 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  Future<void> updateUser(String id, String username, String email,
-      {String? password}) async {
+  Future<void> updateUser(
+    String id,
+    String username,
+    String email, {
+    String? password,
+  }) async {
     try {
-      final Map<String, dynamic> body = {
-        'username': username,
-        'email': email,
-      };
+      final Map<String, dynamic> body = {'username': username, 'email': email};
       if (password != null && password.isNotEmpty) {
         body['password'] = password;
       }
@@ -212,9 +210,7 @@ class AuthProvider with ChangeNotifier {
     try {
       final response = await http.delete(
         Uri.parse('$_baseUrl/user/$id'),
-        headers: {
-          'Authorization': 'Bearer ${_state.accessToken}',
-        },
+        headers: {'Authorization': 'Bearer ${_state.accessToken}'},
       );
 
       if (response.statusCode == 200) {
@@ -237,14 +233,17 @@ class AuthProvider with ChangeNotifier {
 
       if (storedPersonId == null || storedEmail == null) {
         throw Exception(
-            'No stored face data found. Please login with password first');
+          'No stored face data found. Please login with password first',
+        );
       }
 
       // Capture and verify face
       final tempDir = await getTemporaryDirectory();
       final imagePath = '${tempDir.path}/face_auth.jpg';
-      final success =
-          await _faceService.authenticate(storedPersonId, imagePath);
+      final success = await _faceService.authenticate(
+        storedPersonId,
+        imagePath,
+      );
 
       if (!success) {
         throw Exception('Face authentication failed');
@@ -254,10 +253,7 @@ class AuthProvider with ChangeNotifier {
       final response = await http.post(
         Uri.parse('$_baseUrl/auth/face-login'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'email': storedEmail,
-          'personId': storedPersonId,
-        }),
+        body: json.encode({'email': storedEmail, 'personId': storedPersonId}),
       );
 
       if (response.statusCode != 200) {
@@ -268,11 +264,13 @@ class AuthProvider with ChangeNotifier {
       final user = User.fromJson(data['user']);
       final token = data['token'];
 
-      _setState(_state.copyWith(
-        isAuthenticated: true,
-        currentUser: user,
-        accessToken: token,
-      ));
+      _setState(
+        _state.copyWith(
+          isAuthenticated: true,
+          currentUser: user,
+          accessToken: token,
+        ),
+      );
     } catch (e) {
       _setState(_state.copyWith(error: e.toString()));
       throw e;

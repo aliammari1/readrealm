@@ -10,7 +10,7 @@ import Combine
 
 
 class BookViewModel: ObservableObject {
-    private let baseURL = "https://c995-102-108-190-71.ngrok-free.app"
+    private let baseURL = "https://libraryapp-nest-back.vercel.app"
     @Published var books: [Book] = [Book]()
     @Published var bookDescription: String = ""
     @Published var searchQuery: String = ""
