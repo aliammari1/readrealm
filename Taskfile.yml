@@ -1,33 +1,216 @@
 version: "3"
 
+# ReadRealm - Multi-tier Application Task Automation
+# Tasks are organized by: Backend (API) | Clients (Android/iOS) | Admin (Dashboard)
+
 tasks:
   setup:
-    desc: First-time setup
+    desc: "🚀 First-time setup - Install all dependencies"
     cmds:
+      - echo "📦 Installing backend dependencies..."
       - task: api:install
+      - echo "📦 Installing admin dashboard dependencies..."
       - task: dashboard:install
+      - echo "✅ Setup complete! Run 'task --list' to see available commands"
+
+  # ============================================================
+  # BACKEND LAYER - NestJS API (serves all clients)
+  # ============================================================
 
   api:install:
+    desc: "📦 Backend: Install dependencies"
     dir: apps/api
     cmds:
       - npm ci
 
   api:dev:
+    desc: "🟢 Backend: Start development server"
     dir: apps/api
     cmds:
+      - echo "🚀 Starting API on http://localhost:3000"
       - npm run start:dev
 
+  api:build:
+    desc: "🔨 Backend: Build for production"
+    dir: apps/api
+    cmds:
+      - npm run build
+
+  api:test:
+    desc: "🧪 Backend: Run tests"
+    dir: apps/api
+    cmds:
+      - npm run test
+
+  api:test:e2e:
+    desc: "🧪 Backend: Run E2E tests"
+    dir: apps/api
+    cmds:
+      - npm run test:e2e
+
+  api:lint:
+    desc: "✨ Backend: Lint code"
+    dir: apps/api
+    cmds:
+      - npm run lint
+
+  api:format:
+    desc: "🎨 Backend: Format code"
+    dir: apps/api
+    cmds:
+      - npm run format
+
+  # ============================================================
+  # CLIENT APPS - Native Android & iOS (End-user Reader Apps)
+  # ============================================================
+
+  android:install:
+    desc: "📦 Android Client: Install/sync Gradle dependencies"
+    dir: apps/android
+    cmds:
+      - ./gradlew clean
+
   android:build:
+    desc: "📱 Android Client: Build debug APK"
     dir: apps/android
     cmds:
       - ./gradlew assembleDebug
 
+  android:build:release:
+    desc: "📱 Android Client: Build release APK"
+    dir: apps/android
+    cmds:
+      - ./gradlew assembleRelease
+
+  android:install:device:
+    desc: "📱 Android Client: Install debug APK to device/emulator"
+    dir: apps/android
+    cmds:
+      - ./gradlew installDebug
+
+  android:test:
+    desc: "🧪 Android Client: Run unit tests"
+    dir: apps/android
+    cmds:
+      - ./gradlew test
+
+  ios:build:
+    desc: "🍎 iOS Client: Build for iOS"
+    dir: apps/ios
+    cmds:
+      - echo "📱 Opening Xcode workspace for iOS build..."
+      - echo "Run: open Runner.xcworkspace"
+
+  ios:test:
+    desc: "🧪 iOS Client: Run unit tests"
+    dir: apps/ios
+    cmds:
+      - xcodebuild test -workspace Runner.xcworkspace -scheme Runner
+
+  # ============================================================
+  # ADMIN DASHBOARD - Flutter (Management Interface)
+  # ============================================================
+
   dashboard:install:
+    desc: "📦 Dashboard: Install dependencies"
     dir: apps/dashboard
     cmds:
       - flutter pub get
 
   dashboard:run:
+    desc: "🖥️ Dashboard: Run admin interface (default web)"
     dir: apps/dashboard
     cmds:
-      - flutter run
+      - flutter run -d chrome
+
+  dashboard:run:windows:
+    desc: "🖥️ Dashboard: Run on Windows desktop"
+    dir: apps/dashboard
+    cmds:
+      - flutter run -d windows
+
+  dashboard:run:macos:
+    desc: "🖥️ Dashboard: Run on macOS desktop"
+    dir: apps/dashboard
+    cmds:
+      - flutter run -d macos
+
+  dashboard:build:web:
+    desc: "🔨 Dashboard: Build web version"
+    dir: apps/dashboard
+    cmds:
+      - flutter build web
+
+  dashboard:build:windows:
+    desc: "🔨 Dashboard: Build Windows executable"
+    dir: apps/dashboard
+    cmds:
+      - flutter build windows
+
+  dashboard:test:
+    desc: "🧪 Dashboard: Run tests"
+    dir: apps/dashboard
+    cmds:
+      - flutter test
+
+  # ============================================================
+  # DOCKER & DEPLOYMENT
+  # ============================================================
+
+  docker:up:
+    desc: "🐳 Docker: Start all services (API + MongoDB)"
+    cmds:
+      - docker-compose up -d
+
+  docker:down:
+    desc: "🐳 Docker: Stop all services"
+    cmds:
+      - docker-compose down
+
+  docker:logs:
+    desc: "🐳 Docker: View service logs"
+    cmds:
+      - docker-compose logs -f
+
+  # ============================================================
+  # COMPREHENSIVE TEST & QUALITY
+  # ============================================================
+
+  test:
+    desc: "🧪 Test: Run all tests (API + Dashboard)"
+    cmds:
+      - task: api:test
+      - task: dashboard:test
+
+  test:e2e:
+    desc: "🧪 Test: Run E2E tests"
+    cmds:
+      - task: api:test:e2e
+
+  lint:
+    desc: "✨ Code Quality: Lint all code"
+    cmds:
+      - task: api:lint
+
+  format:
+    desc: "🎨 Code Quality: Format all code"
+    cmds:
+      - task: api:format
+
+  # ============================================================
+  # HELPFUL INFO
+  # ============================================================
+
+  info:
+    desc: "ℹ️ Show project structure info"
+    cmds:
+      - echo "📚 ReadRealm - Multi-tier Architecture"
+      - echo ""
+      - echo "🟢 Backend (API):        apps/api/          (NestJS, Node.js)"
+      - echo "📱 Android Client:       apps/android/      (Kotlin, Gradle)"
+      - echo "🍎 iOS Client:           apps/ios/          (Swift, Xcode)"
+      - echo "🖥️ Admin Dashboard:      apps/dashboard/    (Flutter, Dart)"
+      - echo ""
+      - echo "All clients connect to: http://localhost:3000"
+      - echo ""
+      - echo "Run 'task --list' for all available tasks"

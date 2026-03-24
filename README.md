@@ -12,7 +12,7 @@ An **intelligent, collaborative digital library platform** that combines real-ti
 
 | 🎯 | **Problem** | **ReadRealm Solution** |
 |---|---|---|
-| 📖 | Scattered reading across devices | Native apps + Flutter dashboard—your library everywhere |
+| 📖 | Scattered reading across devices | Android & iOS client apps + Flutter admin—your library everywhere |
 | 🤖 | Passive reading experience | AI-powered insights, smart recommendations, real-time chat |
 | 💬 | Reading in isolation | Engage with AI assistants & other readers instantly |
 | 🎤 | Text-heavy interfaces | Voice commands & audio narration with Azure Cognitive Services |
@@ -20,40 +20,39 @@ An **intelligent, collaborative digital library platform** that combines real-ti
 
 ---
 
-## 🏗️ Tech Stack
+## 🏗️ Tech Stack & Architecture
 
-### Backend Architecture
-```
-NestJS 10 + TypeScript  →  RESTful API + Socket.IO  →  Real-time Collaboration
-    ↓
-MongoDB (Mongoose)  →  Scalable Data Layer
-    ↓
-Google AI + HuggingFace + Azure Cognitive Services  →  AI Intelligence
-```
+### Application Layers
 
-**Backend Stack:**
-- 🟢 **Framework**: NestJS 10 with TypeScript
-- 🗄️ **Database**: MongoDB with Mongoose ORM
-- 🔌 **Real-time**: Socket.IO for instant chat & collaboration
-- 📡 **API**: RESTful architecture with OpenAPI specification
-- 🤖 **AI**: Google Generative AI, HuggingFace, Azure Cognitive Services
-- 🎤 **Speech**: Real-time audio with FFmpeg integration
+**Frontend (Client Applications):**
+- 📱 **Android Client**: Native Kotlin + Jetpack Compose
+- 🍎 **iOS Client**: Native Swift
+- 🖥️ **Admin Dashboard**: Flutter cross-platform (Web, Desktop, macOS)
 
-### Frontend Stack
-- 📱 **Android**: Native Kotlin + Jetpack Compose
-- 🍎 **iOS**: Native Swift
-- 🖥️ **Cross-Platform**: Flutter (Web, Windows, macOS, Android, iOS)
-- 📊 **State Management**: Provider pattern (Flutter)
+**Backend (Single Source of Truth):**
+- 🟢 **NestJS API**: TypeScript, RESTful + WebSocket
+- 🗄️ **MongoDB**: Scalable data persistence
+- 🤖 **AI Services**: Google AI, HuggingFace, Azure Cognitive Services
+
+### Backend Stack
+- **Framework**: NestJS 10 with TypeScript
+- **Database**: MongoDB with Mongoose ORM
+- **Real-time**: Socket.IO for instant chat & collaboration
+- **API**: RESTful architecture with OpenAPI specification
+- **AI**: Google Generative AI, HuggingFace, Azure Cognitive Services
+- **Speech**: Real-time audio processing with FFmpeg
 
 ## 🏛️ System Architecture
 
 ```mermaid
 graph TB
-    subgraph Clients["📱 Client Layer"]
-        Android["📱 Android<br/>(Kotlin + Compose)"]
-        iOS["🍎 iOS<br/>(Swift)"]
-        Web["🌐 Web<br/>(Flutter)"]
-        Dashboard["🖥️ Desktop<br/>(Flutter)"]
+    subgraph Clients["📱 Client Apps"]
+        Android["📱 Android Client<br/>(Kotlin + Compose)"]
+        iOS["🍎 iOS Client<br/>(Swift)"]
+    end
+    
+    subgraph Admin["🖥️ Admin Dashboard"]
+        Dashboard["📊 Flutter Admin<br/>(Web/Desktop)"]
     end
     
     subgraph Backend["⚙️ Backend Layer"]
@@ -62,23 +61,22 @@ graph TB
         Chat["💬 Socket.IO<br/>(Real-time)"]
     end
     
-    subgraph Services["🤖 Service Layer"]
-        AI["Google AI<br/>HuggingFace<br/>Azure Services"]
+    subgraph Services["🤖 External Services"]
+        AI["Google AI<br/>HuggingFace<br/>Azure Cognitive"]
         Database["🗄️ MongoDB"]
     end
     
     Android -->|REST/WebSocket| API
     iOS -->|REST/WebSocket| API
-    Web -->|REST/WebSocket| API
     Dashboard -->|REST/WebSocket| API
     
     API --> Auth
     API --> Chat
     API --> Database
     API --> AI
+    
     Chat -.->|Events| Android
     Chat -.->|Events| iOS
-    Chat -.->|Events| Web
     Chat -.->|Events| Dashboard
 ```
 
@@ -117,27 +115,63 @@ Professional e-book rendering with rich formatting, embedded fonts, images, and 
 
 ### Prerequisites
 
-Your development environment needs:
+Your development environment needs (select based on what you're developing):
 
+**For Backend (API):**
 ```
-✅ Node.js 20+           (Backend & tooling)
-✅ Flutter SDK          (Dashboard & cross-platform)
-✅ Android SDK 24+      (Native Android development)
-✅ Xcode 15+            (iOS development)
-✅ Docker               (Optional - containerized deployment)
-✅ Git                  (Version control)
+✅ Node.js 20+           
+✅ MongoDB 5+            (local or cloud instance)
+```
+
+**For Android Client:**
+```
+✅ Android SDK 24+       
+✅ Gradle 8+             
+✅ Kotlin 1.9+           
+```
+
+**For iOS Client:**
+```
+✅ Xcode 15+             (macOS only)
+✅ CocoaPods             (dependency manager)
+```
+
+**For Admin Dashboard (Flutter):**
+```
+✅ Flutter SDK 3.20+     
+✅ Dart SDK 3.4+         
+```
+
+**Optional:**
+```
+✅ Docker               (containerized deployment)
+✅ Git                  (version control)
 ```
 
 ### Environment Setup
 
-Create `.env` file in `apps/api/`:
+Before running the backend, configure environment variables:
+
 ```bash
-GOOGLE_AI_KEY=your_key
-HUGGINGFACE_API_KEY=your_key
-AZURE_SPEECH_KEY=your_key
-MONGODB_URL=mongodb://localhost:27017/readrealm
-JWT_SECRET=your_secret
+# 1. Copy template to actual config
+cp apps/api/.env.example apps/api/.env
+
+# 2. Edit with your API keys
+# Required variables:
+#   - MONGODB_URL: MongoDB connection string
+#   - JWT_SECRET: Authentication secret (min 32 chars)
+#   - GOOGLE_AI_KEY: Google Generative AI key
+#   - HUGGINGFACE_API_KEY: HuggingFace API key
+#   - AZURE_*: Azure Cognitive Services keys
+#   - MAIL_*: Email service configuration
+
+nano apps/api/.env  # or open in your editor
 ```
+
+**Configuration Reference:**
+- **Shared Reference**: [shared/config/.env.example](shared/config/.env.example) — All available variables
+- **Backend Template**: [apps/api/.env.example](apps/api/.env.example) — Backend-specific setup
+- **Docker Setup**: Use environment variables when running `docker-compose up`
 
 ### Installation
 
@@ -146,41 +180,44 @@ JWT_SECRET=your_secret
 git clone https://github.com/aliammari1/readrealm.git
 cd readrealm
 
-# 2. Install all dependencies
-npm ci
+# 2. Install backend dependencies
 cd apps/api && npm ci && cd ../..
+
+# 3. Install admin dashboard dependencies
 cd apps/dashboard && flutter pub get && cd ../..
 
-# 3. Start development servers
-task api:dev          # Backend on http://localhost:3000
-task dashboard:run    # Flutter dashboard
+# 4. Configure backend environment (see Environment Setup above)
+cp apps/api/.env.example apps/api/.env
+# Edit apps/api/.env with your API keys
 ```
 
-### Run on Specific Platforms
+### Run Applications
 
-| Platform | Command |
-|----------|---------|
-| **API** | `cd apps/api && npm run start:dev` |
-| **Flutter Web** | `cd apps/dashboard && flutter run -d chrome` |
-| **Android Emulator** | `cd apps/dashboard && flutter run` |
-| **iOS** | `cd apps/dashboard && flutter run -d ios` |
-| **Docker** | `docker-compose up` |
+| Layer | App | Command | Purpose |
+|-------|-----|---------|---------|
+| **Backend** 🟢 | API | `cd apps/api && npm run start:dev` | Core server on `http://localhost:3000` |
+| **Clients** 📱 | Android | `cd apps/android && ./gradlew installDebug` | Native Android reader app |
+| **Clients** 📱 | iOS | Open `apps/ios/Runner.xcworkspace` in Xcode | Native iOS reader app |
+| **Admin** 🖥️ | Flutter Dashboard | `cd apps/dashboard && flutter run -d chrome` | Admin dashboard (Web/Desktop) |
 
 For Taskfile users (recommended):
 ```bash
-task setup              # First-time setup
-task api:dev           # API development
-task dashboard:run     # Flutter dashboard
-task android:build     # Build Android APK
-task test              # Run all tests
+task setup                # First-time setup (install all deps)
+task api:dev             # Backend: Start API development server
+task android:build       # Client: Build Android APK
+task ios:build           # Client: Build iOS app
+task dashboard:run       # Admin: Start Flutter dashboard
+task test                # Backend: Run all tests
 ```
 
 ## 📂 Project Structure
 
 ```
 readrealm/
-├── apps/                          # Multi-platform applications
-│   ├── api/                       # 🟢 NestJS Backend
+├── apps/                          # Multi-tier Application Suite
+│   │
+│   ├── api/                       # 🌍 BACKEND - Core API Server
+│   │   └── Behind all client apps, serving Android, iOS, and Admin Dashboard
 │   │   ├── src/
 │   │   │   ├── auth/             # JWT authentication & guards
 │   │   │   ├── book/             # Book management, EPUB processing
@@ -194,33 +231,45 @@ readrealm/
 │   │   ├── test/                 # E2E tests (Jest)
 │   │   └── package.json
 │   │
-│   ├── dashboard/                 # 🌍 Flutter Cross-Platform
-│   │   ├── lib/
-│   │   │   ├── main.dart
-│   │   │   ├── screens/          # UI screens
-│   │   │   ├── services/         # API & service layer
-│   │   │   ├── providers/        # State management
-│   │   │   ├── models/           # Data models
-│   │   │   └── constants.dart
-│   │   ├── android/              # Android native code
-│   │   ├── ios/                  # iOS native code
-│   │   ├── web/                  # Web build config
-│   │   ├── windows/              # Windows build config
-│   │   ├── macos/                # macOS build config
-│   │   └── pubspec.yaml
-│   │
-│   ├── android/                   # 📱 Native Android (Kotlin)
+│   ├── android/                   # 📱 CLIENT APP - Native Android
+│   │   └── End-user reading application
 │   │   ├── app/
+│   │   │   └── src/
+│   │   │       ├── androidTest/  # UI tests
+│   │   │       ├── main/
+│   │   │       │   ├── kotlin/   # Kotlin + Compose source
+│   │   │       │   └── res/      # Android resources
+│   │   │       └── test/         # Unit tests
 │   │   ├── build.gradle.kts
+│   │   ├── proguard-rules.pro    # Code obfuscation
 │   │   └── gradle/
 │   │
-│   └── ios/                       # 🍎 Native iOS (Swift)
-│       ├── Runner/
-│       └── RunnerTests/
+│   ├── ios/                       # 🍎 CLIENT APP - Native iOS
+│   │   └── End-user reading application
+│   │   ├── Runner/               # Main app target
+│   │   │   └── Swift source files
+│   │   └── RunnerTests/          # Unit tests
+│   │
+│   └── dashboard/                 # 🖥️ ADMIN DASHBOARD - Flutter
+│       └── Cross-platform admin interface (Web, Desktop, macOS)
+│       ├── lib/
+│       │   ├── main.dart
+│       │   ├── screens/          # Admin UI screens
+│       │   ├── services/         # API integrations
+│       │   ├── providers/        # State management
+│       │   ├── models/           # Data models
+│       │   ├── controllers/      # Business logic
+│       │   └── constants.dart
+│       ├── android/              # Android build config
+│       ├── ios/                  # iOS build config
+│       ├── web/                  # Web build config
+│       ├── windows/              # Windows build config
+│       ├── macos/                # macOS build config
+│       └── pubspec.yaml
 │
 ├── shared/                        # 📦 Shared Resources
 │   ├── api-spec/
-│   │   └── openapi.yaml          # REST API specification
+│   │   └── openapi.yaml          # REST API specification (all apps use this)
 │   ├── config/                   # Shared configuration
 │   └── docs/                     # System documentation
 │
@@ -231,7 +280,16 @@ readrealm/
 └── .gitignore
 ```
 
-### Module Responsibilities
+### Application Roles
+
+| App | Type | Purpose | Tech | Users |
+|-----|------|---------|------|-------|
+| **API** | Backend | Serves all clients, manages data & AI | NestJS, MongoDB | All clients |
+| **Android** | Client | Native mobile reading app | Kotlin + Jetpack Compose | End users |
+| **iOS** | Client | Native mobile reading app | Swift | End users |
+| **Dashboard** | Admin | Management, analytics, moderation | Flutter | Administrators |
+
+### Backend Module Responsibilities
 
 | Module | Purpose | Tech |
 |--------|---------|------|
@@ -248,10 +306,12 @@ readrealm/
 
 | Document | Purpose |
 |----------|---------|
+| [Quick Start Guide](QUICKSTART.md) | 30-second setup to get running |
 | [API Docs](shared/api-spec/openapi.yaml) | REST API specification (OpenAPI/Swagger) |
+| [Configuration Reference](shared/config/.env.example) | All environment variables explained |
 | [System Design](shared/docs/system-design.md) | Architecture, patterns, and design decisions |
 | [Setup Guide](shared/docs/setup.md) | Detailed environment configuration |
-| [Contributing](CONTRIBUTING.md) | Code contribution guidelines |
+| [Contributing Guide](CONTRIBUTING.md) | Code contribution guidelines & architecture |
 
 ---
 
