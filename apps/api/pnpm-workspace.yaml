@@ -1,0 +1,6 @@
+onlyBuiltDependencies:
+  - '@nestjs/core'
+  - '@seydx/node-av-win32-x64-mingw'
+  - '@seydx/node-av-win32-x64-msvc'
+  - bcrypt
+  - node-av
