@@ -1,0 +1,45 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "ReadRealm",
+  "colors": {
+    "primary": "#C9A24B",
+    "light": "#E4C878",
+    "dark": "#1C2434"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Getting started",
+            "pages": ["introduction", "quickstart", "architecture"]
+          },
+          {
+            "group": "Realtime & AI",
+            "pages": ["realtime-chat", "ai-book-chat"]
+          }
+        ]
+      },
+      {
+        "tab": "API reference",
+        "openapi": "../shared/api-spec/openapi.yaml"
+      }
+    ]
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/aliammari1/readrealm"
+      }
+    ]
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/aliammari1/readrealm"
+    }
+  }
+}

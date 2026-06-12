@@ -1,6 +1,18 @@
+<!-- Banner: placeholder committed at assets/banner.svg. Final art is a TODO — see BANNER.md -->
+<p align="center">
+  <img src="assets/banner.svg" alt="ReadRealm — Where books meet intelligence" width="100%" />
+</p>
+
 # 📚 ReadRealm
 
 ### *Where Books Meet Intelligence*
+
+[![CI](https://github.com/aliammari1/readrealm/actions/workflows/ci.yml/badge.svg)](https://github.com/aliammari1/readrealm/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/aliammari1/readrealm/branch/main/graph/badge.svg?flag=api)](https://codecov.io/gh/aliammari1/readrealm)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![API: Swagger](https://img.shields.io/badge/API-Swagger%20%2Fapi%2Fdocs-85EA2D?logo=swagger&logoColor=white)](shared/api-spec/openapi.yaml)
+[![NestJS](https://img.shields.io/badge/NestJS-10-E0234E?logo=nestjs&logoColor=white)](https://nestjs.com)
+[![pnpm](https://img.shields.io/badge/pnpm-managed-F69220?logo=pnpm&logoColor=white)](https://pnpm.io)
 
 An **intelligent, collaborative digital library platform** that combines real-time conversations, AI-powered insights, and seamless cross-platform reading into one unified experience.
 
@@ -197,7 +209,7 @@ cp apps/api/.env.example apps/api/.env
 |-------|-----|---------|---------|
 | **Backend** 🟢 | API | `cd apps/api && npm run start:dev` | Core server on `http://localhost:3000` |
 | **Clients** 📱 | Android | `cd apps/android && ./gradlew installDebug` | Native Android reader app |
-| **Clients** 📱 | iOS | Open `apps/ios/Runner.xcworkspace` in Xcode | Native iOS reader app |
+| **Clients** 📱 | iOS | Open `apps/ios/ReadRealm/Application.xcodeproj` (scheme **ReadRealm**) | Native iOS reader app |
 | **Admin** 🖥️ | Flutter Dashboard | `cd apps/dashboard && flutter run -d chrome` | Admin dashboard (Web/Desktop) |
 
 For Taskfile users (recommended):
@@ -307,7 +319,9 @@ readrealm/
 | Document | Purpose |
 |----------|---------|
 | [Quick Start Guide](QUICKSTART.md) | 30-second setup to get running |
-| [API Docs](shared/api-spec/openapi.yaml) | REST API specification (OpenAPI/Swagger) |
+| Swagger UI | Interactive API explorer at `/api/docs` when the API is running |
+| [Mintlify docs](docs/docs.json) | Hosted docs + OpenAPI playground (driven by the generated spec) |
+| [API spec](shared/api-spec/openapi.yaml) | Generated OpenAPI 3 specification |
 | [Configuration Reference](shared/config/.env.example) | All environment variables explained |
 | [System Design](shared/docs/system-design.md) | Architecture, patterns, and design decisions |
 | [Setup Guide](shared/docs/setup.md) | Detailed environment configuration |
@@ -333,6 +347,48 @@ We love contributions! To get started:
 - Run linting & tests before submitting PR: `task test && task lint`
 
 ---
+
+## 🧭 Engineering decisions
+
+A short, honest account of the non-obvious choices — recruiters reward
+demonstrated judgment, not just code volume.
+
+- **MIT license, monetize hosting.** The code is open (MIT); the offering is
+  running it for you. This unblocks self-hosted discovery and contributions.
+- **pnpm, not Bun.** `apps/api` standardizes on pnpm with a committed
+  `pnpm-lock.yaml` and `packageManager` pinned — reproducible installs in CI.
+- **OpenAPI is generated, not hand-written.** `shared/api-spec/openapi.yaml`
+  comes from the live NestJS app via `@nestjs/swagger`
+  (`pnpm --filter @readrealm/api generate:openapi`); CI fails on drift, and the
+  same spec powers Swagger UI (`/api/docs`) and the Mintlify docs.
+- **AI is multi-provider, unified behind config.** Google / OpenAI / HuggingFace
+  / Azure already power summaries, TTS and speech; the new **AI book-chat
+  participant** adds Anthropic (streaming Claude `claude-haiku-4-5` + tool use)
+  as the in-chat companion — additive, not a rewrite.
+- **Cloudflare: right primitive per workload.** The HTTP API targets **Workers**
+  (`nodejs_compat`) to lift the existing NestJS app without a rewrite; the
+  realtime chat targets a **Durable Object** because Socket.IO has no edge
+  runtime. Data stays on **MongoDB Atlas** to keep the Mongoose models (D1 would
+  mean a SQL rewrite). Config + scaffold live in
+  [`apps/api/cloudflare`](apps/api/cloudflare) — nothing is deployed.
+- **`rt-client` is a raw-tarball dependency.** The Azure realtime-audio SDK is
+  pulled from a GitHub-release `.tgz`, not a registry — a supply-chain surface
+  that Renovate/Trivy can't pin. It's flagged in CI and disabled in Renovate;
+  revisit when Azure publishes to npm.
+
+### Client strategy (flagged redundancy)
+
+ReadRealm ships **three** clients — Android (Kotlin/Compose), iOS (SwiftUI) and a
+Flutter dashboard — all against the same API. That's a lot of overlapping
+surface to maintain. Recommendation: treat **Flutter as the primary client**
+(one codebase → Android, iOS, web, desktop) and keep the native Kotlin/Swift
+apps as **reference implementations** of platform-idiomatic patterns rather than
+shipping all three in parallel.
+
+> Cleanup still open as good-first-issues: rename the iOS Xcode **target** off
+> `Application` (the dir/scheme/bundle-id are already rebranded — see
+> `apps/ios/README.md`), and the Android `tn.esprit.libraryapp` package id (an
+> 80+ file refactor) → a `readrealm` package.
 
 ## 📄 License
 

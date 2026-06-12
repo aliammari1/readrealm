@@ -1,0 +1,32 @@
+---
+title: AI book chat
+description: "The streaming Claude participant with tool use, inside the chat gateway."
+---
+
+ReadRealm's chat rooms include an AI companion. It is the **Anthropic** provider
+of the unified multi-provider AI layer (Google / OpenAI / HuggingFace / Azure
+already power summaries, TTS and speech).
+
+## How it works
+
+- Implemented in `apps/api/src/chat/chat-ai.service.ts` and wired into
+  `chat.gateway.ts`.
+- Summoned when a message mentions `@ai` or `@readrealm`.
+- Uses **streaming Claude** (`claude-haiku-4-5` by default, override with
+  `ANTHROPIC_MODEL`) so token deltas reach the room in real time.
+- Runs a bounded **tool-use** loop with two tools:
+
+  | Tool | Purpose |
+  |---|---|
+  | `summarize_chapter` | Summarize a book/chapter (delegates to `BookService.getBookSummary`) |
+  | `explain_passage` | Explain a quoted passage in plain language |
+
+- Degrades gracefully: if `ANTHROPIC_API_KEY` is unset, it posts a one-line
+  "not configured" notice instead of erroring.
+
+## Configuration
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-...
+ANTHROPIC_MODEL=claude-haiku-4-5   # optional override
+```
