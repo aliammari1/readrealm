@@ -7,8 +7,14 @@ apps/api/.env
 apps/android/.gradle/
 apps/android/**/build/
 
-# iOS
+# iOS / Xcode
 apps/ios/DerivedData/
+**/DerivedData/
+**/xcuserdata/
+*.xcuserstate
+# macOS archive-extraction junk (never commit this)
+__MACOSX/
+**/__MACOSX/
 
 # Flutter
 apps/dashboard/.dart_tool/
