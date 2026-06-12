@@ -1,0 +1,50 @@
+# detekt configuration for the ReadRealm Android client.
+# Starts from detekt defaults (buildUponDefaultConfig = true) and relaxes a few
+# rules that fight Jetpack Compose conventions. Tighten over time.
+
+build:
+  maxIssues: 0
+  excludeCorrectable: false
+
+complexity:
+  LongMethod:
+    active: true
+    threshold: 80
+  LongParameterList:
+    active: true
+    functionThreshold: 8
+    constructorThreshold: 10
+    ignoreDefaultParameters: true
+  TooManyFunctions:
+    active: false
+  CyclomaticComplexMethod:
+    active: true
+    threshold: 20
+
+naming:
+  FunctionNaming:
+    active: true
+    # Composable functions are PascalCase by convention.
+    ignoreAnnotated: ['Composable']
+  TopLevelPropertyNaming:
+    active: false
+
+style:
+  MagicNumber:
+    active: false
+  WildcardImport:
+    active: false
+  MaxLineLength:
+    active: true
+    maxLineLength: 140
+  ReturnCount:
+    active: true
+    max: 5
+  UnusedPrivateMember:
+    active: true
+    ignoreAnnotated: ['Preview']
+
+compose:
+  # detekt's built-in compose rules are minimal; the Compose-specific ruleset
+  # (detekt-rules-compose) can be added later as a plugin.
+  active: false

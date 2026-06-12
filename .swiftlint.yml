@@ -1,0 +1,31 @@
+# SwiftLint configuration for the ReadRealm iOS client.
+# Run from CI (apps/ios job). Non-blocking until the codebase is brought to zero
+# violations; tighten over time.
+
+included:
+  - apps/ios/ReadRealm/Application
+
+excluded:
+  - apps/ios/ReadRealm/Application/Preview Content
+  - "**/Assets.xcassets"
+
+disabled_rules:
+  - todo
+  - line_length        # legacy view code has long SwiftUI modifier chains
+  - type_body_length
+  - file_length
+  - cyclomatic_complexity
+
+opt_in_rules:
+  - empty_count
+  - closure_spacing
+  - operator_usage_whitespace
+  - redundant_nil_coalescing
+
+identifier_name:
+  min_length: 1        # allow `id`, `x`, etc.
+  excluded:
+    - id
+    - URL
+
+reporter: "github-actions-logging"
