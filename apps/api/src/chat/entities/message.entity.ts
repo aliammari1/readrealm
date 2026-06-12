@@ -16,6 +16,9 @@ export class Message {
 
   @Prop({ required: true })
   content: string;
+
+  @Prop({ default: false })
+  isAi: boolean;
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message);

@@ -39,5 +39,6 @@ import { ConfigModule } from '@nestjs/config';
     ReviewService,
     BookmarkService,
   ],
+  exports: [BookService],
 })
 export class BookModule {}

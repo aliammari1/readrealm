@@ -26,4 +26,9 @@ export default () => ({
     key: process.env.GEMINI_API_KEY,
     model: process.env.GEMINI_API_MODEL,
   },
+  anthropic: {
+    key: process.env.ANTHROPIC_API_KEY,
+    // The AI book-chat participant. Defaults to a fast, cheap model.
+    model: process.env.ANTHROPIC_MODEL ?? 'claude-haiku-4-5',
+  },
 });

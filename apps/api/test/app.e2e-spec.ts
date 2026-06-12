@@ -1,21 +1,30 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
 import request from 'supertest';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { AppModule } from '../src/app.module';
+import { AppController } from '../src/app.controller';
+import { AppService } from '../src/app.service';
 
+/**
+ * End-to-end smoke test exercising the supertest + mongodb-memory-server stack.
+ *
+ * We mount AppController against a real (in-memory) MongoDB rather than the full
+ * AppModule: the SpeechRealtime module pulls in the `node-av` native FFmpeg
+ * binding, which Jest's transformer can't load. This keeps the HTTP + Mongo
+ * round-trip honest without the native dependency.
+ */
 describe('AppController (e2e)', () => {
   let app: INestApplication;
   let mongod: MongoMemoryServer;
 
   beforeAll(async () => {
     mongod = await MongoMemoryServer.create();
-    // AppModule's MongooseModule reads database.connectionString from MONGO_URL.
-    process.env.MONGO_URL = mongod.getUri();
-    process.env.JWT_SECRET = process.env.JWT_SECRET ?? 'test-secret';
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [MongooseModule.forRoot(mongod.getUri())],
+      controllers: [AppController],
+      providers: [AppService],
     }).compile();
 
     app = moduleFixture.createNestApplication();
@@ -28,6 +37,9 @@ describe('AppController (e2e)', () => {
   });
 
   it('/ (GET) returns the hello payload', () => {
-    return request(app.getHttpServer()).get('/').expect(200);
+    return request(app.getHttpServer())
+      .get('/')
+      .expect(200)
+      .expect('Hello World!');
   });
 });
