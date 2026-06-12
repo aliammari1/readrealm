@@ -1,17 +1,33 @@
-# ReadRealm — Brand & Banner Brief
+# ReadRealm — Banner / Social-Preview Brief
 
-> Direction for the README hero + the 1280×640 GitHub social-preview image.
-> The committed `assets/banner.svg` is a lightweight placeholder; the final art
-> is a TODO (generate with the `brandkit` / `imagegen-frontend-web` skills, then
-> drop the PNG/SVG in `assets/` and point the README at it).
+A lightweight placeholder lives at [`assets/banner.svg`](assets/banner.svg) (so the
+README never 404s). Replace it with final art generated from the **single prompt**
+below, then drop the result in `assets/` as `assets/banner.png` (hero, 1600×500)
+and set the 1280×640 crop as the repo **Social preview** (Settings → Social
+preview). The README references `assets/banner.*`.
 
-## Concept
+## The prompt (paste into your image generator)
 
-**"Books meet intelligence."** The open book and the neural/edge mesh are the
-same object — pages becoming a network. Calm, literary, premium; not a generic
-"AI app gradient".
+> A premium, editorial GitHub banner for an open-source product called
+> **"ReadRealm"** with the tagline **"Where books meet intelligence."**
+> Central concept: a single open book on warm parchment whose right-hand pages
+> dissolve into a fine, glowing **gold node-mesh / neural network** — the book and
+> the network are literally the same object, pages becoming a graph of connected
+> nodes. Calm, literary, intelligent — NOT a generic neon "AI gradient".
+> Background is a deep **ink-navy** (`#1C2434`) shading to **deeper navy**
+> (`#0F1626`). Paper and light type are **parchment** (`#F4ECD8`); the network
+> spark, links and the single accent are **warm gold** (`#C9A24B`); secondary
+> details in **muted slate** (`#5B6473`). Left third: the wordmark "ReadRealm" in a
+> refined high-contrast serif (Fraunces / Playfair style) with the tagline beneath
+> in a clean grotesque (Inter / Söhne style). Right two-thirds: the open-book →
+> node-mesh motif. Optional subtle bottom strip: a row of three device silhouettes
+> (Android phone, iPhone, a Flutter web/desktop dashboard) each faintly showing a
+> book-chat bubble, tying together "one backend, three clients". Soft paper grain,
+> gentle vignette, generous safe margins, no clutter, no stock-photo people, no
+> lens flares. Wide hero composition. Render at **1600×500** for the README hero
+> and also as a centered **1280×640** variant for the GitHub social preview.
 
-## Palette
+## Palette (for consistency across docs/Mintlify)
 
 | Token | Hex | Use |
 |---|---|---|
@@ -21,21 +37,4 @@ same object — pages becoming a network. Calm, literary, premium; not a generic
 | Warm gold | `#C9A24B` | accent (the "intelligence" spark / links) |
 | Muted slate | `#5B6473` | secondary type |
 
-## Type
-
-- Display: a refined serif (Fraunces / Playfair) for "ReadRealm".
-- Body / tagline: a clean grotesque (Inter / Söhne) for "Where books meet intelligence".
-
-## Compositions to generate
-
-1. **README hero** — wide (≈1600×500). Left: wordmark + tagline on ink-navy.
-   Right: an open parchment book whose pages dissolve into a fine gold node-mesh.
-2. **Social preview** — 1280×640, same motif, centered wordmark, safe margins.
-3. **Device row** (optional) — Android / iOS / Flutter dashboard mockups showing
-   the real-time AI book-chat, on parchment.
-
-## Assets
-
-- `assets/banner.svg` — committed placeholder (so the README never 404s/rate-limits).
-- Replace with the final `assets/banner.png` (hero) + set the 1280×640 as the
-  repo Social Preview (Settings → Social preview). TODO.
+These match the Mintlify theme in [`docs/docs.json`](docs/docs.json).

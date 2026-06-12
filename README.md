@@ -92,6 +92,46 @@ graph TB
     Chat -.->|Events| Dashboard
 ```
 
+## 🎬 Demo
+
+ReadRealm is **one backend serving three clients**, so the demo has two halves —
+the API/realtime layer (runnable & inspectable) and the native apps (store
+artifacts + screenshots).
+
+### Backend & API (the runnable demo)
+
+| What | Where | Status |
+|------|-------|--------|
+| **Interactive API playground** | [Mintlify docs](docs/docs.json) → *API reference* tab | Driven by the generated [`openapi.yaml`](shared/api-spec/openapi.yaml) |
+| **Swagger UI** | `http://localhost:3000/api/docs` | Live when the API runs |
+| **Self-host in one command** | `docker compose up` (API + MongoDB) | r/selfhosted-friendly |
+| **Edge / realtime** | [`apps/api/cloudflare`](apps/api/cloudflare/README.md) | DO realtime **implemented**; Workers HTTP bridge = good-first-issue |
+
+```bash
+# Run the whole backend locally (API + MongoDB) and open the docs:
+docker compose up
+# → REST API at http://localhost:3000, Swagger UI at /api/docs
+```
+
+> **Honest status:** the realtime **Durable Object** (`chat-room.do.ts`) is a full
+> implementation using the WebSocket Hibernation API. The **NestJS → Cloudflare
+> Workers** HTTP bridge is intentionally left as a clearly-scoped
+> [good-first-issue](apps/api/cloudflare/README.md#needs-port-remaining-work-before-a-deploy)
+> rather than shipping a half-working port — the NestJS app itself runs today on
+> Node, and nothing is deployed to Cloudflare.
+
+### Native clients (screenshots / build artifacts)
+
+The Android and iOS reader apps ship as **APK / TestFlight builds + screenshots**
+(see each client's README). The Flutter admin dashboard runs on web/desktop —
+preview at [`apps/dashboard/ui.png`](apps/dashboard/ui.png).
+
+| Client | Try it | README |
+|--------|--------|--------|
+| Android | Build an APK: `cd apps/android && ./gradlew assembleDebug` | [apps/android](apps/android/README.md) |
+| iOS | Open in Xcode (scheme **ReadRealm**) → simulator | [apps/ios](apps/ios/README.md) |
+| Flutter admin | `cd apps/dashboard && flutter run -d chrome` | [apps/dashboard](apps/dashboard/README.md) |
+
 ## 🚀 Core Features
 
 ### 📚 **Intelligent Library Management**
@@ -192,8 +232,8 @@ nano apps/api/.env  # or open in your editor
 git clone https://github.com/aliammari1/readrealm.git
 cd readrealm
 
-# 2. Install backend dependencies
-cd apps/api && npm ci && cd ../..
+# 2. Install backend dependencies (pnpm)
+cd apps/api && pnpm install && cd ../..
 
 # 3. Install admin dashboard dependencies
 cd apps/dashboard && flutter pub get && cd ../..
@@ -207,7 +247,7 @@ cp apps/api/.env.example apps/api/.env
 
 | Layer | App | Command | Purpose |
 |-------|-----|---------|---------|
-| **Backend** 🟢 | API | `cd apps/api && npm run start:dev` | Core server on `http://localhost:3000` |
+| **Backend** 🟢 | API | `cd apps/api && pnpm run start:dev` | Core server on `http://localhost:3000` |
 | **Clients** 📱 | Android | `cd apps/android && ./gradlew installDebug` | Native Android reader app |
 | **Clients** 📱 | iOS | Open `apps/ios/ReadRealm/Application.xcodeproj` (scheme **ReadRealm**) | Native iOS reader app |
 | **Admin** 🖥️ | Flutter Dashboard | `cd apps/dashboard && flutter run -d chrome` | Admin dashboard (Web/Desktop) |
@@ -322,10 +362,12 @@ readrealm/
 | Swagger UI | Interactive API explorer at `/api/docs` when the API is running |
 | [Mintlify docs](docs/docs.json) | Hosted docs + OpenAPI playground (driven by the generated spec) |
 | [API spec](shared/api-spec/openapi.yaml) | Generated OpenAPI 3 specification |
+| [API README](apps/api/README.md) | Backend architecture, scripts, AI providers, Cloudflare |
 | [Configuration Reference](shared/config/.env.example) | All environment variables explained |
-| [System Design](shared/docs/system-design.md) | Architecture, patterns, and design decisions |
-| [Setup Guide](shared/docs/setup.md) | Detailed environment configuration |
+| [Security policy](shared/docs/security.md) | How to report vulnerabilities |
+| [Cloudflare design](apps/api/cloudflare/README.md) | Workers + Durable Object edge plan |
 | [Contributing Guide](CONTRIBUTING.md) | Code contribution guidelines & architecture |
+| [Code of Conduct](CODE_OF_CONDUCT.md) | Community standards |
 
 ---
 
