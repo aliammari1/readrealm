@@ -10,8 +10,11 @@ import {
   Res,
   Put,
   BadRequestException,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiHeader, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
+import { IdempotencyInterceptor } from '../common/idempotency.interceptor';
 import { BookService } from './book.service';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
@@ -55,6 +58,8 @@ export class BookController {
     return await this.bookService.getBookDetails(id);
   }
 
+  // AI/TTS calls hit paid providers — throttle harder than the global default.
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
   @ApiOperation({ summary: 'AI-generated 5-line summary for a book title' })
   @Get('summary/:title')
   async getBookSummary(@Param('title') title: string) {
@@ -62,6 +67,17 @@ export class BookController {
     return response;
   }
 
+  // Expensive TTS generation: throttle, and make client retries safe via an
+  // optional Idempotency-Key header (replays the cached audio result).
+  @Throttle({ default: { ttl: 60_000, limit: 20 } })
+  @UseInterceptors(IdempotencyInterceptor)
+  @ApiHeader({
+    name: 'Idempotency-Key',
+    required: false,
+    description:
+      'Opaque client-generated id (e.g. a UUID). Retries with the same key ' +
+      'replay the cached result instead of re-running TTS.',
+  })
   @ApiOperation({ summary: 'Generate an audio (TTS) ebook from book text' })
   @Post('ebook')
   async getEbook(@Body() createBookDto: CreateBookDto) {

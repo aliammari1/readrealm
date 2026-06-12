@@ -44,22 +44,28 @@
     "@nestjs/platform-express": "^10.4.20",
     "@nestjs/platform-socket.io": "^10.4.12",
     "@nestjs/swagger": "^7.4.2",
+    "@nestjs/throttler": "^6.5.0",
     "@nestjs/websockets": "^10.4.12",
+    "@sentry/nestjs": "^10.57.0",
     "@types/bcrypt": "^5.0.2",
     "axios": "^1.13.2",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "helmet": "^8.2.0",
     "lamejs": "^1.2.1",
     "microsoft-cognitiveservices-speech-sdk": "^1.41.0",
     "mongoose": "^8.9.5",
     "nanoid": "^3.3.7",
+    "nestjs-pino": "^4.6.1",
     "node-av": "^5.0.3",
     "nodemailer": "^7.0.11",
     "openai": "^4.73.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
+    "pino": "^10.3.1",
+    "pino-http": "^11.0.0",
     "reflect-metadata": "^0.2.2",
     "rt-client": "https://github.com/Azure-Samples/aoai-realtime-audio-sdk/releases/download/js/v0.5.0/rt-client-0.5.0.tgz",
     "rxjs": "^7.8.1",
@@ -120,9 +126,21 @@
       ]
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!**/*.spec.ts",
+      "!main.ts",
+      "!instrument.ts",
+      "!**/*.module.ts"
     ],
     "coverageDirectory": "../coverage",
+    "coverageThreshold": {
+      "global": {
+        "statements": 25,
+        "branches": 0,
+        "functions": 10,
+        "lines": 22
+      }
+    },
     "testEnvironment": "node"
   }
 }

@@ -1,5 +1,6 @@
 import { Controller, Post, Body, UseGuards, Put, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { SignupDto } from './dto/signUpDto';
 import { AuthGaurd } from '../guards/authentification.guards';
@@ -7,6 +8,10 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { loginDto } from './dto/loginDto';
 import { VerifyEmailDto } from './dto/verify-email.dto';
 
+// Tight rate limit on the whole auth surface: 10 requests / minute / IP.
+// Curbs credential stuffing, OTP brute-force and email-bombing of the
+// verification/forgot-password endpoints.
+@Throttle({ default: { ttl: 60_000, limit: 10 } })
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {

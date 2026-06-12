@@ -1,5 +1,11 @@
+// Sentry instrumentation must be the very first import (no-op without SENTRY_DSN).
+import './instrument';
+
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { Logger } from 'nestjs-pino';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { json } from 'express';
 
@@ -28,15 +34,59 @@ export function buildSwaggerConfig() {
     .build();
 }
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+/**
+ * Parse the CORS_ORIGIN env var into an `enableCors` origin value.
+ * - unset / empty  -> CORS disabled (same-origin only) — the safe default
+ * - '*'            -> reflect any origin (local demos only; warns)
+ * - comma list     -> explicit allow-list of origins
+ */
+export function resolveCorsOrigin(
+  raw: string | undefined,
+): false | string | string[] {
+  if (!raw || !raw.trim()) return false;
+  const trimmed = raw.trim();
+  if (trimmed === '*') return '*';
+  return trimmed
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean);
+}
 
-  // NOTE (security): CORS is wide-open ('*') for development convenience.
-  // Restrict to the deployed client origins before production. Tracked in the
-  // security-review notes (shared/docs/security.md).
-  app.enableCors({
-    origin: '*',
-  });
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+
+  // Structured JSON logging (pino) with per-request correlation ids.
+  app.useLogger(app.get(Logger));
+
+  // Security headers (CSP, HSTS, X-Frame-Options, etc.). CSP is left off here
+  // because the API serves Swagger UI assets; tighten per-route in front of a
+  // proxy if the UI is exposed publicly.
+  app.use(helmet({ contentSecurityPolicy: false }));
+
+  // Lock CORS to an explicit allow-list (CORS_ORIGIN). Defaults to disabled
+  // (same-origin only) rather than the previous wide-open '*'.
+  const corsOrigin = resolveCorsOrigin(process.env.CORS_ORIGIN);
+  if (corsOrigin === '*') {
+    app
+      .get(Logger)
+      .warn(
+        'CORS is wide-open (CORS_ORIGIN=*). Set explicit origins before production.',
+      );
+  }
+  if (corsOrigin !== false) {
+    app.enableCors({ origin: corsOrigin, credentials: true });
+  }
+
+  // Global input validation: strip unknown props, reject extras, auto-transform
+  // payloads (and route params) into the typed DTOs.
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: { enableImplicitConversion: true },
+    }),
+  );
 
   app.use(json({ limit: '100mb' }));
 

@@ -31,4 +31,13 @@ export default () => ({
     // The AI book-chat participant. Defaults to a fast, cheap model.
     model: process.env.ANTHROPIC_MODEL ?? 'claude-haiku-4-5',
   },
+  // Comma-separated allow-list of browser origins. Falsy => same-origin only
+  // (CORS disabled). Use '*' explicitly only for throwaway local demos.
+  corsOrigin: process.env.CORS_ORIGIN,
+  // Optional Sentry DSN. When unset, Sentry stays disabled (no-op).
+  sentry: {
+    dsn: process.env.SENTRY_DSN,
+    tracesSampleRate: Number(process.env.SENTRY_TRACES_SAMPLE_RATE ?? '0.1'),
+  },
+  env: process.env.NODE_ENV ?? 'development',
 });
