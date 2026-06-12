@@ -336,7 +336,9 @@ We love contributions! To get started:
 
 ## 📄 License
 
-ReadRealm is open-source software licensed under the **UNLICENSED** license. See [LICENSE](LICENSE) for details.
+ReadRealm is open-source software licensed under the **MIT** license
+(`SPDX-License-Identifier: MIT`). The code is open; commercial hosting of the
+platform remains the maintainer's offering. See [LICENSE](LICENSE) for details.
 
 ---
 
