@@ -48,7 +48,7 @@ git checkout -b feature/your-feature-name
 task setup
 
 # Or manually:
-cd apps/api && npm ci && cd ../..
+cd apps/api && pnpm install && cd ../..
 cd apps/dashboard && flutter pub get && cd ../..
 ```
 
@@ -95,28 +95,34 @@ ReadRealm is a **three-tier application**:
 
 Contributing to the NestJS backend:
 
+The API is managed with **pnpm** (committed `pnpm-lock.yaml`):
+
 ```bash
 # Install backend dependencies
-cd apps/api && npm ci
+cd apps/api && pnpm install
 
 # Start development server
-npm run start:dev
+pnpm run start:dev
 
 # Run tests
-npm run test
-npm run test:e2e
+pnpm run test
+pnpm run test:e2e
 
 # Lint and format
-npm run lint
-npm run format
+pnpm run lint
+pnpm run format
+
+# Regenerate the shared OpenAPI spec after changing any controller/DTO
+pnpm run generate:openapi
 ```
 
 **Best Practices:**
 - Follow NestJS module structure (controllers, services, modules)
 - Write tests for new features (aim for >80% coverage)
 - Use JWT for authentication
-- Document API endpoints in OpenAPI spec
-- Add database migrations for schema changes
+- Add `@nestjs/swagger` decorators and regenerate `shared/api-spec/openapi.yaml`
+  (CI fails if it drifts from the code)
+- Keep AI providers behind config — never make one provider load-bearing
 
 ### Android Client
 
@@ -146,20 +152,21 @@ cd apps/android
 Contributing to the native iOS app:
 
 ```bash
-# Open Xcode
-cd apps/ios
-open Runner.xcworkspace
+# Open the Xcode project (SwiftUI app, SPM dependencies — no CocoaPods)
+open "apps/ios/ReadRealm/Application.xcodeproj"
+# In Xcode pick the "ReadRealm" scheme, choose a simulator, ⌘R
 
-# Run tests in Xcode or:
-xcodebuild test -workspace Runner.xcworkspace -scheme Runner
+# Build from CLI (matches CI):
+xcodebuild -project apps/ios/ReadRealm/Application.xcodeproj \
+  -scheme ReadRealm -destination 'platform=iOS Simulator,name=iPhone 15' build
 ```
 
 **Best Practices:**
-- Use SwiftUI for UI (modern approach)
+- Use SwiftUI for UI
 - Follow Apple Human Interface Guidelines
 - Implement proper error handling
-- Support iOS 13+
-- Test on different device sizes
+- Support iOS 16+
+- See `apps/ios/README.md` for the open Xcode target-rename good-first-issue
 
 ### Admin Dashboard (Flutter)
 
@@ -327,7 +334,7 @@ task docker:down
 
 - 💬 **Questions?** Open a [Discussion](https://github.com/aliammari1/readrealm/discussions)
 - 🐛 **Found a bug?** Open an [Issue](https://github.com/aliammari1/readrealm/issues)
-- 📚 **More docs?** Check [docs/](shared/docs/) folder
+- 📚 **More docs?** Check the [Mintlify docs](docs/docs.json) and [shared/docs/](shared/docs/)
 
 ## Resources
 

@@ -1,13 +1,19 @@
 {
-  "name": "libraryapp",
+  "name": "@readrealm/api",
   "version": "1.0.0",
-  "description": "",
-  "author": "",
+  "description": "ReadRealm backend API — NestJS, MongoDB, Socket.IO, multi-provider AI",
+  "author": "Ali Ammari",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
+  "packageManager": "pnpm@10.25.0",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "nest build",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\" \"scripts/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"test/**/*.ts\" \"scripts/**/*.ts\"",
+    "lint:check": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -17,9 +23,12 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:cov:ci": "jest --coverage --ci",
+    "generate:openapi": "ts-node -r tsconfig-paths/register scripts/generate-openapi.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.69.0",
     "@azure/identity": "^4.5.0",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@google/generative-ai": "^0.21.0",
@@ -34,22 +43,29 @@
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.4.20",
     "@nestjs/platform-socket.io": "^10.4.12",
+    "@nestjs/swagger": "^7.4.2",
+    "@nestjs/throttler": "^6.5.0",
     "@nestjs/websockets": "^10.4.12",
+    "@sentry/nestjs": "^10.57.0",
     "@types/bcrypt": "^5.0.2",
     "axios": "^1.13.2",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
+    "helmet": "^8.2.0",
     "lamejs": "^1.2.1",
     "microsoft-cognitiveservices-speech-sdk": "^1.41.0",
     "mongoose": "^8.9.5",
     "nanoid": "^3.3.7",
+    "nestjs-pino": "^4.6.1",
     "node-av": "^5.0.3",
     "nodemailer": "^7.0.11",
     "openai": "^4.73.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
+    "pino": "^10.3.1",
+    "pino-http": "^11.0.0",
     "reflect-metadata": "^0.2.2",
     "rt-client": "https://github.com/Azure-Samples/aoai-realtime-audio-sdk/releases/download/js/v0.5.0/rt-client-0.5.0.tgz",
     "rxjs": "^7.8.1",
@@ -64,6 +80,7 @@
     "@types/audioworklet": "^0.0.57",
     "@types/express": "^4.17.21",
     "@types/jest": "^29.5.14",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.17.5",
     "@types/supertest": "^6.0.2",
     "@typescript-eslint/eslint-plugin": "^8.12.2",
@@ -72,6 +89,8 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
     "jest": "^29.7.0",
+    "js-yaml": "^4.1.0",
+    "mongodb-memory-server": "^10.1.4",
     "prettier": "^3.3.3",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
@@ -80,6 +99,11 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.6.3"
+  },
+  "config": {
+    "mongodbMemoryServer": {
+      "version": "7.0.24"
+    }
   },
   "jest": {
     "moduleFileExtensions": [
@@ -90,12 +114,33 @@
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.(t|j)s$": [
+        "ts-jest",
+        {
+          "diagnostics": {
+            "ignoreCodes": [
+              151002
+            ]
+          }
+        }
+      ]
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!**/*.spec.ts",
+      "!main.ts",
+      "!instrument.ts",
+      "!**/*.module.ts"
     ],
     "coverageDirectory": "../coverage",
+    "coverageThreshold": {
+      "global": {
+        "statements": 25,
+        "branches": 0,
+        "functions": 10,
+        "lines": 22
+      }
+    },
     "testEnvironment": "node"
   }
 }

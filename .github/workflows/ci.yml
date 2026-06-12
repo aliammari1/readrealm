@@ -1,0 +1,230 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Least-privilege by default; jobs opt into more where needed.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # 1. API — NestJS (pnpm): format, lint, typecheck, jest (+ supertest +
+  #    mongodb-memory-server) and build. Coverage -> Codecov flag "api".
+  # ---------------------------------------------------------------------------
+  api:
+    name: API (NestJS / pnpm)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@fe02b34f77f8bc703788d5817da081398fad5dd2 # v4.0.0
+        with:
+          version: 10
+
+      - name: Use Node.js
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: apps/api/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prettier (check)
+        run: pnpm run format:check
+
+      - name: ESLint (check)
+        run: pnpm run lint:check
+
+      - name: Type-check
+        run: pnpm exec tsc --noEmit -p tsconfig.json
+
+      - name: Unit tests + coverage
+        run: pnpm run test:cov:ci
+
+      - name: E2E tests (supertest + mongodb-memory-server)
+        run: pnpm run test:e2e
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Verify OpenAPI spec is in sync
+        run: |
+          pnpm run generate:openapi
+          if ! git diff --quiet -- ../../shared/api-spec/openapi.yaml; then
+            echo "::error::shared/api-spec/openapi.yaml is out of date. Run 'pnpm --filter @readrealm/api generate:openapi' and commit."
+            git --no-pager diff -- ../../shared/api-spec/openapi.yaml
+            exit 1
+          fi
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@015f24e6818733317a2da2edd6290ab26238649a # v5.0.7
+        with:
+          flags: api
+          directory: apps/api/coverage
+          token: ${{ secrets.CODECOV_TOKEN }}
+        continue-on-error: true
+
+  # ---------------------------------------------------------------------------
+  # 2. Android — Kotlin / Compose: detekt + unit tests via Gradle.
+  # ---------------------------------------------------------------------------
+  android:
+    name: Android (Kotlin / Gradle)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/android
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up JDK (Temurin 17)
+        uses: actions/setup-java@7a6d8a8234af8eb26422e24e3006232cccaa061b # v4.6.0
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@cc4fc85e6b35bafd578d5ffbc76a5518407e1af0 # v4.2.1
+
+      - name: detekt (static analysis)
+        run: ./gradlew detekt
+        continue-on-error: true # non-blocking until baseline is curated
+
+      - name: Unit tests
+        run: ./gradlew testDebugUnitTest
+
+  # ---------------------------------------------------------------------------
+  # 3. Dashboard — Flutter: very_good_analysis + flutter test.
+  # ---------------------------------------------------------------------------
+  dashboard:
+    name: Dashboard (Flutter)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/dashboard
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@f2c4f6686ca8e8d6e6d0f28410eeef506ed66aff # v2.18.0
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze (very_good_analysis)
+        run: flutter analyze
+
+      - name: Tests
+        run: flutter test
+
+  # ---------------------------------------------------------------------------
+  # 4. iOS — SwiftLint + xcodebuild on macOS. Non-blocking until the Xcode
+  #    target rename + a test target land (see apps/ios/README.md NEEDS-PORT).
+  # ---------------------------------------------------------------------------
+  ios:
+    name: iOS (Xcode / SwiftLint)
+    runs-on: macos-14
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: apps/ios/ReadRealm
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: SwiftLint
+        run: |
+          brew install swiftlint
+          swiftlint --config ../../../.swiftlint.yml || true
+
+      - name: Build (simulator)
+        run: |
+          xcodebuild \
+            -project Application.xcodeproj \
+            -scheme ReadRealm \
+            -destination 'platform=iOS Simulator,name=iPhone 15' \
+            build CODE_SIGNING_ALLOWED=NO
+
+  # ---------------------------------------------------------------------------
+  # Security: CodeQL (ts + kotlin + swift), Trivy (FS, SHA-pinned), gitleaks.
+  # ---------------------------------------------------------------------------
+  codeql:
+    name: CodeQL
+    runs-on: ${{ matrix.language == 'swift' && 'macos-14' || 'ubuntu-latest' }}
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript, java-kotlin, swift]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@f09c1c0a94de965c15400f5634aa42fac8fb8f88 # v3.27.5
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@f09c1c0a94de965c15400f5634aa42fac8fb8f88 # v3.27.5
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@f09c1c0a94de965c15400f5634aa42fac8fb8f88 # v3.27.5
+
+  trivy:
+    name: Trivy (filesystem + config)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      # NOTE: trivy-action pinned to a commit SHA (it had a 2026 tag-hijack).
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0 # v0.29.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+        env:
+          # apps/api pulls `rt-client` from a raw GitHub release tarball (not a
+          # registry) — a supply-chain surface Trivy/Renovate cannot pin. See
+          # the README "engineering decisions" note.
+          TRIVY_SKIP_DIRS: node_modules
+
+      - name: Upload Trivy SARIF
+        uses: github/codeql-action/upload-sarif@f09c1c0a94de965c15400f5634aa42fac8fb8f88 # v3.27.5
+        with:
+          sarif_file: trivy-results.sarif
+        continue-on-error: true
+
+  gitleaks:
+    name: gitleaks (secret scan)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

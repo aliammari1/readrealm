@@ -1,0 +1,39 @@
+---
+title: Quickstart
+description: "Run the ReadRealm API locally in a couple of minutes."
+---
+
+## Prerequisites
+
+- Node.js 20+ and **pnpm** (`corepack enable` or `npm i -g pnpm`)
+- MongoDB 5+ (local, Atlas, or `docker compose up` from the repo root)
+
+## Run the API
+
+```bash
+cd apps/api
+pnpm install
+cp .env.example .env   # set MONGO_URL, JWT_SECRET, AI keys
+pnpm run start:dev
+```
+
+The server listens on `http://localhost:3000`. Interactive Swagger UI is served
+at **`/api/docs`**.
+
+## Useful scripts
+
+| Script | What it does |
+|---|---|
+| `pnpm run start:dev` | Watch-mode dev server |
+| `pnpm test` | Jest unit tests |
+| `pnpm run test:e2e` | supertest + mongodb-memory-server |
+| `pnpm run generate:openapi` | Regenerate `shared/api-spec/openapi.yaml` |
+| `pnpm run build` | Production build |
+
+## Clients
+
+| Client | Run |
+|---|---|
+| Android | `cd apps/android && ./gradlew installDebug` |
+| iOS | open `apps/ios/ReadRealm/Application.xcodeproj` (scheme **ReadRealm**) |
+| Flutter dashboard | `cd apps/dashboard && flutter run -d chrome` |

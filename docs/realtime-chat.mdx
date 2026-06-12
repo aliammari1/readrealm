@@ -1,0 +1,34 @@
+---
+title: Real-time book chat
+description: "Socket.IO rooms per book, and the Cloudflare Durable Object port."
+---
+
+Each book has a chat room (`book_<bookId>`). Clients connect over Socket.IO and
+exchange these events:
+
+| Direction | Event | Payload |
+|---|---|---|
+| client → | `joinRoom` | `{ bookId, userId, username }` |
+| client → | `leaveRoom` | `{ bookId, username }` |
+| client → | `chatMessage` | `{ bookId, userId, username, content, bookTitle? }` |
+| → client | `previousMessages` | last 50 messages |
+| → client | `userJoined` / `userLeft` | `{ username, timestamp }` |
+| → client | `newMessage` | the saved message |
+
+## AI participant events
+
+When a `chatMessage` mentions the assistant (`@ai` / `@readrealm`), the server
+streams an AI reply:
+
+| → client | Event | Payload |
+|---|---|---|
+| | `aiTyping` | `{ username }` |
+| | `aiMessageDelta` | `{ username, delta }` (streamed tokens) |
+| | `newMessage` | the final AI message (`isAi: true`) |
+| | `aiDone` | `{ username }` |
+
+## On Cloudflare
+
+Socket.IO does not run on Workers. The CF-native path is a **Durable Object**
+(`ChatRoom`) that owns one WebSocket hub per room using the Hibernation API. See
+[`apps/api/cloudflare/chat-room.do.ts`](https://github.com/aliammari1/readrealm/blob/main/apps/api/cloudflare/chat-room.do.ts).

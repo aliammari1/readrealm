@@ -1,0 +1,648 @@
+openapi: 3.0.0
+paths:
+  /:
+    get:
+      operationId: AppController_getHello
+      summary: Service liveness / hello
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - app
+  /auth/register:
+    post:
+      operationId: AuthController_register
+      summary: Register a new reader account
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupDto'
+      responses:
+        '201':
+          description: ''
+      tags:
+        - auth
+  /auth/login:
+    post:
+      operationId: AuthController_login
+      summary: Log in and receive a JWT access token
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/loginDto'
+      responses:
+        '201':
+          description: ''
+      tags:
+        - auth
+  /auth/change-password:
+    put:
+      operationId: AuthController_changePassword
+      summary: Change the authenticated user password
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordDto'
+      responses:
+        '200':
+          description: ''
+      tags:
+        - auth
+      security:
+        - access-token: []
+  /auth/generate-email-verification:
+    post:
+      operationId: AuthController_generateEmailVerification
+      summary: Send an email-verification OTP for a user id
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                userId:
+                  type: string
+      responses:
+        '201':
+          description: ''
+      tags:
+        - auth
+  /auth/generate-email:
+    post:
+      operationId: AuthController_generateEmailVerificationByEmailAddress
+      summary: Send an email-verification OTP for an email
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                email:
+                  type: string
+      responses:
+        '201':
+          description: ''
+      tags:
+        - auth
+  /auth/verify-email:
+    post:
+      operationId: AuthController_verifyEmailAddress
+      summary: Verify an email address with an OTP
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyEmailDto'
+      responses:
+        '201':
+          description: ''
+      tags:
+        - auth
+  /auth/forgot-password:
+    post:
+      operationId: AuthController_forgotPassword
+      summary: Reset a password after email verification
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '201':
+          description: ''
+      tags:
+        - auth
+  /user:
+    post:
+      operationId: UserController_create
+      summary: Create a user
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserDto'
+      responses:
+        '201':
+          description: ''
+      tags:
+        - user
+    get:
+      operationId: UserController_findAll
+      summary: List all users
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - user
+  /user/{email}:
+    get:
+      operationId: UserController_findByEmail
+      summary: Find a user by email
+      parameters:
+        - name: email
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags:
+        - user
+  /user/userId/{id}:
+    get:
+      operationId: UserController_findById
+      summary: Find a user by id
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags:
+        - user
+  /user/profile/{id}:
+    get:
+      operationId: UserController_getUserProfile
+      summary: Get a user profile by id
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags:
+        - user
+  /user/{id}:
+    put:
+      operationId: UserController_update
+      summary: Update a user
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserDto'
+      responses:
+        '200':
+          description: ''
+      tags:
+        - user
+    delete:
+      operationId: UserController_remove
+      summary: Delete a user
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags:
+        - user
+  /book:
+    post:
+      operationId: BookController_create
+      summary: Create a book
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBookDto'
+      responses:
+        '201':
+          description: ''
+      tags:
+        - book
+    get:
+      operationId: BookController_findAll
+      summary: List all stored books
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - book
+  /book/search:
+    get:
+      operationId: BookController_searchBooks
+      summary: Search Open Library by title/query
+      parameters:
+        - name: q
+          required: true
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags:
+        - book
+  /book/details/{id}:
+    get:
+      operationId: BookController_getBookDetails
+      summary: Get full book details by id (Open Library)
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: number
+      responses:
+        '200':
+          description: ''
+      tags:
+        - book
+  /book/summary/{title}:
+    get:
+      operationId: BookController_getBookSummary
+      summary: AI-generated 5-line summary for a book title
+      parameters:
+        - name: title
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags:
+        - book
+  /book/ebook:
+    post:
+      operationId: BookController_getEbook
+      summary: Generate an audio (TTS) ebook from book text
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBookDto'
+      responses:
+        '201':
+          description: ''
+      tags:
+        - book
+  /book/tts/stream/{title}:
+    get:
+      operationId: BookController_streamBookTTSByTitle
+      summary: Stream TTS audio (audio/mpeg) for a book title
+      parameters:
+        - name: title
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags:
+        - book
+  /book/bookmark:
+    put:
+      operationId: BookController_toggleBookmark
+      summary: Toggle a bookmark for a user/book
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - book
+  /book/genre/{genre}:
+    get:
+      operationId: BookController_findBooksByGenre
+      summary: Stream books by genre (SSE) with pagination
+      parameters:
+        - name: genre
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags:
+        - book
+  /book/{id}:
+    get:
+      operationId: BookController_findOne
+      summary: Get a stored book by id
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: number
+      responses:
+        '200':
+          description: ''
+      tags:
+        - book
+    patch:
+      operationId: BookController_update
+      summary: Update a book
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBookDto'
+      responses:
+        '200':
+          description: ''
+      tags:
+        - book
+    delete:
+      operationId: BookController_remove
+      summary: Delete a book
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: number
+      responses:
+        '200':
+          description: ''
+      tags:
+        - book
+  /book/bookmarks/{userId}:
+    get:
+      operationId: BookController_getUserBookmarks
+      summary: List a user's bookmarked books
+      parameters:
+        - name: userId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags:
+        - book
+  /book/reviews/{id}:
+    post:
+      operationId: BookController_createReview
+      summary: Create a review for a book
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReviewDto'
+      responses:
+        '201':
+          description: ''
+      tags:
+        - book
+    get:
+      operationId: BookController_getBookReviews
+      summary: List reviews for a book
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: number
+      responses:
+        '200':
+          description: ''
+      tags:
+        - book
+  /book/user-reviews/{userId}:
+    get:
+      operationId: BookController_getUserReviews
+      summary: List a user's reviews
+      parameters:
+        - name: userId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags:
+        - book
+info:
+  title: ReadRealm API
+  description: >-
+    Backend for ReadRealm — an intelligent, collaborative digital library. One NestJS API serving the Android, iOS and
+    Flutter clients: auth, books/EPUB, reviews, bookmarks, real-time book chat (Socket.IO) and multi-provider AI (Google
+    / OpenAI / HuggingFace / Azure / Anthropic).
+  version: 1.0.0
+  contact: {}
+  license:
+    name: MIT
+    url: https://github.com/aliammari1/readrealm/blob/main/LICENSE
+tags:
+  - name: auth
+    description: Registration, login, email verification and passwords
+  - name: book
+    description: Books, search, EPUB/TTS, reviews and bookmarks
+  - name: user
+    description: User profiles and management
+  - name: app
+    description: Health and service metadata
+servers: []
+components:
+  securitySchemes:
+    access-token:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http
+  schemas:
+    SignupDto:
+      type: object
+      properties:
+        username:
+          type: string
+          example: jane_reader
+        email:
+          type: string
+          example: jane@example.com
+          format: email
+        password:
+          type: string
+          minLength: 6
+          example: hunter2!
+        profilePicture:
+          type: string
+          description: URL or base64 avatar
+      required:
+        - username
+        - email
+        - password
+    loginDto:
+      type: object
+      properties:
+        email:
+          type: string
+          example: jane@example.com
+          format: email
+        password:
+          type: string
+          minLength: 6
+          example: hunter2!
+      required:
+        - email
+        - password
+    ChangePasswordDto:
+      type: object
+      properties:
+        oldPassword:
+          type: string
+        newPassword:
+          type: string
+      required:
+        - oldPassword
+        - newPassword
+    VerifyEmailDto:
+      type: object
+      properties:
+        email:
+          type: string
+          example: jane@example.com
+          format: email
+        otp:
+          type: string
+          example: '123456'
+          description: One-time verification code
+      required:
+        - email
+        - otp
+    CreateUserDto:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        profilePicture:
+          type: string
+      required:
+        - username
+        - email
+        - password
+    UpdateUserDto:
+      type: object
+      properties: {}
+    CreateBookDto:
+      type: object
+      properties:
+        id:
+          type: number
+          example: 12345
+          description: Open Library work id
+        author:
+          type: string
+          example: George Orwell
+        title:
+          type: string
+          example: '1984'
+        publicationDate:
+          type: number
+          example: 1949
+        numOfPages:
+          type: number
+          example: 328
+        coverImage:
+          type: string
+          example: https://covers.openlibrary.org/b/id/123-M.jpg
+        genre:
+          type: string
+          example: Dystopian
+        textData:
+          type: string
+          description: Full text used for TTS / summary
+        bookmarks:
+          type: array
+          items:
+            type: object
+      required:
+        - id
+        - author
+        - title
+        - publicationDate
+        - numOfPages
+        - coverImage
+        - genre
+    UpdateBookDto:
+      type: object
+      properties: {}
+    CreateReviewDto:
+      type: object
+      properties:
+        userId:
+          type: string
+        bookId:
+          type: number
+        rating:
+          type: number
+          minimum: 1
+          maximum: 5
+          example: 4
+        comment:
+          type: string
+          example: A timeless classic.
+      required:
+        - userId
+        - bookId
+        - rating
+        - comment
