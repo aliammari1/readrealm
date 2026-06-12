@@ -5,7 +5,7 @@
 
 # 📚 ReadRealm
 
-### *Where Books Meet Intelligence*
+### Open-source AI book-chat platform — one NestJS backend → Android, iOS & Flutter clients
 
 [![CI](https://github.com/aliammari1/readrealm/actions/workflows/ci.yml/badge.svg)](https://github.com/aliammari1/readrealm/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/aliammari1/readrealm/branch/main/graph/badge.svg?flag=api)](https://codecov.io/gh/aliammari1/readrealm)
@@ -14,9 +14,31 @@
 [![NestJS](https://img.shields.io/badge/NestJS-10-E0234E?logo=nestjs&logoColor=white)](https://nestjs.com)
 [![pnpm](https://img.shields.io/badge/pnpm-managed-F69220?logo=pnpm&logoColor=white)](https://pnpm.io)
 
-An **intelligent, collaborative digital library platform** that combines real-time conversations, AI-powered insights, and seamless cross-platform reading into one unified experience.
+**ReadRealm is a self-hostable, open-source alternative to Speechify / Blinkist-style
+book-AI apps.** One NestJS backend powers **chat-with-your-book** (streaming Claude),
+AI summaries, text-to-speech narration and real-time reading rooms — served to
+**native Android (Kotlin), native iOS (Swift) and a Flutter admin dashboard** from a
+single API. Bring your own AI keys, run it on your own box, own your data.
 
-> **ReadRealm** transforms how people discover, read, and discuss books. Whether you're on mobile, desktop, or web—your library, conversations, and reading progress sync instantly. Powered by advanced AI and built on cutting-edge cloud infrastructure, ReadRealm empowers readers to go beyond the page.
+```bash
+docker compose up    # full backend (API + MongoDB) → http://localhost:3000, docs at /api/docs
+```
+
+### Why self-host ReadRealm?
+
+| | Speechify / Blinkist-style apps | **ReadRealm (self-hosted)** |
+|---|---|---|
+| **Price** | $99–139/yr subscription | **$0** — run it yourself |
+| **Your data** | On their servers | **On your infrastructure** |
+| **AI provider** | Locked to theirs | **BYOK / multi-provider** (Google · OpenAI · HuggingFace · Azure · Anthropic) |
+| **Clients** | Their app only | **Native Android + iOS + Flutter** from one open API |
+| **Extensible** | Closed | **MIT-licensed**, fork & extend the whole stack |
+| **Realtime chat** | — | **Socket.IO + Cloudflare Durable Object** book rooms |
+
+> **The hook: one backend → three clients.** Instead of three siloed apps, ReadRealm
+> is a single NestJS API (REST + WebSocket, OpenAPI-documented) that the Kotlin, Swift
+> and Flutter clients all talk to. Read on Android in the morning, continue on iOS at
+> lunch — library, bookmarks and AI conversations sync instantly.
 
 ---
 
@@ -102,10 +124,10 @@ artifacts + screenshots).
 
 | What | Where | Status |
 |------|-------|--------|
-| **Interactive API playground** | [Mintlify docs](docs/docs.json) → *API reference* tab | Driven by the generated [`openapi.yaml`](shared/api-spec/openapi.yaml) |
+| ▶️ **Try the API (interactive playground)** | [Mintlify docs](docs/docs.json) → *API reference* tab — fill params, hit **Send**, see live responses | Driven by the generated [`openapi.yaml`](shared/api-spec/openapi.yaml) |
 | **Swagger UI** | `http://localhost:3000/api/docs` | Live when the API runs |
-| **Self-host in one command** | `docker compose up` (API + MongoDB) | r/selfhosted-friendly |
-| **Edge / realtime** | [`apps/api/cloudflare`](apps/api/cloudflare/README.md) | DO realtime **implemented**; Workers HTTP bridge = good-first-issue |
+| 🚀 **Self-host in one command** | `docker compose up` (API + MongoDB) | r/selfhosted-friendly |
+| 💬 **Realtime book-chat (Durable Object)** | [`apps/api/cloudflare/chat-room.do.ts`](apps/api/cloudflare/README.md) — edge WebSocket rooms via the Hibernation API | DO realtime **implemented**; Workers HTTP bridge = good-first-issue |
 
 ```bash
 # Run the whole backend locally (API + MongoDB) and open the docs:
@@ -442,10 +464,22 @@ platform remains the maintainer's offering. See [LICENSE](LICENSE) for details.
 
 ## 💬 Get Involved
 
+- ⭐ **Like the "one backend → 3 clients" idea?** [Star the repo](https://github.com/aliammari1/readrealm) — it's the #1 way to support the project.
 - 🐛 **Found a bug?** [Open an issue](https://github.com/aliammari1/readrealm/issues)
 - 💡 **Have an idea?** [Start a discussion](https://github.com/aliammari1/readrealm/discussions)
-- 📧 **Questions?** Reach out to the team
+- 🤝 **Want to contribute?** See [CONTRIBUTING.md](CONTRIBUTING.md) — there are clearly-scoped good-first-issues.
 
 ---
 
-**Made with ❤️ by the ReadRealm team**
+## 🔗 Related projects
+
+Part of a wider open-source portfolio by [@aliammari1](https://github.com/aliammari1):
+
+- 🤖 [**JobPrep**](https://github.com/aliammari1/JobPrep) — open-source, BYOK AI interview-prep platform
+- 🩻 [**pulmocare**](https://github.com/aliammari1/pulmocare) — self-hostable chest-X-ray AI agent
+- 📊 [**github-traffic-analytics**](https://github.com/aliammari1/github-traffic-analytics) — keep your repo traffic past GitHub's 14-day window
+- 🧰 [**awesome-ai-tools**](https://github.com/aliammari1/awesome-ai-tools) — a curated index of ~395 AI tools
+
+---
+
+**Made with ❤️ by the ReadRealm team** · [⭐ Star on GitHub](https://github.com/aliammari1/readrealm)
