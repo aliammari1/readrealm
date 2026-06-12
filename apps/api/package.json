@@ -94,6 +94,11 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.6.3"
   },
+  "config": {
+    "mongodbMemoryServer": {
+      "version": "7.0.24"
+    }
+  },
   "jest": {
     "moduleFileExtensions": [
       "js",
