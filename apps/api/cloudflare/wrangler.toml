@@ -1,0 +1,46 @@
+# Cloudflare Workers configuration for the ReadRealm API (config only — NOT deployed).
+#
+# Strategy (see ./README.md for the full engineering decision):
+#   - The NestJS HTTP API runs on Workers via the `nodejs_compat` flag. NestJS
+#     boots on workerd through the Express/platform-express adapter; this is the
+#     "lift the existing app onto the edge" path and needs a small entry shim
+#     (see ./worker-entry.ts — marked NEEDS-PORT).
+#   - The Socket.IO realtime book-chat is replaced on the edge by a Durable
+#     Object (./chat-room.do.ts) that owns one WebSocket hub per book room.
+#     Socket.IO itself does not run on workerd, so the DO is the CF-native
+#     realtime path. The existing NestJS gateway stays the source of truth for
+#     non-CF deployments; the DO is an additive port, not a replacement.
+#   - Data: MongoDB Atlas over the Workers TCP socket API (see [[mongodb]] note)
+#     keeps the existing Mongoose models. D1 is the alternative if the data layer
+#     is rewritten to SQL — we keep Atlas to avoid a model rewrite. Justified in
+#     ./README.md.
+
+name = "readrealm-api"
+main = "worker-entry.ts"
+compatibility_date = "2025-06-01"
+compatibility_flags = ["nodejs_compat"]
+
+# --- Durable Objects: one instance per book chat room ------------------------
+[[durable_objects.bindings]]
+name = "CHAT_ROOMS"
+class_name = "ChatRoom"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["ChatRoom"]
+
+# --- Secrets (set via `wrangler secret put`, never committed) -----------------
+# JWT_SECRET, MONGO_URL, GEMINI_API_KEY, ANTHROPIC_API_KEY,
+# AZURE_API_*_KEY/ENDPOINT/MODEL, MAIL_* — see ../.env.example.
+
+# --- MongoDB Atlas over Workers TCP ------------------------------------------
+# Workers can open TCP sockets (connect() from 'cloudflare:sockets'); the
+# MongoDB driver needs the socket shim. Alternatively use Atlas Data API (HTTP)
+# from the Worker if the TCP driver path is too heavy. Decision tracked in
+# ./README.md. No D1 binding because we keep the Mongoose data model.
+
+[observability]
+enabled = true
+
+[vars]
+ENVIRONMENT = "production"
