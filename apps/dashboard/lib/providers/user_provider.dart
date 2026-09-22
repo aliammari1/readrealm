@@ -7,6 +7,7 @@ class UserProvider extends ChangeNotifier {
 
   String? get userId => _userId;
   String? get accessToken => _accessToken;
+  String? get refreshToken => _refreshToken;
 
   Future<void> saveTokens(
       {required String userId,
