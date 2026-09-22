@@ -1,351 +1,189 @@
 # 📚 ReadRealm
 
-### *Where Books Meet Intelligence*
+### Where Books Become Worlds
 
-An **intelligent, collaborative digital library platform** that combines real-time conversations, AI-powered insights, and seamless cross-platform reading into one unified experience.
+ReadRealm is a cross-platform reading project with native Android and iOS readers, a Flutter admin dashboard, and a NestJS/MongoDB backend. Its visual identity is an enchanted-library palette built around deep brown, mahogany, parchment, and gilded gold.
 
-> **ReadRealm** transforms how people discover, read, and discuss books. Whether you're on mobile, desktop, or web—your library, conversations, and reading progress sync instantly. Powered by advanced AI and built on cutting-edge cloud infrastructure, ReadRealm empowers readers to go beyond the page.
+## What is in the repository
 
----
+- **Android** — Kotlin + Jetpack Compose reader with EPUB reading, bookmarks, reviews, narration, book chat, and the immersive Experience/Realm UI.
+- **iOS** — SwiftUI reader with EPUB reading, narration, book discovery, and reader preferences.
+- **Dashboard** — Flutter administration interface using the same ReadRealm color language.
+- **API** — NestJS + MongoDB backend for authentication, books, reviews, bookmarks, chat, verification, narration, and voice-session handoff.
 
-## ✨ Why ReadRealm?
+## Architecture
 
-| 🎯 | **Problem** | **ReadRealm Solution** |
-|---|---|---|
-| 📖 | Scattered reading across devices | Android & iOS client apps + Flutter admin—your library everywhere |
-| 🤖 | Passive reading experience | AI-powered insights, smart recommendations, real-time chat |
-| 💬 | Reading in isolation | Engage with AI assistants & other readers instantly |
-| 🎤 | Text-heavy interfaces | Voice commands & audio narration with Azure Cognitive Services |
-| 🔄 | Sync headaches | Automatic cross-platform sync in milliseconds |
-
----
-
-## 🏗️ Tech Stack & Architecture
-
-### Application Layers
-
-**Frontend (Client Applications):**
-- 📱 **Android Client**: Native Kotlin + Jetpack Compose
-- 🍎 **iOS Client**: Native Swift
-- 🖥️ **Admin Dashboard**: Flutter cross-platform (Web, Desktop, macOS)
-
-**Backend (Single Source of Truth):**
-- 🟢 **NestJS API**: TypeScript, RESTful + WebSocket
-- 🗄️ **MongoDB**: Scalable data persistence
-- 🤖 **AI Services**: Google AI, HuggingFace, Azure Cognitive Services
-
-### Backend Stack
-- **Framework**: NestJS 10 with TypeScript
-- **Database**: MongoDB with Mongoose ORM
-- **Real-time**: Socket.IO for instant chat & collaboration
-- **API**: RESTful architecture with OpenAPI specification
-- **AI**: Google Generative AI, HuggingFace, Azure Cognitive Services
-- **Speech**: Real-time audio processing with FFmpeg
-
-## 🏛️ System Architecture
-
-```mermaid
-graph TB
-    subgraph Clients["📱 Client Apps"]
-        Android["📱 Android Client<br/>(Kotlin + Compose)"]
-        iOS["🍎 iOS Client<br/>(Swift)"]
-    end
-    
-    subgraph Admin["🖥️ Admin Dashboard"]
-        Dashboard["📊 Flutter Admin<br/>(Web/Desktop)"]
-    end
-    
-    subgraph Backend["⚙️ Backend Layer"]
-        API["NestJS API<br/>(TypeScript)"]
-        Auth["🔐 Auth Service"]
-        Chat["💬 Socket.IO<br/>(Real-time)"]
-    end
-    
-    subgraph Services["🤖 External Services"]
-        AI["Google AI<br/>HuggingFace<br/>Azure Cognitive"]
-        Database["🗄️ MongoDB"]
-    end
-    
-    Android -->|REST/WebSocket| API
-    iOS -->|REST/WebSocket| API
-    Dashboard -->|REST/WebSocket| API
-    
-    API --> Auth
-    API --> Chat
-    API --> Database
-    API --> AI
-    
-    Chat -.->|Events| Android
-    Chat -.->|Events| iOS
-    Chat -.->|Events| Dashboard
+```text
+Android / iOS / Flutter Admin
+            │
+      REST + Socket.IO
+            │
+       ReadRealm API
+       NestJS + MongoDB
+        │           │
+        │           └── Ollama (optional, self-hosted summaries)
+        │
+        ├── Open Library / Gutendex (book discovery / public-domain metadata)
+        └── ElevenLabs (optional enhanced narration / voice agent)
 ```
 
-## 🚀 Core Features
+### Provider policy
 
-### 📚 **Intelligent Library Management**
-Organize thousands of books with AI-powered categorization, smart search, and personalized recommendations based on reading habits and preferences.
+ReadRealm keeps permanent provider credentials on the backend only.
 
-### 💬 **Real-time Collaborative Chat**
-Discuss books with AI assistants and other readers instantly. Socket.IO powers millisecond-latency conversations with automatic sync across all your devices.
+- **ElevenLabs** is the optional cloud provider for enhanced narration and voice-agent sessions.
+- **Ollama** is used for local/self-hosted book summaries, so summaries do not require an OpenAI, Gemini, or Hugging Face API key.
+- **Stream** may continue to be used by client chat/video features where its free tier is suitable.
+- Native Android/iOS speech remains useful as an offline fallback.
 
-### 🎤 **Advanced Voice Integration**
-- Speech-to-text for hands-free interaction
-- AI-powered text-to-speech using Azure Cognitive Services
-- Perfect for commuters, visually impaired users, and multitaskers
+Azure Cognitive Services, Azure OpenAI realtime dependencies, Google Generative AI, Hugging Face inference, and OpenAI SDK dependencies are not required by the API.
 
-### 🔄 **True Cross-Platform Sync**
-Read a book on Android in the morning, continue on your iPad at lunch, finish on desktop at night—your progress, bookmarks, and notes follow you everywhere.
+## Core features
 
-### 🤖 **AI-Powered Intelligence**
-- **Content Generation**: Auto-generated summaries and analysis
-- **Smart Recommendations**: Books tailored to your taste
-- **Study Aids**: Key points extraction, Q&A generation
-- **Multi-provider AI**: Google, HuggingFace, and Azure working together
+### 📖 Reading
+- EPUB reading on Android and iOS
+- Reader preferences and local reading progress
+- Bookmarks and reviews
+- Search and genre discovery through the backend
+- Public-domain book discovery through Gutendex / Project Gutenberg metadata
 
-### 📖 **Full EPUB Support**
-Professional e-book rendering with rich formatting, embedded fonts, images, and styling. No compromises on reading experience.
+### 🎧 Listen
+- Native device narration in the mobile readers
+- Optional enhanced ElevenLabs narration through the ReadRealm backend
+- Long text is split into bounded chunks before narration
 
-### 🔐 **Enterprise-Grade Security**
-- JWT-based authentication
-- Email verification & 2FA ready
-- Secure password hashing
-- API key management for AI services
+### 💬 Connect
+- Socket.IO book-chat foundation
+- Stream-based client features can remain where appropriate
+- Reviews and shared book conversations
 
-## ⚡ Quick Start
+### ✨ Explore
+- Android immersive Experience / Realm components
+- Optional self-hosted Ollama summaries
+- Foundation for spoiler-aware book Q&A, character knowledge, timelines, and Realm Mode
 
-### Prerequisites
+## Visual identity
 
-Your development environment needs (select based on what you're developing):
+The canonical ReadRealm palette currently comes from Android and is mirrored into the Flutter dashboard:
 
-**For Backend (API):**
-```
-✅ Node.js 20+           
-✅ MongoDB 5+            (local or cloud instance)
-```
+| Token | Hex |
+|---|---|
+| Deep Library Brown | `#1A0F0A` |
+| Rich Mahogany | `#4A2C2A` |
+| Warm Leather | `#8B5A2B` |
+| Gilded Gold | `#D4AF37` |
+| Ancient Parchment | `#F5E6C8` |
+| Candlelight Glow | `#FFE4B5` |
+| Mystic Purple | `#2D1B4E` |
 
-**For Android Client:**
-```
-✅ Android SDK 24+       
-✅ Gradle 8+             
-✅ Kotlin 1.9+           
-```
+The long-term goal is to keep platform-native interaction patterns while sharing these design tokens across Android, iOS, and the dashboard.
 
-**For iOS Client:**
-```
-✅ Xcode 15+             (macOS only)
-✅ CocoaPods             (dependency manager)
-```
+## Quick start
 
-**For Admin Dashboard (Flutter):**
-```
-✅ Flutter SDK 3.20+     
-✅ Dart SDK 3.4+         
-```
+### Requirements
 
-**Optional:**
-```
-✅ Docker               (containerized deployment)
-✅ Git                  (version control)
-```
+- Node.js 20+
+- pnpm through Corepack
+- MongoDB
+- Android Studio / Android SDK for Android
+- Xcode for iOS
+- Flutter for the dashboard
+- Optional: Ollama for local summaries
+- Optional: ElevenLabs account for enhanced cloud narration
 
-### Environment Setup
-
-Before running the backend, configure environment variables:
+### API
 
 ```bash
-# 1. Copy template to actual config
-cp apps/api/.env.example apps/api/.env
-
-# 2. Edit with your API keys
-# Required variables:
-#   - MONGODB_URL: MongoDB connection string
-#   - JWT_SECRET: Authentication secret (min 32 chars)
-#   - GOOGLE_AI_KEY: Google Generative AI key
-#   - HUGGINGFACE_API_KEY: HuggingFace API key
-#   - AZURE_*: Azure Cognitive Services keys
-#   - MAIL_*: Email service configuration
-
-nano apps/api/.env  # or open in your editor
+cd apps/api
+corepack enable
+pnpm install
+cp .env.example .env
+pnpm start:dev
 ```
 
-**Configuration Reference:**
-- **Shared Reference**: [shared/config/.env.example](shared/config/.env.example) — All available variables
-- **Backend Template**: [apps/api/.env.example](apps/api/.env.example) — Backend-specific setup
-- **Docker Setup**: Use environment variables when running `docker-compose up`
+Minimum local environment:
 
-### Installation
+```env
+MONGODB_URL=mongodb://localhost:27017/readrealm
+JWT_SECRET=replace_with_a_random_secret_at_least_32_characters
+
+# Optional enhanced narration
+ELEVENLABS_API_KEY=
+ELEVENLABS_VOICE_ID=
+ELEVENLABS_MODEL_ID=eleven_multilingual_v2
+ELEVENLABS_AGENT_ID=
+
+# Optional local summaries
+OLLAMA_URL=http://localhost:11434
+OLLAMA_MODEL=qwen3:8b
+```
+
+For Ollama summaries:
 
 ```bash
-# 1. Clone repository
-git clone https://github.com/aliammari1/readrealm.git
-cd readrealm
-
-# 2. Install backend dependencies
-cd apps/api && npm ci && cd ../..
-
-# 3. Install admin dashboard dependencies
-cd apps/dashboard && flutter pub get && cd ../..
-
-# 4. Configure backend environment (see Environment Setup above)
-cp apps/api/.env.example apps/api/.env
-# Edit apps/api/.env with your API keys
+ollama pull qwen3:8b
+ollama serve
 ```
 
-### Run Applications
+Health endpoints:
 
-| Layer | App | Command | Purpose |
-|-------|-----|---------|---------|
-| **Backend** 🟢 | API | `cd apps/api && npm run start:dev` | Core server on `http://localhost:3000` |
-| **Clients** 📱 | Android | `cd apps/android && ./gradlew installDebug` | Native Android reader app |
-| **Clients** 📱 | iOS | Open `apps/ios/Runner.xcworkspace` in Xcode | Native iOS reader app |
-| **Admin** 🖥️ | Flutter Dashboard | `cd apps/dashboard && flutter run -d chrome` | Admin dashboard (Web/Desktop) |
+```text
+GET /health
+GET /health/live
+```
 
-For Taskfile users (recommended):
+### Dashboard
+
 ```bash
-task setup                # First-time setup (install all deps)
-task api:dev             # Backend: Start API development server
-task android:build       # Client: Build Android APK
-task ios:build           # Client: Build iOS app
-task dashboard:run       # Admin: Start Flutter dashboard
-task test                # Backend: Run all tests
+cd apps/dashboard
+flutter pub get
+flutter run --dart-define=API_BASE_URL=http://localhost:3000
 ```
 
-## 📂 Project Structure
+### Docker
 
-```
-readrealm/
-├── apps/                          # Multi-tier Application Suite
-│   │
-│   ├── api/                       # 🌍 BACKEND - Core API Server
-│   │   └── Behind all client apps, serving Android, iOS, and Admin Dashboard
-│   │   ├── src/
-│   │   │   ├── auth/             # JWT authentication & guards
-│   │   │   ├── book/             # Book management, EPUB processing
-│   │   │   ├── chat/             # Socket.IO real-time chat
-│   │   │   ├── user/             # User profiles & management
-│   │   │   ├── verification/     # Email verification workflows
-│   │   │   ├── speech-realtime/  # Voice integration
-│   │   │   ├── guards/           # Auth guards & middleware
-│   │   │   ├── logger/           # Structured logging
-│   │   │   └── main.ts           # App entry point
-│   │   ├── test/                 # E2E tests (Jest)
-│   │   └── package.json
-│   │
-│   ├── android/                   # 📱 CLIENT APP - Native Android
-│   │   └── End-user reading application
-│   │   ├── app/
-│   │   │   └── src/
-│   │   │       ├── androidTest/  # UI tests
-│   │   │       ├── main/
-│   │   │       │   ├── kotlin/   # Kotlin + Compose source
-│   │   │       │   └── res/      # Android resources
-│   │   │       └── test/         # Unit tests
-│   │   ├── build.gradle.kts
-│   │   ├── proguard-rules.pro    # Code obfuscation
-│   │   └── gradle/
-│   │
-│   ├── ios/                       # 🍎 CLIENT APP - Native iOS
-│   │   └── End-user reading application
-│   │   ├── Runner/               # Main app target
-│   │   │   └── Swift source files
-│   │   └── RunnerTests/          # Unit tests
-│   │
-│   └── dashboard/                 # 🖥️ ADMIN DASHBOARD - Flutter
-│       └── Cross-platform admin interface (Web, Desktop, macOS)
-│       ├── lib/
-│       │   ├── main.dart
-│       │   ├── screens/          # Admin UI screens
-│       │   ├── services/         # API integrations
-│       │   ├── providers/        # State management
-│       │   ├── models/           # Data models
-│       │   ├── controllers/      # Business logic
-│       │   └── constants.dart
-│       ├── android/              # Android build config
-│       ├── ios/                  # iOS build config
-│       ├── web/                  # Web build config
-│       ├── windows/              # Windows build config
-│       ├── macos/                # macOS build config
-│       └── pubspec.yaml
-│
-├── shared/                        # 📦 Shared Resources
-│   ├── api-spec/
-│   │   └── openapi.yaml          # REST API specification (all apps use this)
-│   ├── config/                   # Shared configuration
-│   └── docs/                     # System documentation
-│
-├── scripts/                       # 🛠️ Automation Scripts
-├── docker-compose.yaml            # Docker Compose configuration
-├── Taskfile.yml                   # Task automation
-├── README.md                      # This file
-└── .gitignore
+```bash
+docker compose up --build
 ```
 
-### Application Roles
+When the API runs in Docker and Ollama runs on the host, Compose uses `host.docker.internal:11434` by default.
 
-| App | Type | Purpose | Tech | Users |
-|-----|------|---------|------|-------|
-| **API** | Backend | Serves all clients, manages data & AI | NestJS, MongoDB | All clients |
-| **Android** | Client | Native mobile reading app | Kotlin + Jetpack Compose | End users |
-| **iOS** | Client | Native mobile reading app | Swift | End users |
-| **Dashboard** | Admin | Management, analytics, moderation | Flutter | Administrators |
+See [QUICKSTART.md](QUICKSTART.md) for the repository-level workflow.
 
-### Backend Module Responsibilities
+## Current stabilization status
 
-| Module | Purpose | Tech |
-|--------|---------|------|
-| `auth` | User authentication & authorization | JWT, bcrypt |
-| `book` | Book library & EPUB parsing | Mongoose, pdf-lib |
-| `chat` | Real-time conversations | Socket.IO, NestJS Gateways |
-| `user` | Profile management & preferences | MongoDB, Mongoose |
-| `verification` | Email verification & OTP | NodeMailer, Crypto |
-| `speech-realtime` | Voice processing | FFmpeg, Azure Cognitive |
+The current foundation work aligns several previously inconsistent client/backend contracts:
 
----
+- genre endpoints return normal JSON instead of pseudo-streaming SSE
+- iOS search uses `/book/search?q=...`
+- Android review deletion supplies its required path parameters
+- dashboard bookmarks use a backend-supported route
+- Nest registration accepts the normal 201 response
+- API health checks match Docker health checks
+- the API container uses the repository's pnpm lockfile
+- Azure face-recognition placeholders are removed from the dashboard
+- API URLs can be configured for the dashboard at build time
 
-## 📚 Documentation
+## Next product milestones
 
-| Document | Purpose |
-|----------|---------|
-| [Quick Start Guide](QUICKSTART.md) | 30-second setup to get running |
-| [API Docs](shared/api-spec/openapi.yaml) | REST API specification (OpenAPI/Swagger) |
-| [Configuration Reference](shared/config/.env.example) | All environment variables explained |
-| [System Design](shared/docs/system-design.md) | Architecture, patterns, and design decisions |
-| [Setup Guide](shared/docs/setup.md) | Detailed environment configuration |
-| [Contributing Guide](CONTRIBUTING.md) | Code contribution guidelines & architecture |
+The next substantial ReadRealm work should build on this foundation:
 
----
+1. Server-synced reading position, highlights, notes, and reader preferences.
+2. User EPUB/PDF import with explicit rights/source metadata.
+3. Spoiler-aware “Ask This Book” and “Story So Far”.
+4. Text ↔ narration position synchronization.
+5. Chapter-locked book-club discussions and moderation tools.
+6. Reading goals, streaks, statistics, and collections.
+7. Realm Mode: characters, places, relationships, timeline, items, and journal.
+8. Shared design tokens for iOS and the remaining dashboard surfaces.
+9. OpenAPI contract generation and CI contract tests.
 
-## 🤝 Contributing
+## Content and provider responsibility
 
-We love contributions! To get started:
+Book metadata being discoverable does not automatically grant a right to distribute the full text. Production releases should distinguish public-domain, open-licensed, user-owned, licensed, and unknown-rights content before enabling downloads or generated narration.
 
-1. **Fork** the repository
-2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
-3. **Commit** your changes: `git commit -m 'Add amazing feature'`
-4. **Push** to the branch: `git push origin feature/amazing-feature`
-5. **Submit** a Pull Request
+ElevenLabs plan terms also matter: use a plan that grants the rights required by the way ReadRealm is distributed or monetized.
 
-### Development Guidelines
+## License
 
-- Follow the [Code Style Guide](CONTRIBUTING.md)
-- Write tests for new features
-- Update documentation as needed
-- Run linting & tests before submitting PR: `task test && task lint`
-
----
-
-## 📄 License
-
-ReadRealm is open-source software licensed under the **UNLICENSED** license. See [LICENSE](LICENSE) for details.
-
----
-
-## 💬 Get Involved
-
-- 🐛 **Found a bug?** [Open an issue](https://github.com/aliammari1/readrealm/issues)
-- 💡 **Have an idea?** [Start a discussion](https://github.com/aliammari1/readrealm/discussions)
-- 📧 **Questions?** Reach out to the team
-
----
-
-**Made with ❤️ by the ReadRealm team**
+See [LICENSE](LICENSE). The root repository currently uses a custom license that restricts commercial use; third-party components retain their own licenses and notices.
