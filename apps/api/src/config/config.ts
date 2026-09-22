@@ -3,41 +3,31 @@ export default () => ({
     secret: process.env.JWT_SECRET,
   },
   database: {
-    connectionString: process.env.MONGO_URL,
+    connectionString: process.env.MONGODB_URL ?? process.env.MONGO_URL,
   },
   mail: {
     host: process.env.MAIL_HOST,
+    port: Number(process.env.MAIL_PORT ?? 587),
     user: process.env.MAIL_USER,
     pass: process.env.MAIL_PASS,
   },
-  azure: {
-    tts: {
-      key: process.env.AZURE_API_TTS_KEY,
-      endpoint: process.env.AZURE_API_TTS_ENDPOINT,
-      model: process.env.AZURE_API_TTS_MODEL,
-    },
-    realtime: {
-      key: process.env.AZURE_API_REALTIME_KEY,
-      endpoint: process.env.AZURE_API_REALTIME_ENDPOINT,
-      model: process.env.AZURE_API_REALTIME_MODEL,
-    },
+  elevenlabs: {
+    apiKey: process.env.ELEVENLABS_API_KEY,
+    voiceId: process.env.ELEVENLABS_VOICE_ID,
+    modelId: process.env.ELEVENLABS_MODEL_ID ?? 'eleven_multilingual_v2',
+    agentId: process.env.ELEVENLABS_AGENT_ID,
   },
-  gemini: {
-    key: process.env.GEMINI_API_KEY,
-    model: process.env.GEMINI_API_MODEL,
+  ollama: {
+    url: process.env.OLLAMA_URL ?? 'http://localhost:11434',
+    model: process.env.OLLAMA_MODEL ?? 'qwen3:8b',
   },
-  anthropic: {
-    key: process.env.ANTHROPIC_API_KEY,
-    // The AI book-chat participant. Defaults to a fast, cheap model.
-    model: process.env.ANTHROPIC_MODEL ?? 'claude-haiku-4-5',
-  },
-  // Comma-separated allow-list of browser origins. Falsy => same-origin only
-  // (CORS disabled). Use '*' explicitly only for throwaway local demos.
   corsOrigin: process.env.CORS_ORIGIN,
-  // Optional Sentry DSN. When unset, Sentry stays disabled (no-op).
   sentry: {
     dsn: process.env.SENTRY_DSN,
     tracesSampleRate: Number(process.env.SENTRY_TRACES_SAMPLE_RATE ?? '0.1'),
+  },
+  server: {
+    maxJsonBodySize: process.env.MAX_JSON_BODY_SIZE ?? '10mb',
   },
   env: process.env.NODE_ENV ?? 'development',
 });
