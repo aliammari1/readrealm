@@ -8,7 +8,7 @@ import Combine
 
 @MainActor
 final class BookViewModel: ObservableObject {
-    private let baseURL = "https://libraryapp-nest-back.vercel.app"
+    private let baseURL = AppConfig.apiBaseURL
 
     @Published var books: [Book] = []
     @Published var bookDescription: String = ""
