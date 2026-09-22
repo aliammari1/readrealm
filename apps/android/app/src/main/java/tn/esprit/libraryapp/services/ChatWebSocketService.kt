@@ -1,5 +1,7 @@
 package tn.esprit.libraryapp.services
 
+import tn.esprit.libraryapp.BuildConfig
+
 import android.util.Log
 import io.socket.client.IO
 import io.socket.client.Socket
@@ -15,7 +17,7 @@ class ChatWebSocketService {
 
     init {
         try {
-            socket = IO.socket("https://libraryapp-nest-back.vercel.app/")
+            socket = IO.socket(BuildConfig.SOCKET_BASE_URL)
             setupSocketListeners()
             socket?.connect()
         } catch (e: Exception) {
