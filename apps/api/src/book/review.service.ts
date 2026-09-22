@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { map } from 'rxjs/operators';
 import { Book, BookDocument } from './entities/book.entity';
@@ -129,6 +129,54 @@ export class ReviewService {
     });
 
     return updatedReviews;
+  }
+
+  async deleteReview(bookId: number, reviewId: string, userId: string) {
+    const review = await this.reviewModel.findById(reviewId).exec();
+
+    if (!review || review.bookId !== bookId) {
+      throw new NotFoundException('Review not found');
+    }
+
+    if (review.userId !== userId) {
+      throw new ForbiddenException('You can only delete your own review');
+    }
+
+    await this.reviewModel.deleteOne({ _id: reviewId }).exec();
+
+    const stats = await this.reviewModel
+      .aggregate([
+        { $match: { bookId } },
+        {
+          $group: {
+            _id: null,
+            averageRating: { $avg: '$rating' },
+            totalReviews: { $sum: 1 },
+          },
+        },
+      ])
+      .exec();
+
+    const averageRating = stats[0]?.averageRating ?? 0;
+    const totalReviews = stats[0]?.totalReviews ?? 0;
+
+    const book = await this.bookModel
+      .findOneAndUpdate(
+        { id: bookId },
+        {
+          $pull: { reviews: reviewId },
+          $set: { averageRating, totalReviews },
+        },
+        { new: true },
+      )
+      .populate('reviews')
+      .exec();
+
+    if (!book) {
+      throw new NotFoundException(`Book with ID ${bookId} not found`);
+    }
+
+    return book;
   }
 
   detectEmotion(text: string): string {
