@@ -107,7 +107,8 @@ cp apps/api/.env.example apps/api/.env
 # Edit with your values
 MONGODB_URL=mongodb://localhost:27017/readrealm
 JWT_SECRET=your_secret_key
-GEMINI_API_KEY=your_optional_key
+OLLAMA_URL=http://localhost:11434
+OLLAMA_MODEL=qwen3:8b
 ELEVENLABS_API_KEY=your_key
 ELEVENLABS_VOICE_ID=your_voice_id
 # ... see .env.example for all variables
@@ -120,11 +121,11 @@ ELEVENLABS_VOICE_ID=your_voice_id
 cp .env.example .env
 
 # Start services
-docker-compose up -d
+docker compose up -d
 
 # Check status
-docker-compose logs -f api
-docker-compose logs -f mongodb
+docker compose logs -f api
+docker compose logs -f mongodb
 ```
 
 ---
