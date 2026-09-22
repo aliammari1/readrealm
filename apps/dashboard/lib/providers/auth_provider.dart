@@ -1,9 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_library_app/constants.dart';
 import 'package:flutter_library_app/models/auth_state.dart';
 import 'package:flutter_library_app/models/user_model.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
-import '../constants.dart';
 
 class AuthProvider with ChangeNotifier {
   final String _baseUrl = apiBaseUrl;
@@ -25,18 +26,18 @@ class AuthProvider with ChangeNotifier {
       final response = await http.post(
         Uri.parse('$_baseUrl/auth/login'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'email': email, 'password': password}),
+        body: jsonEncode({'email': email, 'password': password}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = json.decode(response.body);
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
         if (data['accessToken'] != null && data['userId'] != null) {
           _setState(
             _state.copyWith(
               isAuthenticated: true,
-              userId: data['userId'],
-              accessToken: data['accessToken'],
-              refreshToken: data['refreshToken'],
+              userId: data['userId'] as String?,
+              accessToken: data['accessToken'] as String?,
+              refreshToken: data['refreshToken'] as String?,
               isLoading: false,
               error: null,
             ),
@@ -67,7 +68,7 @@ class AuthProvider with ChangeNotifier {
       final response = await http.post(
         Uri.parse('$_baseUrl/auth/register'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({
+        body: jsonEncode({
           'username': username,
           'email': email,
           'password': password,
@@ -98,8 +99,11 @@ class AuthProvider with ChangeNotifier {
       );
 
       if (response.statusCode == 200) {
-        final dynamic userData = json.decode(response.body);
-        final user = User.fromJson(userData['user'] ?? userData);
+        final userData = jsonDecode(response.body) as Map<String, dynamic>;
+        final nestedUser = userData['user'];
+        final user = User.fromJson(
+          nestedUser is Map<String, dynamic> ? nestedUser : userData,
+        );
         _setState(_state.copyWith(currentUser: user));
       }
     } catch (e) {
@@ -127,8 +131,10 @@ class AuthProvider with ChangeNotifier {
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> usersJson = json.decode(response.body);
-        _users = usersJson.map((json) => User.fromJson(json)).toList();
+        final usersJson = jsonDecode(response.body) as List<dynamic>;
+        _users = usersJson
+            .map((item) => User.fromJson(item as Map<String, dynamic>))
+            .toList();
         notifyListeners();
       } else {
         throw Exception('Failed to load users');
@@ -146,7 +152,7 @@ class AuthProvider with ChangeNotifier {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${_state.accessToken}',
         },
-        body: json.encode({
+        body: jsonEncode({
           'username': username,
           'email': email,
           'password': password,
@@ -181,7 +187,7 @@ class AuthProvider with ChangeNotifier {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${_state.accessToken}',
         },
-        body: json.encode(body),
+        body: jsonEncode(body),
       );
 
       if (response.statusCode == 200) {
