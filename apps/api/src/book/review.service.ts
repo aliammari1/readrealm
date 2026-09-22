@@ -1,4 +1,3 @@
-import 'openai/shims/node';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { map } from 'rxjs/operators';
