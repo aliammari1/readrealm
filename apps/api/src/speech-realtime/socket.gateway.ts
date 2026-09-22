@@ -1,6 +1,5 @@
 import {
   ConnectedSocket,
-  MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
   SubscribeMessage,
@@ -27,9 +26,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private readonly logger = new Logger(SocketGateway.name);
 
-  constructor(
-    private readonly speechRealtimeService: SpeechRealtimeService,
-  ) {}
+  constructor(private readonly speechRealtimeService: SpeechRealtimeService) {}
 
   handleConnection(socket: Socket) {
     this.logger.log(`Speech client connected: ${socket.id}`);
@@ -41,10 +38,7 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('start')
-  async handleStart(
-    @ConnectedSocket() socket: Socket,
-    @MessageBody() _data: unknown,
-  ) {
+  async handleStart(@ConnectedSocket() socket: Socket) {
     try {
       const signedUrl = await this.speechRealtimeService.getSignedUrl();
       socket.emit('elevenlabsSignedUrl', { signedUrl });
@@ -54,7 +48,9 @@ export class SocketGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
     } catch (error) {
       const message =
-        error instanceof Error ? error.message : 'Unable to start voice session';
+        error instanceof Error
+          ? error.message
+          : 'Unable to start voice session';
       this.logger.error(message);
       socket.emit('error', message);
     }
