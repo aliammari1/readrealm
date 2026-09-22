@@ -60,7 +60,9 @@ export class TTSService {
 
   async getBookTTSByTitle(title: string) {
     const decodedTitle = decodeURIComponent(title);
-    const bookData = (await this.bookService.getBookByTitle(decodedTitle)) as any;
+    const bookData = (await this.bookService.getBookByTitle(
+      decodedTitle,
+    )) as any;
 
     if (!bookData || !Array.isArray(bookData) || bookData.length === 0) {
       throw new NotFoundException('Book not found');
