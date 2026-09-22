@@ -3,8 +3,8 @@ import Combine
 
 class AuthViewModel: ObservableObject {
     @Published var username: String = ""
-    @Published var email: String = "ali.ammari@esprit.tn"
-    @Published var password: String = "password"
+    @Published var email: String = ""
+    @Published var password: String = ""
     @Published var errorMessage: String?
     @Published var isLoggedIn: Bool = false // Pour gérer l'état de la connexion
     @Published var isSignedUp: Bool = false
@@ -22,7 +22,7 @@ class AuthViewModel: ObservableObject {
         let userId: String
     }
     
-    private let baseURL = "https://libraryapp-nest-back.vercel.app"
+    private let baseURL = AppConfig.apiBaseURL
     func areCredentialsValid() -> Bool {
            return !username.isEmpty && !email.isEmpty && !password.isEmpty
     }
