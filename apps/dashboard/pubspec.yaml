@@ -33,16 +33,11 @@ dependencies:
   image: ^4.1.7
   flutter_secure_storage: ^9.0.0
   http: ^1.1.0
-  camera: ^0.10.5+9
-  # Remove flutter_face_api and flutter_face_api_beta
-  # flutter_face_api: ^6.2.3
-  # flutter_face_api_beta: 0.0.121
-  # Remove local_auth since we won't be using it anymore
-  # local_auth: ^2.1.8
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
