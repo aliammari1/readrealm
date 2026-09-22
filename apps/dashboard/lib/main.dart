@@ -36,11 +36,19 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'Flutter Admin Panel',
+        title: 'ReadRealm Admin',
         theme: ThemeData.dark().copyWith(
           scaffoldBackgroundColor: bgColor,
+          colorScheme: const ColorScheme.dark(
+            primary: primaryColor,
+            secondary: candlelightGlow,
+            surface: secondaryColor,
+          ),
           textTheme: GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme)
-              .apply(bodyColor: Colors.white),
+              .apply(
+                bodyColor: ancientParchment,
+                displayColor: ancientParchment,
+              ),
           canvasColor: secondaryColor,
         ),
         home: LoginScreen(),
