@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A1B2C3D4E5F6012345678901 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6012345678902 /* PrivacyInfo.xcprivacy */; };
 		7AFFB7B32D02513A003ECABF /* AudioStreamService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AFFB7B22D02513A003ECABF /* AudioStreamService.swift */; };
 		7AFFB7B52D025797003ECABF /* AudioPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7AFFB7B42D025797003ECABF /* AudioPlayerView.swift */; };
 		B07397732CDC429800161F52 /* ApplicationApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B07397722CDC429800161F52 /* ApplicationApp.swift */; };
@@ -130,6 +131,7 @@
 				B07397722CDC429800161F52 /* ApplicationApp.swift */,
 				B07397742CDC429800161F52 /* ContentView.swift */,
 				B07397762CDC429800161F52 /* Assets.xcassets */,
+				A1B2C3D4E5F6012345678902 /* PrivacyInfo.xcprivacy */,
 				B07397782CDC429800161F52 /* Preview Content */,
 			);
 			path = Application;
@@ -283,6 +285,7 @@
 			files = (
 				B073977A2CDC429800161F52 /* Preview Assets.xcassets in Resources */,
 				B07397772CDC429800161F52 /* Assets.xcassets in Resources */,
+				A1B2C3D4E5F6012345678901 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -462,8 +465,8 @@
 				EXCLUDED_ARCHS = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Application/Info.plist;
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "audio is recording";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "you can view a text transcription";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "ReadRealm uses the microphone for voice commands and voice conversations about your books.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "ReadRealm uses speech recognition to turn voice commands into text for hands-free reading.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -474,10 +477,11 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.0;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aliammari.readrealm;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				INFOPLIST_KEY_CFBundleDisplayName = ReadRealm;
+				PRODUCT_NAME = ReadRealm;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -496,8 +500,8 @@
 				EXCLUDED_ARCHS = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Application/Info.plist;
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "audio is recording";
-				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "you can view a text transcription";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "ReadRealm uses the microphone for voice commands and voice conversations about your books.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "ReadRealm uses speech recognition to turn voice commands into text for hands-free reading.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -508,10 +512,11 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.0;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aliammari.readrealm;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				INFOPLIST_KEY_CFBundleDisplayName = ReadRealm;
+				PRODUCT_NAME = ReadRealm;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
