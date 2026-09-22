@@ -33,8 +33,7 @@ export class ChatAiService {
   ): Promise<string> {
     const ollamaUrl =
       this.configService.get<string>('ollama.url') ?? 'http://localhost:11434';
-    const model =
-      this.configService.get<string>('ollama.model') ?? 'qwen3:8b';
+    const model = this.configService.get<string>('ollama.model') ?? 'qwen3:8b';
 
     const transcript = history
       .slice(-12)
