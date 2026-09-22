@@ -1,10 +1,13 @@
 package tn.esprit.libraryapp.api
 
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import tn.esprit.libraryapp.BuildConfig
+import tn.esprit.libraryapp.services.TokenManagerProvider
 
 object RetrofitService {
     private val loggingInterceptor =
@@ -17,8 +20,25 @@ object RetrofitService {
                 }
         }
 
+    private val authInterceptor =
+        okhttp3.Interceptor { chain ->
+            val token =
+                try {
+                    runBlocking { TokenManagerProvider.getInstance().accessToken.first() }
+                } catch (_: IllegalStateException) {
+                    null
+                }
+
+            val requestBuilder = chain.request().newBuilder()
+            if (!token.isNullOrBlank()) {
+                requestBuilder.header("Authorization", "Bearer $token")
+            }
+            chain.proceed(requestBuilder.build())
+        }
+
     private val okHttpClient =
         OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
             .addInterceptor(loggingInterceptor)
             .build()
 
