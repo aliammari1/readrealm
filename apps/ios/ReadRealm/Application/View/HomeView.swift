@@ -43,7 +43,7 @@ struct HomeView: View {
                 }
 
                 Spacer()
-
+            }
 
             SearchBar(text: $searchText)
         }
