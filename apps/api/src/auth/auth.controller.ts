@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Put, Req } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Put, Req, Delete } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
@@ -44,6 +44,14 @@ export class AuthController {
       changePasswordDto.oldPassword,
       changePasswordDto.newPassword,
     );
+  }
+
+  @ApiOperation({ summary: 'Delete the authenticated account and associated user data' })
+  @ApiBearerAuth('access-token')
+  @UseGuards(AuthGaurd)
+  @Delete('account')
+  async deleteAccount(@Req() req) {
+    return this.authService.deleteAccount(req.userId);
   }
 
   @ApiOperation({ summary: 'Send an email-verification OTP for a user id' })
