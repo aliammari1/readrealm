@@ -309,60 +309,39 @@ private suspend fun connectToBookEventStream(genre: Genre, viewModel: BookViewMo
 
 private suspend fun connectToSpecificGenreStream(genre: Genre, viewModel: BookViewModel) {
     withContext(Dispatchers.IO) {
-        val client = OkHttpClient.Builder().readTimeout(0, TimeUnit.SECONDS).build()
-
-        // Create a mutable variable to hold the response
-        var response: Response? = null
+        val client = OkHttpClient()
 
         try {
-            response =
-                client.newCall(
-                    Request.Builder()
-                        .url(
-                            "https://libraryapp-nest-back.vercel.app/book/genre/${genre.value.lowercase()}",
-                        )
-                        .addHeader("Accept", "text/event-stream")
-                        .build(),
-                )
-                    .execute()
+            client.newCall(
+                Request.Builder()
+                    .url(
+                        "https://libraryapp-nest-back.vercel.app/book/genre/${genre.value.lowercase()}",
+                    )
+                    .addHeader("Accept", "application/json")
+                    .build(),
+            ).execute().use { response ->
+                if (!response.isSuccessful) {
+                    Log.e(
+                        "HomeScreen",
+                        "Failed to load genre ${genre.value}: ${response.code}",
+                    )
+                    return@withContext
+                }
 
-            if (!response.isSuccessful) {
-                Log.e(
-                    "HomeScreen",
-                    "Failed to connect to SSE for genre ${genre.value}: ${response.code}",
-                )
-                return@withContext
-            }
+                val body = response.body?.string().orEmpty()
+                val books = Gson().fromJson(body, Array<Book>::class.java)?.toList().orEmpty()
 
-            val source = response.body?.source() ?: return@withContext
-
-            while (!source.exhausted() && currentCoroutineContext().isActive) {
-                val line = source.readUtf8Line() ?: continue
-
-                if (line.startsWith("data:")) {
-                    val bookJson = line.removePrefix("data:").trim()
-                    try {
-                        val book =
-                            Gson().fromJson(bookJson, Book::class.java)
-                        withContext(Dispatchers.Main) {
-                            viewModel.addBookToGenre(genre, book)
-                        }
-                    } catch (e: Exception) {
-                        Log.e(
-                            "HomeScreen",
-                            "Error parsing book JSON for genre ${genre.value}: ${e.message}",
-                        )
+                withContext(Dispatchers.Main) {
+                    books.forEach { book ->
+                        viewModel.addBookToGenre(genre, book)
                     }
                 }
             }
         } catch (e: Exception) {
             Log.e(
                 "HomeScreen",
-                "Error in SSE connection for genre ${genre.value}: ${e.message}",
+                "Error loading genre ${genre.value}: ${e.message}",
             )
-        } finally {
-            // Clean up resources
-            response?.close()
         }
     }
 }
