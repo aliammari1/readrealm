@@ -1,5 +1,7 @@
 package tn.esprit.libraryapp.screens
 
+import tn.esprit.libraryapp.BuildConfig
+
 import android.Manifest
 import android.content.Intent
 import android.speech.RecognizerIntent
@@ -315,7 +317,7 @@ private suspend fun connectToSpecificGenreStream(genre: Genre, viewModel: BookVi
             client.newCall(
                 Request.Builder()
                     .url(
-                        "https://libraryapp-nest-back.vercel.app/book/genre/${genre.value.lowercase()}",
+                        BuildConfig.API_BASE_URL + "book/genre/${genre.value.lowercase()}",
                     )
                     .addHeader("Accept", "application/json")
                     .build(),
