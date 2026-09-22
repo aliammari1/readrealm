@@ -1,9 +1,4 @@
-version: '3.8'
-
 services:
-  # ============================================================
-  # BACKEND - NestJS API
-  # ============================================================
   api:
     build:
       context: ./apps/api
@@ -13,29 +8,39 @@ services:
       - "3000:3000"
     environment:
       NODE_ENV: production
+      PORT: 3000
       MONGODB_URL: mongodb://mongodb:27017/readrealm
-      JWT_SECRET: ${JWT_SECRET:-your_jwt_secret_key_here}
-      GOOGLE_AI_KEY: ${GOOGLE_AI_KEY}
-      HUGGINGFACE_API_KEY: ${HUGGINGFACE_API_KEY}
-      AZURE_TTS_KEY: ${AZURE_TTS_KEY}
-      AZURE_REALTIME_KEY: ${AZURE_REALTIME_KEY}
-      MAIL_HOST: ${MAIL_HOST}
-      MAIL_USER: ${MAIL_USER}
-      MAIL_PASS: ${MAIL_PASS}
+      JWT_SECRET: ${JWT_SECRET:-change_me_before_production}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      MAX_JSON_BODY_SIZE: ${MAX_JSON_BODY_SIZE:-10mb}
+      ELEVENLABS_API_KEY: ${ELEVENLABS_API_KEY:-}
+      ELEVENLABS_VOICE_ID: ${ELEVENLABS_VOICE_ID:-}
+      ELEVENLABS_MODEL_ID: ${ELEVENLABS_MODEL_ID:-eleven_multilingual_v2}
+      ELEVENLABS_AGENT_ID: ${ELEVENLABS_AGENT_ID:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_API_MODEL: ${GEMINI_API_MODEL:-gemini-2.0-flash}
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USER: ${MAIL_USER:-}
+      MAIL_PASS: ${MAIL_PASS:-}
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     networks:
       - readrealm-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://localhost:3000/health',r=>{if(r.statusCode!==200)process.exit(1);r.resume()}).on('error',()=>process.exit(1))"
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # ============================================================
-  # DATABASE - MongoDB
-  # ============================================================
   mongodb:
     image: mongo:7.0
     container_name: readrealm-mongodb
@@ -50,16 +55,14 @@ services:
       - readrealm-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
       interval: 10s
       timeout: 5s
       retries: 5
 
 volumes:
   mongodb_data:
-    driver: local
   mongodb_config:
-    driver: local
 
 networks:
   readrealm-network:
