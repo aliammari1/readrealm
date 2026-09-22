@@ -42,7 +42,12 @@ class BookRepository {
     }
 
     suspend fun removeReview(userId: String, bookId: String, reviewId: String): Book {
-        return bookService.removeReview(DeleteReviewRequest(userId, bookId, reviewId))
+        val numericBookId = bookId.toInt()
+        return bookService.removeReview(
+            numericBookId,
+            reviewId,
+            DeleteReviewRequest(userId, bookId, reviewId),
+        )
     }
 
     suspend fun getReviews(bookId: Int): List<Review> {
