@@ -8,12 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@azure/identity':
-        specifier: ^4.5.0
-        version: 4.13.0
-      '@ffmpeg-installer/ffmpeg':
-        specifier: ^1.1.0
-        version: 1.1.0
       '@google/generative-ai':
         specifier: ^0.21.0
         version: 0.21.0
@@ -71,27 +65,15 @@ importers:
       class-validator:
         specifier: ^0.14.1
         version: 0.14.3
-      lamejs:
-        specifier: ^1.2.1
-        version: 1.2.1
-      microsoft-cognitiveservices-speech-sdk:
-        specifier: ^1.41.0
-        version: 1.47.0
       mongoose:
         specifier: ^8.9.5
         version: 8.21.0
       nanoid:
         specifier: ^3.3.7
         version: 3.3.11
-      node-av:
-        specifier: ^5.0.3
-        version: 5.0.3
       nodemailer:
         specifier: ^7.0.11
         version: 7.0.12
-      openai:
-        specifier: ^4.73.1
-        version: 4.104.0(ws@8.19.0)
       passport:
         specifier: ^0.7.0
         version: 0.7.0
@@ -101,9 +83,6 @@ importers:
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
-      rt-client:
-        specifier: https://github.com/Azure-Samples/aoai-realtime-audio-sdk/releases/download/js/v0.5.0/rt-client-0.5.0.tgz
-        version: https://github.com/Azure-Samples/aoai-realtime-audio-sdk/releases/download/js/v0.5.0/rt-client-0.5.0.tgz
       rxjs:
         specifier: ^7.8.1
         version: 7.8.2
