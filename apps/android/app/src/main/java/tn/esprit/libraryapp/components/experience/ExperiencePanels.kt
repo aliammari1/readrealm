@@ -256,12 +256,6 @@ private fun WorldStatBar(
 fun ExperienceSettingsPanel(
     ambientSoundEnabled: Boolean,
     onAmbientSoundToggle: (Boolean) -> Unit,
-    particleEffectsEnabled: Boolean,
-    onParticleEffectsToggle: (Boolean) -> Unit,
-    narratorSpeed: Float,
-    onNarratorSpeedChange: (Float) -> Unit,
-    autoPlayScenes: Boolean,
-    onAutoPlayToggle: (Boolean) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -273,7 +267,6 @@ fun ExperienceSettingsPanel(
         )
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -296,54 +289,12 @@ fun ExperienceSettingsPanel(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Ambient Sound
             SettingsSwitch(
                 title = "Ambient Sound",
                 subtitle = "Background audio & music",
                 icon = Icons.Default.MusicNote,
                 checked = ambientSoundEnabled,
                 onCheckedChange = onAmbientSoundToggle
-            )
-
-            HorizontalDivider(
-                color = MysticPurple.copy(alpha = 0.3f),
-                modifier = Modifier.padding(vertical = 12.dp)
-            )
-
-            // Particle Effects
-            SettingsSwitch(
-                title = "Particle Effects",
-                subtitle = "Visual atmosphere particles",
-                icon = Icons.Default.AutoAwesome,
-                checked = particleEffectsEnabled,
-                onCheckedChange = onParticleEffectsToggle
-            )
-
-            HorizontalDivider(
-                color = MysticPurple.copy(alpha = 0.3f),
-                modifier = Modifier.padding(vertical = 12.dp)
-            )
-
-            // Auto-play Scenes
-            SettingsSwitch(
-                title = "Auto-play Scenes",
-                subtitle = "Automatically progress dialogues",
-                icon = Icons.Default.PlayCircle,
-                checked = autoPlayScenes,
-                onCheckedChange = onAutoPlayToggle
-            )
-
-            HorizontalDivider(
-                color = MysticPurple.copy(alpha = 0.3f),
-                modifier = Modifier.padding(vertical = 12.dp)
-            )
-
-            // Narrator Speed
-            SettingsSlider(
-                title = "Narrator Speed",
-                value = narratorSpeed,
-                onValueChange = onNarratorSpeedChange,
-                icon = Icons.Default.Speed
             )
         }
     }

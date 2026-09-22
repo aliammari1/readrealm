@@ -30,11 +30,11 @@ private val AncientParchment = Color(0xFFF5E6D3)
  * ═══════════════════════════════════════════════════════════════════
  *                   BOOK TO EXPERIENCE SCREEN
  * ═══════════════════════════════════════════════════════════════════
- * 
+ *
  * Main immersive screen that transforms books into explorable worlds.
  * Users can walk through literary settings, meet characters, and
  * experience key scenes from their favorite books.
- * 
+ *
  * ═══════════════════════════════════════════════════════════════════
  */
 @Composable
@@ -189,7 +189,7 @@ private fun ExperienceTabContent(
     AnimatedContent(
         targetState = tab,
         transitionSpec = {
-            fadeIn() + slideInHorizontally() togetherWith 
+            fadeIn() + slideInHorizontally() togetherWith
             fadeOut() + slideOutHorizontally()
         },
         label = "tabContent"
@@ -271,12 +271,6 @@ private fun ExperienceOverlays(
             ExperienceSettingsPanel(
                 ambientSoundEnabled = uiState.isAudioEnabled,
                 onAmbientSoundToggle = { onToggleAudio() },
-                particleEffectsEnabled = true,
-                onParticleEffectsToggle = { /* TODO */ },
-                narratorSpeed = 1f,
-                onNarratorSpeedChange = { /* TODO */ },
-                autoPlayScenes = false,
-                onAutoPlayToggle = { /* TODO */ },
                 onClose = onDismissSettings
             )
         }

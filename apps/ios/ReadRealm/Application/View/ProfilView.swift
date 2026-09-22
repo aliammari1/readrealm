@@ -22,10 +22,9 @@ struct ProfilView: View {
                         Text("Your ReadRealm")
                             .font(.title2.bold())
 
-                        Link(
-                            "Privacy Policy",
-                            destination: URL(string: "https://github.com/aliammari1/readrealm/blob/main/PRIVACY.md")!
-                        )
+                        if let privacyURL = URL(string: AppConfig.apiBaseURL + "/privacy") {
+                            Link("Privacy Policy", destination: privacyURL)
+                        }
 
                         Button(role: .destructive) {
                             showDeleteConfirmation = true

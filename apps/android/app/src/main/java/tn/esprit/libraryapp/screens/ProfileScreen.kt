@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import tn.esprit.libraryapp.NavigationItem
+import tn.esprit.libraryapp.BuildConfig
 import tn.esprit.libraryapp.ui.theme.*
 import tn.esprit.libraryapp.viewModel.AuthViewModel
 import kotlin.math.PI
@@ -198,12 +199,9 @@ fun ProfileScreen(
             // ═══════════════════════════════════════════════════════════════
             MagicalScrollActions(
                 email = userProfile?.email ?: "unknown@realm.com",
-                onEditProfile = { /* Navigate to edit */ },
-                onChangePassword = { /* Navigate to change password */ },
-                onSettings = { /* Navigate to settings */ },
                 onPrivacyPolicy = {
                     uriHandler.openUri(
-                        "https://github.com/aliammari1/readrealm/blob/main/PRIVACY.md",
+                        BuildConfig.API_BASE_URL.trimEnd('/') + "/privacy",
                     )
                 },
                 onDeleteAccount = { showDeleteAccountDialog = true },
@@ -285,7 +283,7 @@ private fun WizardPortraitHeader(
         ),
         label = "ring"
     )
-    
+
     val glowPulse by infiniteTransition.animateFloat(
         initialValue = 0.4f,
         targetValue = 0.8f,
@@ -858,7 +856,7 @@ private fun FloatingStatOrb(
         ),
         label = "float"
     )
-    
+
     val glow by infiniteTransition.animateFloat(
         initialValue = 0.3f,
         targetValue = 0.6f,
@@ -940,9 +938,6 @@ private fun FloatingStatOrb(
 @Composable
 private fun MagicalScrollActions(
     email: String,
-    onEditProfile: () -> Unit,
-    onChangePassword: () -> Unit,
-    onSettings: () -> Unit,
     onPrivacyPolicy: () -> Unit,
     onDeleteAccount: () -> Unit,
 ) {
@@ -956,34 +951,7 @@ private fun MagicalScrollActions(
             icon = Icons.Default.Email,
             title = "Magical Address",
             subtitle = email,
-            onClick = { }
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        ScrollActionItem(
-            icon = Icons.Default.Edit,
-            title = "Edit Your Chronicle",
-            subtitle = "Modify your wizard profile",
-            onClick = onEditProfile
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        ScrollActionItem(
-            icon = Icons.Default.Lock,
-            title = "Ward Your Secrets",
-            subtitle = "Change magical password",
-            onClick = onChangePassword
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        ScrollActionItem(
-            icon = Icons.Default.Settings,
-            title = "Arcane Settings",
-            subtitle = "Configure your realm",
-            onClick = onSettings
+            onClick = null,
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -1011,7 +979,7 @@ private fun ScrollActionItem(
     icon: ImageVector,
     title: String,
     subtitle: String,
-    onClick: () -> Unit
+    onClick: (() -> Unit)?
 ) {
     Box(
         modifier = Modifier
@@ -1031,7 +999,13 @@ private fun ScrollActionItem(
                 color = WarmLeather.copy(alpha = 0.3f),
                 shape = RoundedCornerShape(16.dp)
             )
-            .clickable { onClick() }
+            .then(
+                if (onClick != null) {
+                    Modifier.clickable { onClick() }
+                } else {
+                    Modifier
+                }
+            )
             .padding(16.dp)
     ) {
         Row(
@@ -1078,11 +1052,13 @@ private fun ScrollActionItem(
                 )
             }
 
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowRight,
-                contentDescription = null,
-                tint = GildedGold.copy(alpha = 0.6f)
-            )
+            if (onClick != null) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = GildedGold.copy(alpha = 0.6f)
+                )
+            }
         }
     }
 }
