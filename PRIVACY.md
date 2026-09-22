@@ -6,6 +6,8 @@ ReadRealm is a reading application that provides book discovery, EPUB reading, b
 
 This policy describes the information ReadRealm processes, why it is used, and the controls available to you.
 
+When the production API is deployed, this policy is also available at `https://YOUR_PRODUCTION_API_DOMAIN/privacy`. Replace the placeholder with the final HTTPS API domain before store submission and use that public URL in App Store Connect and Google Play Console.
+
 ## Information ReadRealm processes
 
 ReadRealm may process the following information when you use features that require it:
