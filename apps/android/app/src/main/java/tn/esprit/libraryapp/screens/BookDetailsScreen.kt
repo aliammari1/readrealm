@@ -1,5 +1,3 @@
-[Reading 1766 lines from start (total: 1766 lines, 0 remaining)]
-
 package tn.esprit.libraryapp.screens
 
 import android.annotation.SuppressLint
@@ -1766,5 +1764,3 @@ private fun ErrorState(message: String, onRetry: () -> Unit) {
         Button(onClick = onRetry) { Text("Retry") }
     }
 }
-
-[executed on device: thethirdone (5346b035-2835-4d41-8950-4054b200ff7b)]

@@ -1,5 +1,3 @@
-[Reading 965 lines from start (total: 965 lines, 0 remaining)]
-
 package tn.esprit.libraryapp.screens
 
 import android.graphics.Bitmap
@@ -965,5 +963,3 @@ private fun AlreadyMemberPrompt(
         }
     }
 }
-
-[executed on device: thethirdone (5346b035-2835-4d41-8950-4054b200ff7b)]

@@ -1,5 +1,3 @@
-[Reading 55 lines from start (total: 55 lines, 0 remaining)]
-
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
@@ -55,5 +53,3 @@ export class EpubService {
     }
   }
 }
-
-[executed on device: thethirdone (5346b035-2835-4d41-8950-4054b200ff7b)]

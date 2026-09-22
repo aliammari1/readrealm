@@ -1,5 +1,3 @@
-[Reading 211 lines from start (total: 211 lines, 0 remaining)]
-
 //
 //  SignIn.swift
 //  Application
@@ -211,5 +209,3 @@ struct signAccount: View {
         .tint(.white)
     }
 }
-
-[executed on device: thethirdone (5346b035-2835-4d41-8950-4054b200ff7b)]
