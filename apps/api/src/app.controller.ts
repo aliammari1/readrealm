@@ -7,9 +7,25 @@ import { AppService } from './app.service';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @ApiOperation({ summary: 'Service liveness / hello' })
+  @ApiOperation({ summary: 'Service metadata / hello' })
   @Get()
   async getHello() {
     return this.appService.getHello();
+  }
+
+  @ApiOperation({ summary: 'Service health check' })
+  @Get('health')
+  health() {
+    return {
+      status: 'ok',
+      service: 'readrealm-api',
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  @ApiOperation({ summary: 'Service liveness check' })
+  @Get('health/live')
+  live() {
+    return { status: 'ok' };
   }
 }
