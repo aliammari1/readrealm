@@ -107,8 +107,10 @@ cp apps/api/.env.example apps/api/.env
 # Edit with your values
 MONGODB_URL=mongodb://localhost:27017/readrealm
 JWT_SECRET=your_secret_key
-GOOGLE_AI_KEY=your_key
-AZURE_TTS_KEY=your_key
+OLLAMA_URL=http://localhost:11434
+OLLAMA_MODEL=qwen3:8b
+ELEVENLABS_API_KEY=your_key
+ELEVENLABS_VOICE_ID=your_voice_id
 # ... see .env.example for all variables
 ```
 
@@ -119,11 +121,11 @@ AZURE_TTS_KEY=your_key
 cp .env.example .env
 
 # Start services
-docker-compose up -d
+docker compose up -d
 
 # Check status
-docker-compose logs -f api
-docker-compose logs -f mongodb
+docker compose logs -f api
+docker compose logs -f mongodb
 ```
 
 ---
@@ -168,7 +170,7 @@ Install Task from https://taskfile.dev
 
 Alternatively, run commands manually:
 ```bash
-cd apps/api && npm run start:dev
+cd apps/api && pnpm start:dev
 cd apps/dashboard && flutter run
 ```
 
@@ -192,7 +194,7 @@ lsof -i :3000
 kill -9 <PID>
 
 # Or use different port
-PORT=3001 npm run start:dev
+PORT=3001 pnpm start:dev
 ```
 
 ### Flutter Issues

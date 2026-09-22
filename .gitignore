@@ -4,6 +4,9 @@ apps/api/dist/
 apps/api/.env
 
 # Android
+*.jks
+*.keystore
+apps/android/keystore/
 apps/android/.gradle/
 apps/android/**/build/
 

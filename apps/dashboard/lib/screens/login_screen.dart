@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_library_app/providers/auth_provider.dart';
-import './face_recognition_screen.dart';
+import '../constants.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -16,31 +16,6 @@ class _LoginScreenState extends State<LoginScreen> {
   String _password = "";
   bool _isLoading = false;
   bool _obscurePassword = true;
-
-  Future<void> _handleFaceLogin() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => FaceRecognitionScreen(
-          mode: FaceRecognitionMode.verification,
-        ),
-      ),
-    );
-
-    if (result == true) {
-      setState(() => _isLoading = true);
-      try {
-        await context.read<AuthProvider>().signInWithFace();
-        Navigator.pushReplacementNamed(context, '/home');
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
-      } finally {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.account_circle, size: 80, color: Colors.blue),
+                      Icon(Icons.auto_stories, size: 80, color: primaryColor),
                       SizedBox(height: 24),
                       Text(
                         'Welcome Back',
@@ -121,15 +96,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ),
                                 )
                               : Text('Login'),
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      ElevatedButton.icon(
-                        onPressed: _isLoading ? null : _handleFaceLogin,
-                        icon: Icon(Icons.face),
-                        label: Text('Sign in with Face ID'),
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: Size(double.infinity, 50),
                         ),
                       ),
                       SizedBox(height: 16),

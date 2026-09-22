@@ -30,7 +30,11 @@ interface BookService {
     suspend fun addReview(@Path("bookId") bookId: Int, @Body request: ReviewRequest): Book
 
     @DELETE("book/{bookId}/reviews/{reviewId}")
-    suspend fun removeReview(@Body request: DeleteReviewRequest): Book
+    suspend fun removeReview(
+        @Path("bookId") bookId: Int,
+        @Path("reviewId") reviewId: String,
+        @Body request: DeleteReviewRequest,
+    ): Book
 
     @GET("book/reviews/{bookId}")
     suspend fun getReviews(@Path("bookId") bookId: Int): List<Review>

@@ -7,26 +7,47 @@ plugins {
 
 android {
     namespace = "tn.esprit.libraryapp"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = "tn.esprit.libraryapp"
+        applicationId = "com.aliammari.readrealm"
         minSdk = 30
-        targetSdk = 33
+        targetSdk = 36
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
+
+        val apiBaseUrl =
+            System.getenv("READREALM_API_BASE_URL")
+                ?: "https://libraryapp-nest-back.vercel.app/"
+        val normalizedApiBaseUrl =
+            if (apiBaseUrl.endsWith("/")) apiBaseUrl else "${apiBaseUrl}/"
+        buildConfigField("String", "API_BASE_URL", "\"$normalizedApiBaseUrl\"")
+        buildConfigField(
+            "String",
+            "SOCKET_BASE_URL",
+            "\"${normalizedApiBaseUrl.removeSuffix("/")}\"",
+        )
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
         create("release") {
-            val keystoreFile = file("../keystore/libraryapp-keystore.jks")
-            if (keystoreFile.exists()) {
-                storeFile = keystoreFile
-                storePassword = project.findProperty("KEYSTORE_PASSWORD") as String? ?: ""
-                keyAlias = project.findProperty("KEY_ALIAS") as String? ?: ""
-                keyPassword = project.findProperty("KEY_PASSWORD") as String? ?: ""
+            val keystorePath = System.getenv("READREALM_KEYSTORE_PATH")
+            val keystorePassword = System.getenv("READREALM_KEYSTORE_PASSWORD")
+            val releaseKeyAlias = System.getenv("READREALM_KEY_ALIAS")
+            val releaseKeyPassword = System.getenv("READREALM_KEY_PASSWORD")
+
+            if (
+                !keystorePath.isNullOrBlank() &&
+                !keystorePassword.isNullOrBlank() &&
+                !releaseKeyAlias.isNullOrBlank() &&
+                !releaseKeyPassword.isNullOrBlank()
+            ) {
+                storeFile = file(keystorePath)
+                storePassword = keystorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
             }
         }
     }
@@ -35,8 +56,7 @@ android {
         release {
             isMinifyEnabled = false
             isShrinkResources = false
-            val keystoreFile = file("../keystore/libraryapp-keystore.jks")
-            if (keystoreFile.exists()) {
+            if (!System.getenv("READREALM_KEYSTORE_PATH").isNullOrBlank()) {
                 signingConfig = signingConfigs.getByName("release")
             }
             proguardFiles(
@@ -66,6 +86,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 

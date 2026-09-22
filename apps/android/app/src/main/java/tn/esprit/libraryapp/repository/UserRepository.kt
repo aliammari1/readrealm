@@ -46,6 +46,10 @@ class UserRepository {
         return userService.forgotPassword(forgotPasswordRequest)
     }
 
+    suspend fun deleteAccount(): Response<Unit> {
+        return userService.deleteAccount()
+    }
+
     suspend fun getUserProfile(userId: String): Response<User> {
         return userService.getUserProfile(userId)
     }

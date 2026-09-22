@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -76,9 +77,59 @@ fun ProfileScreen(
     val viewModel: AuthViewModel = viewModel()
     val userProfile by viewModel.userProfile.collectAsState()
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
+    var showDeleteAccountDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.fetchUserProfile()
+    }
+
+    if (showDeleteAccountDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteAccountDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.DeleteForever,
+                    contentDescription = null,
+                    tint = DragonsBlood,
+                )
+            },
+            title = { Text("Delete ReadRealm account?") },
+            text = {
+                Text(
+                    "This permanently deletes your account, reviews, bookmarks, chat messages, and active sessions. This cannot be undone.",
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteAccountDialog = false
+                        viewModel.deleteAccount(
+                            onDeleted = {
+                                navController.navigate(NavigationItem.Login.route) {
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        inclusive = true
+                                    }
+                                }
+                            },
+                            onError = { message ->
+                                android.widget.Toast
+                                    .makeText(context, message, android.widget.Toast.LENGTH_LONG)
+                                    .show()
+                            },
+                        )
+                    },
+                ) {
+                    Text("Delete permanently", color = DragonsBlood)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteAccountDialog = false }) {
+                    Text("Cancel")
+                }
+            },
+        )
     }
 
     Box(
@@ -149,7 +200,13 @@ fun ProfileScreen(
                 email = userProfile?.email ?: "unknown@realm.com",
                 onEditProfile = { /* Navigate to edit */ },
                 onChangePassword = { /* Navigate to change password */ },
-                onSettings = { /* Navigate to settings */ }
+                onSettings = { /* Navigate to settings */ },
+                onPrivacyPolicy = {
+                    uriHandler.openUri(
+                        "https://github.com/aliammari1/readrealm/blob/main/PRIVACY.md",
+                    )
+                },
+                onDeleteAccount = { showDeleteAccountDialog = true },
             )
 
             Spacer(modifier = Modifier.height(100.dp))
@@ -885,7 +942,9 @@ private fun MagicalScrollActions(
     email: String,
     onEditProfile: () -> Unit,
     onChangePassword: () -> Unit,
-    onSettings: () -> Unit
+    onSettings: () -> Unit,
+    onPrivacyPolicy: () -> Unit,
+    onDeleteAccount: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -925,6 +984,24 @@ private fun MagicalScrollActions(
             title = "Arcane Settings",
             subtitle = "Configure your realm",
             onClick = onSettings
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        ScrollActionItem(
+            icon = Icons.Default.PrivacyTip,
+            title = "Privacy Policy",
+            subtitle = "How ReadRealm handles your data",
+            onClick = onPrivacyPolicy,
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        ScrollActionItem(
+            icon = Icons.Default.DeleteForever,
+            title = "Delete Account",
+            subtitle = "Permanently erase your ReadRealm account and data",
+            onClick = onDeleteAccount,
         )
     }
 }

@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { getModelToken } from '@nestjs/mongoose';
+import { getConnectionToken, getModelToken } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
@@ -19,6 +19,10 @@ describe('AuthService', () => {
         { provide: JwtService, useValue: { sign: jest.fn() } },
         { provide: VerificationService, useValue: {} },
         { provide: getModelToken('RefreshToken'), useValue: {} },
+        {
+          provide: getConnectionToken(),
+          useValue: { collection: jest.fn() },
+        },
       ],
     }).compile();
 

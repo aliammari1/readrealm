@@ -11,8 +11,8 @@ import * as bcrypt from 'bcryptjs';
 import { SignupDto } from './dto/signUpDto';
 import { loginDto } from './dto/loginDto';
 import { JwtService } from '@nestjs/jwt'; // Proper import of JwtService
-import { InjectModel } from '@nestjs/mongoose'; // Mongoose injection
-import { Model } from 'mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import { Connection, Model, Types } from 'mongoose';
 import { RefreshToken } from './dto/refresh-token.schema'; // Import your RefreshToken schema
 import { MailService } from '../services/mail.service';
 import { VerificationService } from '../verification/verification.service';
@@ -25,7 +25,9 @@ export class AuthService {
     private readonly jwtService: JwtService, // Inject JwtService properly
     private readonly verificationService: VerificationService,
     @InjectModel('RefreshToken')
-    private readonly refreshTokenModel: Model<RefreshToken>, // Inject Mongoose model
+    private readonly refreshTokenModel: Model<RefreshToken>,
+    @InjectConnection()
+    private readonly connection: Connection,
   ) {}
 
   async register(signupData: SignupDto) {
@@ -108,6 +110,128 @@ export class AuthService {
 
     return this.generateUserTokens(token.userId, token.email);
   }
+  async requestAccountDeletion(email: string) {
+    const normalizedEmail = email?.trim().toLowerCase();
+    const user = normalizedEmail
+      ? await this.userService.findByEmail(normalizedEmail)
+      : null;
+
+    // Always return the same response to avoid leaking which emails are registered.
+    if (!user) {
+      return {
+        message:
+          'If an account exists for that email, a deletion verification code has been sent.',
+      };
+    }
+
+    const otp = await this.verificationService.generateOtp(user.id as any);
+    await this.mailService.sendPasswordResetEmail(
+      user.email,
+      `<p>Hi${user.username ? ' ' + user.username : ''},</p><p>Your ReadRealm account deletion code is: <strong>${otp}</strong></p><p>This code expires in 15 minutes. If you did not request deletion, you can ignore this email.</p>`,
+    );
+
+    return {
+      message:
+        'If an account exists for that email, a deletion verification code has been sent.',
+    };
+  }
+
+  async confirmAccountDeletion(email: string, otp: string) {
+    const normalizedEmail = email?.trim().toLowerCase();
+    const user = normalizedEmail
+      ? await this.userService.findByEmail(normalizedEmail)
+      : null;
+
+    if (!user || !otp) {
+      throw new UnprocessableEntityException(
+        'Invalid or expired deletion code',
+      );
+    }
+
+    const isValid = await this.verificationService.validateOtp(
+      normalizedEmail,
+      otp,
+    );
+    if (!isValid) {
+      throw new UnprocessableEntityException(
+        'Invalid or expired deletion code',
+      );
+    }
+
+    return this.deleteAccount(user.id);
+  }
+
+  async deleteAccount(userId: string) {
+    const user = await this.userService.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const reviews = this.connection.collection('reviews');
+    const books = this.connection.collection('books');
+    const messages = this.connection.collection('messages');
+    const verifications = this.connection.collection('verifications');
+
+    const userReviews = await reviews
+      .find({ userId })
+      .project({ _id: 1, bookId: 1 })
+      .toArray();
+    const reviewIds = userReviews.map((review) => review._id);
+    const affectedBookIds = [
+      ...new Set(
+        userReviews
+          .map((review) => review.bookId)
+          .filter((bookId): bookId is number => typeof bookId === 'number'),
+      ),
+    ];
+
+    await Promise.all([
+      this.refreshTokenModel.deleteMany({ userId }).exec(),
+      reviews.deleteMany({ userId }),
+      messages.deleteMany({ userId }),
+      books.updateMany({}, {
+        $pull: {
+          bookmarks: { userId },
+          reviews: { $in: reviewIds },
+        },
+      } as any),
+      Types.ObjectId.isValid(userId)
+        ? verifications.deleteMany({ userId: new Types.ObjectId(userId) })
+        : Promise.resolve(),
+    ]);
+
+    for (const bookId of affectedBookIds) {
+      const ratingStats = await reviews
+        .aggregate([
+          { $match: { bookId } },
+          {
+            $group: {
+              _id: null,
+              averageRating: { $avg: '$rating' },
+              totalReviews: { $sum: 1 },
+            },
+          },
+        ])
+        .toArray();
+
+      await books.updateOne(
+        { id: bookId },
+        {
+          $set: {
+            averageRating: ratingStats[0]?.averageRating ?? 0,
+            totalReviews: ratingStats[0]?.totalReviews ?? 0,
+          },
+        },
+      );
+    }
+
+    await this.userService.remove(userId);
+
+    return {
+      message: 'Account and associated ReadRealm data deleted successfully',
+    };
+  }
+
   async changePassword(userId, oldPassword: string, newPassword: string) {
     if (!oldPassword || !newPassword) {
       throw new BadRequestException(

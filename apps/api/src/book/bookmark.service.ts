@@ -1,4 +1,3 @@
-import 'openai/shims/node';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Book, BookDocument } from './entities/book.entity';
 import { InjectModel } from '@nestjs/mongoose';
