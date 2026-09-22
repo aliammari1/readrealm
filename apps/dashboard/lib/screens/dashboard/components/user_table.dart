@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_library_app/screens/dashboard/components/header.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_library_app/constants.dart';
 import 'package:flutter_library_app/providers/auth_provider.dart';
@@ -19,8 +18,6 @@ class _UserTableState extends State<UserTable> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _isLoading = false;
-  bool _obscurePassword = true;
 
   @override
   void dispose() {
