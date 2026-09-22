@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, feat/upgrade, release/store-ready]
   pull_request:
-    branches: [main]
+    branches: [main, feat/upgrade]
 
 # Least-privilege by default; jobs opt into more where needed.
 permissions:
@@ -103,8 +103,8 @@ jobs:
         run: ./gradlew detekt
         continue-on-error: true # non-blocking until baseline is curated
 
-      - name: Unit tests
-        run: ./gradlew testDebugUnitTest
+      - name: Unit tests and Play release bundle
+        run: ./gradlew testDebugUnitTest assembleDebug bundleRelease --no-daemon
 
   # ---------------------------------------------------------------------------
   # 3. Dashboard — Flutter: very_good_analysis + flutter test.
@@ -134,18 +134,23 @@ jobs:
         run: flutter test
 
   # ---------------------------------------------------------------------------
-  # 4. iOS — SwiftLint + xcodebuild on macOS. Non-blocking until the Xcode
-  #    target rename + a test target land (see apps/ios/README.md NEEDS-PORT).
+  # 4. iOS — SwiftLint + Xcode 26+ simulator build. Blocking because the
+  #    App Store requires uploads built with the current iOS 26 SDK toolchain.
   # ---------------------------------------------------------------------------
   ios:
-    name: iOS (Xcode / SwiftLint)
-    runs-on: macos-14
-    continue-on-error: true
+    name: iOS (Xcode 26 / SwiftLint)
+    runs-on: macos-26
     defaults:
       run:
         working-directory: apps/ios/ReadRealm
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Verify App Store Xcode toolchain
+        run: |
+          xcodebuild -version
+          major="$(xcodebuild -version | awk 'NR==1 {split($2, a, "."); print a[1]}')"
+          test "$major" -ge 26
 
       - name: SwiftLint
         run: |
@@ -157,7 +162,7 @@ jobs:
           xcodebuild \
             -project Application.xcodeproj \
             -scheme ReadRealm \
-            -destination 'platform=iOS Simulator,name=iPhone 15' \
+            -destination 'generic/platform=iOS Simulator' \
             build CODE_SIGNING_ALLOWED=NO
 
   # ---------------------------------------------------------------------------
@@ -165,7 +170,7 @@ jobs:
   # ---------------------------------------------------------------------------
   codeql:
     name: CodeQL
-    runs-on: ${{ matrix.language == 'swift' && 'macos-14' || 'ubuntu-latest' }}
+    runs-on: ${{ matrix.language == 'swift' && 'macos-26' || 'ubuntu-latest' }}
     permissions:
       security-events: write
       actions: read
@@ -207,9 +212,6 @@ jobs:
           output: trivy-results.sarif
           severity: CRITICAL,HIGH
         env:
-          # apps/api pulls `rt-client` from a raw GitHub release tarball (not a
-          # registry) — a supply-chain surface Trivy/Renovate cannot pin. See
-          # the README "engineering decisions" note.
           TRIVY_SKIP_DIRS: node_modules
 
       - name: Upload Trivy SARIF
