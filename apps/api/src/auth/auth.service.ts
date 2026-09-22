@@ -143,7 +143,9 @@ export class AuthService {
       : null;
 
     if (!user || !otp) {
-      throw new UnprocessableEntityException('Invalid or expired deletion code');
+      throw new UnprocessableEntityException(
+        'Invalid or expired deletion code',
+      );
     }
 
     const isValid = await this.verificationService.validateOtp(
@@ -151,7 +153,9 @@ export class AuthService {
       otp,
     );
     if (!isValid) {
-      throw new UnprocessableEntityException('Invalid or expired deletion code');
+      throw new UnprocessableEntityException(
+        'Invalid or expired deletion code',
+      );
     }
 
     return this.deleteAccount(user.id);
@@ -185,15 +189,12 @@ export class AuthService {
       this.refreshTokenModel.deleteMany({ userId }).exec(),
       reviews.deleteMany({ userId }),
       messages.deleteMany({ userId }),
-      books.updateMany(
-        {},
-        {
-          $pull: {
-            bookmarks: { userId },
-            reviews: { $in: reviewIds },
-          },
-        } as any,
-      ),
+      books.updateMany({}, {
+        $pull: {
+          bookmarks: { userId },
+          reviews: { $in: reviewIds },
+        },
+      } as any),
       Types.ObjectId.isValid(userId)
         ? verifications.deleteMany({ userId: new Types.ObjectId(userId) })
         : Promise.resolve(),
