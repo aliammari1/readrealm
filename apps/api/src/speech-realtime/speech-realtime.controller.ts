@@ -4,9 +4,7 @@ import { SpeechRealtimeService } from './speech-realtime.service';
 
 @Controller('speech-realtime')
 export class SpeechRealtimeController {
-  constructor(
-    private readonly speechRealtimeService: SpeechRealtimeService,
-  ) {}
+  constructor(private readonly speechRealtimeService: SpeechRealtimeService) {}
 
   @UseGuards(AuthGaurd)
   @Get('signed-url')
