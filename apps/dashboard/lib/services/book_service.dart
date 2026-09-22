@@ -1,8 +1,9 @@
 import 'dart:convert';
+
+import 'package:flutter_library_app/constants.dart';
+import 'package:flutter_library_app/models/book_model.dart';
+import 'package:flutter_library_app/models/review_model.dart';
 import 'package:http/http.dart' as http;
-import '../constants.dart';
-import '../models/book_model.dart';
-import '../models/review_model.dart';
 
 class BookService {
   static const String baseUrl = '$apiBaseUrl/book';
@@ -11,8 +12,10 @@ class BookService {
     final response = await http.get(Uri.parse('$baseUrl/bookmarks/$userId'));
 
     if (response.statusCode == 200) {
-      final List<dynamic> jsonData = json.decode(response.body);
-      return jsonData.map((json) => Book.fromJson(json)).toList();
+      final jsonData = jsonDecode(response.body) as List<dynamic>;
+      return jsonData
+          .map((item) => Book.fromJson(item as Map<String, dynamic>))
+          .toList();
     }
     throw Exception('Failed to load bookmarks');
   }
@@ -21,8 +24,10 @@ class BookService {
     final response = await http.get(Uri.parse('$baseUrl/reviews/$bookId'));
 
     if (response.statusCode == 200) {
-      final List<dynamic> jsonData = json.decode(response.body);
-      return jsonData.map((json) => Review.fromJson(json)).toList();
+      final jsonData = jsonDecode(response.body) as List<dynamic>;
+      return jsonData
+          .map((item) => Review.fromJson(item as Map<String, dynamic>))
+          .toList();
     }
     throw Exception('Failed to load reviews');
   }
@@ -31,7 +36,7 @@ class BookService {
     final response = await http.put(
       Uri.parse('$baseUrl/$bookId/bookmark'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode({'userId': userId}),
+      body: jsonEncode({'userId': userId}),
     );
 
     if (response.statusCode != 200 && response.statusCode != 201) {
@@ -43,8 +48,10 @@ class BookService {
     final response = await http.get(Uri.parse('$baseUrl/user-reviews/$userId'));
 
     if (response.statusCode == 200) {
-      final List<dynamic> jsonData = json.decode(response.body);
-      return jsonData.map((json) => Review.fromJson(json)).toList();
+      final jsonData = jsonDecode(response.body) as List<dynamic>;
+      return jsonData
+          .map((item) => Review.fromJson(item as Map<String, dynamic>))
+          .toList();
     }
     throw Exception('Failed to load user reviews');
   }
