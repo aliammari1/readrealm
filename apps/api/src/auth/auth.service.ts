@@ -110,6 +110,53 @@ export class AuthService {
 
     return this.generateUserTokens(token.userId, token.email);
   }
+  async requestAccountDeletion(email: string) {
+    const normalizedEmail = email?.trim().toLowerCase();
+    const user = normalizedEmail
+      ? await this.userService.findByEmail(normalizedEmail)
+      : null;
+
+    // Always return the same response to avoid leaking which emails are registered.
+    if (!user) {
+      return {
+        message:
+          'If an account exists for that email, a deletion verification code has been sent.',
+      };
+    }
+
+    const otp = await this.verificationService.generateOtp(user.id as any);
+    await this.mailService.sendPasswordResetEmail(
+      user.email,
+      `<p>Hi${user.username ? ' ' + user.username : ''},</p><p>Your ReadRealm account deletion code is: <strong>${otp}</strong></p><p>This code expires in 15 minutes. If you did not request deletion, you can ignore this email.</p>`,
+    );
+
+    return {
+      message:
+        'If an account exists for that email, a deletion verification code has been sent.',
+    };
+  }
+
+  async confirmAccountDeletion(email: string, otp: string) {
+    const normalizedEmail = email?.trim().toLowerCase();
+    const user = normalizedEmail
+      ? await this.userService.findByEmail(normalizedEmail)
+      : null;
+
+    if (!user || !otp) {
+      throw new UnprocessableEntityException('Invalid or expired deletion code');
+    }
+
+    const isValid = await this.verificationService.validateOtp(
+      normalizedEmail,
+      otp,
+    );
+    if (!isValid) {
+      throw new UnprocessableEntityException('Invalid or expired deletion code');
+    }
+
+    return this.deleteAccount(user.id);
+  }
+
   async deleteAccount(userId: string) {
     const user = await this.userService.findById(userId);
     if (!user) {
