@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -77,6 +78,7 @@ fun ProfileScreen(
     val userProfile by viewModel.userProfile.collectAsState()
     val scrollState = rememberScrollState()
     val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
     var showDeleteAccountDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -199,6 +201,11 @@ fun ProfileScreen(
                 onEditProfile = { /* Navigate to edit */ },
                 onChangePassword = { /* Navigate to change password */ },
                 onSettings = { /* Navigate to settings */ },
+                onPrivacyPolicy = {
+                    uriHandler.openUri(
+                        "https://github.com/aliammari1/readrealm/blob/main/PRIVACY.md",
+                    )
+                },
                 onDeleteAccount = { showDeleteAccountDialog = true },
             )
 
@@ -936,6 +943,7 @@ private fun MagicalScrollActions(
     onEditProfile: () -> Unit,
     onChangePassword: () -> Unit,
     onSettings: () -> Unit,
+    onPrivacyPolicy: () -> Unit,
     onDeleteAccount: () -> Unit,
 ) {
     Column(
@@ -976,6 +984,15 @@ private fun MagicalScrollActions(
             title = "Arcane Settings",
             subtitle = "Configure your realm",
             onClick = onSettings
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        ScrollActionItem(
+            icon = Icons.Default.PrivacyTip,
+            title = "Privacy Policy",
+            subtitle = "How ReadRealm handles your data",
+            onClick = onPrivacyPolicy,
         )
 
         Spacer(modifier = Modifier.height(12.dp))
