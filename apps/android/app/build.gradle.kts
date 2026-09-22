@@ -16,6 +16,18 @@ android {
         versionCode = 1
         versionName = "1.0.0"
 
+        val apiBaseUrl =
+            System.getenv("READREALM_API_BASE_URL")
+                ?: "https://libraryapp-nest-back.vercel.app/"
+        val normalizedApiBaseUrl =
+            if (apiBaseUrl.endsWith("/")) apiBaseUrl else "${apiBaseUrl}/"
+        buildConfigField("String", "API_BASE_URL", "\"$normalizedApiBaseUrl\"")
+        buildConfigField(
+            "String",
+            "SOCKET_BASE_URL",
+            "\"${normalizedApiBaseUrl.removeSuffix("/")}\"",
+        )
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -74,6 +86,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
