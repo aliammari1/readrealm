@@ -208,6 +208,47 @@ class AuthViewModel: ObservableObject {
         }.resume()
     }
 
+    func deleteAccount(completion: @escaping (Result<Void, Error>) -> Void) {
+        guard let url = URL(string: "\(baseURL)/auth/account"),
+              let accessToken = AuthManager.shared.getAccessToken() else {
+            completion(.failure(NSError(
+                domain: "ReadRealm.Auth",
+                code: 401,
+                userInfo: [NSLocalizedDescriptionKey: "You must be signed in to delete your account."]
+            )))
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+
+        URLSession.shared.dataTask(with: request) { _, response, error in
+            if let error {
+                DispatchQueue.main.async { completion(.failure(error)) }
+                return
+            }
+
+            guard let httpResponse = response as? HTTPURLResponse,
+                  (200...299).contains(httpResponse.statusCode) else {
+                let error = NSError(
+                    domain: "ReadRealm.Auth",
+                    code: (response as? HTTPURLResponse)?.statusCode ?? 500,
+                    userInfo: [NSLocalizedDescriptionKey: "Unable to delete your account right now."]
+                )
+                DispatchQueue.main.async { completion(.failure(error)) }
+                return
+            }
+
+            DispatchQueue.main.async {
+                AuthManager.shared.clearTokens()
+                self.profile = nil
+                self.isLoggedIn = false
+                completion(.success(()))
+            }
+        }.resume()
+    }
+
     // Méthode pour récupérer le profil
     func fetchProfile() {
         let userId = AuthManager.shared.getUserId()
