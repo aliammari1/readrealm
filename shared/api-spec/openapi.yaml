@@ -20,6 +20,16 @@ paths:
           description: ''
       tags:
         - app
+  /privacy:
+    get:
+      operationId: AppController_privacyPage
+      summary: Public privacy policy page
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - app
   /health:
     get:
       operationId: AppController_health
