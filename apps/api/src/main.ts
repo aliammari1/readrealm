@@ -58,10 +58,9 @@ async function bootstrap() {
   // Structured JSON logging (pino) with per-request correlation ids.
   app.useLogger(app.get(Logger));
 
-  // Security headers (CSP, HSTS, X-Frame-Options, etc.). CSP is left off here
-  // because the API serves Swagger UI assets; tighten per-route in front of a
-  // proxy if the UI is exposed publicly.
-  app.use(helmet({ contentSecurityPolicy: false }));
+  // Apply Helmet's secure defaults, including Content Security Policy.
+  // Interactive Swagger UI is opt-in so production never needs a weakened CSP.
+  app.use(helmet());
 
   // Lock CORS to an explicit allow-list (CORS_ORIGIN). Defaults to disabled
   // (same-origin only) rather than the previous wide-open '*'.
@@ -91,9 +90,11 @@ async function bootstrap() {
   app.use(json({ limit: process.env.MAX_JSON_BODY_SIZE ?? '10mb' }));
 
   const document = SwaggerModule.createDocument(app, buildSwaggerConfig());
-  SwaggerModule.setup('api/docs', app, document, {
-    swaggerOptions: { persistAuthorization: true },
-  });
+  if (process.env.SWAGGER_ENABLED === 'true') {
+    SwaggerModule.setup('api/docs', app, document, {
+      swaggerOptions: { persistAuthorization: true },
+    });
+  }
 
   await app.listen(process.env.PORT ?? 3000);
 }
