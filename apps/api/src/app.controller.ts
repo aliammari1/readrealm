@@ -97,6 +97,64 @@ export class AppController {
 </html>`;
   }
 
+  @ApiOperation({ summary: 'Public privacy policy page' })
+  @Header('Content-Type', 'text/html; charset=utf-8')
+  @Get('privacy')
+  privacyPage() {
+    return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ReadRealm Privacy Policy</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, -apple-system, sans-serif; }
+    body { margin: 0; background: #1A0F0A; color: #F5E6C8; line-height: 1.6; }
+    main { max-width: 760px; margin: 0 auto; padding: 48px 20px; }
+    .card { background: #2b1913; border: 1px solid #8B5A2B; border-radius: 18px; padding: 28px; }
+    h1, h2 { color: #D4AF37; }
+    a { color: #FFE4B5; }
+    code { color: #FFE4B5; }
+  </style>
+</head>
+<body>
+<main>
+  <article class="card">
+    <h1>ReadRealm Privacy Policy</h1>
+    <p><strong>Effective date:</strong> September 22, 2026</p>
+    <p>ReadRealm is a reading application for book discovery, EPUB reading, bookmarks, reviews, book discussions, optional voice features, and optional AI-assisted reading features.</p>
+
+    <h2>Information processed</h2>
+    <p>ReadRealm may process account information, reading and library activity, messages and other user-generated content, microphone audio when you explicitly start a voice feature, and technical diagnostics needed for security and reliability.</p>
+    <p>ReadRealm does not use these categories for cross-app advertising tracking.</p>
+
+    <h2>How information is used</h2>
+    <p>Information is used to create and secure accounts, provide reading and collaboration features, synchronize account content, send verification and security messages, prevent abuse, and maintain service reliability.</p>
+
+    <h2>Service providers</h2>
+    <p>Depending on the deployment and features you use, ReadRealm may use ElevenLabs for optional narration or voice-agent features, Stream for supported communication features, Open Library/Gutendex/Project Gutenberg metadata sources for book discovery, and Sentry for optional server-side error monitoring. Book-summary and book-chat AI can run through a self-hosted Ollama instance.</p>
+
+    <h2>Data retention and deletion</h2>
+    <p>Account and user-generated data is retained while your account is active unless a shorter period is required for an operational purpose. You can permanently delete your account in the app from <strong>Profile → Delete Account</strong> or use the <a href="/account-deletion">web account-deletion page</a>.</p>
+    <p>Deletion removes the ReadRealm account and associated server-side data handled by the deletion service, including active refresh sessions, reviews, bookmarks, and chat messages, subject to any retention required by law or security obligations.</p>
+
+    <h2>Device permissions</h2>
+    <p>ReadRealm requests permissions only for features that need them, such as microphone access for voice features, camera access for supported scanning features, and notifications where enabled. Permissions can be revoked in device settings.</p>
+
+    <h2>Security</h2>
+    <p>Production deployments use HTTPS together with hashed passwords, access tokens, validation, rate limiting, security headers, and related safeguards. No internet service can guarantee absolute security.</p>
+
+    <h2>Children</h2>
+    <p>ReadRealm is not intentionally designed to collect personal information from children below the minimum age permitted by applicable law without appropriate consent.</p>
+
+    <h2>Contact</h2>
+    <p>For project-level privacy or security questions, use the ReadRealm repository contact channels without posting passwords, tokens, private reading content, or other sensitive personal data publicly.</p>
+  </article>
+</main>
+</body>
+</html>`;
+  }
+
   @ApiOperation({ summary: 'Service health check' })
   @Get('health')
   health() {
