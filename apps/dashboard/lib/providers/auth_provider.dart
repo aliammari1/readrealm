@@ -1,23 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_library_app/models/auth_state.dart';
 import 'package:flutter_library_app/models/user_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../services/api_client.dart';
-import '../services/face_recognition_service.dart';
-import 'package:path_provider/path_provider.dart';
+import '../constants.dart';
 
 class AuthProvider with ChangeNotifier {
-  final String _baseUrl = 'https://libraryapp-nest-back.vercel.app';
-  final _secureStorage = const FlutterSecureStorage();
-  late final ApiClient _apiClient;
-  final FaceRecognitionService _faceService = FaceRecognitionService();
+  final String _baseUrl = apiBaseUrl;
   AuthState _state = AuthState();
-
-  AuthProvider() {
-    _apiClient = ApiClient(_baseUrl);
-  }
 
   AuthState get state => _state;
   bool get isAuthenticated => _state.isAuthenticated;
@@ -40,8 +30,6 @@ class AuthProvider with ChangeNotifier {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
-        print('Login response: ${response.body}'); // Debug line
-
         if (data['accessToken'] != null && data['userId'] != null) {
           _setState(
             _state.copyWith(
@@ -68,7 +56,7 @@ class AuthProvider with ChangeNotifier {
           isAuthenticated: false,
         ),
       );
-      throw e;
+      rethrow;
     }
   }
 
@@ -86,14 +74,14 @@ class AuthProvider with ChangeNotifier {
         }),
       );
 
-      if (response.statusCode != 200) {
-        throw Exception('Registration failed');
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Registration failed: ${response.statusCode}');
       }
 
       _setState(_state.copyWith(isLoading: false));
     } catch (e) {
       _setState(_state.copyWith(isLoading: false, error: e.toString()));
-      throw e;
+      rethrow;
     }
   }
 
@@ -116,7 +104,7 @@ class AuthProvider with ChangeNotifier {
       }
     } catch (e) {
       logout();
-      throw e;
+      rethrow;
     }
     await fetchUsers(); // Add this line
   }
@@ -221,67 +209,5 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       throw Exception('Error deleting user: $e');
     }
-  }
-
-  Future<void> signInWithFace() async {
-    try {
-      _setState(_state.copyWith(isLoading: true));
-
-      // Get stored credentials
-      final storedPersonId = await _secureStorage.read(key: 'azure_person_id');
-      final storedEmail = await _secureStorage.read(key: 'last_email');
-
-      if (storedPersonId == null || storedEmail == null) {
-        throw Exception(
-          'No stored face data found. Please login with password first',
-        );
-      }
-
-      // Capture and verify face
-      final tempDir = await getTemporaryDirectory();
-      final imagePath = '${tempDir.path}/face_auth.jpg';
-      final success = await _faceService.authenticate(
-        storedPersonId,
-        imagePath,
-      );
-
-      if (!success) {
-        throw Exception('Face authentication failed');
-      }
-
-      // Login with stored email
-      final response = await http.post(
-        Uri.parse('$_baseUrl/auth/face-login'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({'email': storedEmail, 'personId': storedPersonId}),
-      );
-
-      if (response.statusCode != 200) {
-        throw Exception('Authentication failed');
-      }
-
-      final data = json.decode(response.body);
-      final user = User.fromJson(data['user']);
-      final token = data['token'];
-
-      _setState(
-        _state.copyWith(
-          isAuthenticated: true,
-          currentUser: user,
-          accessToken: token,
-        ),
-      );
-    } catch (e) {
-      _setState(_state.copyWith(error: e.toString()));
-      throw e;
-    } finally {
-      _setState(_state.copyWith(isLoading: false));
-    }
-  }
-
-  // After successful password login, store credentials for Face ID
-  Future<void> _storeCredentialsForFaceId(String email, String personId) async {
-    await _secureStorage.write(key: 'last_email', value: email);
-    await _secureStorage.write(key: 'azure_person_id', value: personId);
   }
 }
