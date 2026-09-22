@@ -16,7 +16,7 @@ export function buildSwaggerConfig() {
       'Backend for ReadRealm — an intelligent, collaborative digital library. ' +
         'One NestJS API serving the Android, iOS and Flutter clients: ' +
         'auth, books/EPUB, reviews, bookmarks, real-time book chat (Socket.IO) ' +
-        'and multi-provider AI (Google / OpenAI / HuggingFace / Azure / Anthropic).',
+        'plus ElevenLabs narration and self-hosted Ollama book intelligence.',
     )
     .setVersion('1.0.0')
     .setLicense(
@@ -88,7 +88,7 @@ async function bootstrap() {
     }),
   );
 
-  app.use(json({ limit: '100mb' }));
+  app.use(json({ limit: process.env.MAX_JSON_BODY_SIZE ?? '10mb' }));
 
   const document = SwaggerModule.createDocument(app, buildSwaggerConfig());
   SwaggerModule.setup('api/docs', app, document, {
