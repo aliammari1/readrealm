@@ -9,4 +9,18 @@ export class AppController {
   async getHello() {
     return this.appService.getHello();
   }
+
+  @Get('health')
+  health() {
+    return {
+      status: 'ok',
+      service: 'readrealm-api',
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  @Get('health/live')
+  live() {
+    return { status: 'ok' };
+  }
 }
