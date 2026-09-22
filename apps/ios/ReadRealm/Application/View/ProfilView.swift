@@ -1,23 +1,69 @@
 import SwiftUI
 
 struct ProfilView: View {
+    @StateObject private var authViewModel = AuthViewModel()
+    @State private var showDeleteConfirmation = false
+    @State private var deletionError: String?
+    @State private var accountDeleted = false
+
     var body: some View {
-        NavigationView {
-            ScrollView{
-                VStack {
-                    Image("logouser") // Ensure you have the image in your assets
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 130, height: 130)
-                        .cornerRadius(100)
-                    Text("Profile View")
-                        .font(.title)
+        if accountDeleted {
+            SignIn()
+        } else {
+            NavigationView {
+                ScrollView {
+                    VStack(spacing: 20) {
+                        Image("logouser")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 130, height: 130)
+                            .clipShape(Circle())
+
+                        Text("Your ReadRealm")
+                            .font(.title2.bold())
+
+                        Link(
+                            "Privacy Policy",
+                            destination: URL(string: "https://github.com/aliammari1/readrealm/blob/main/PRIVACY.md")!
+                        )
+
+                        Button(role: .destructive) {
+                            showDeleteConfirmation = true
+                        } label: {
+                            Label("Delete Account", systemImage: "trash")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
                         .padding(.top, 20)
+
+                        if let deletionError {
+                            Text(deletionError)
+                                .font(.footnote)
+                                .foregroundStyle(.red)
+                        }
+                    }
+                    .padding()
                 }
-                .padding()
+                .navigationTitle("Profile")
+                .navigationBarTitleDisplayMode(.inline)
+                .alert("Delete ReadRealm account?", isPresented: $showDeleteConfirmation) {
+                    Button("Cancel", role: .cancel) {}
+                    Button("Delete Permanently", role: .destructive) {
+                        authViewModel.deleteAccount { result in
+                            switch result {
+                            case .success:
+                                accountDeleted = true
+                            case .failure(let error):
+                                deletionError = error.localizedDescription
+                            }
+                        }
+                    }
+                } message: {
+                    Text(
+                        "This permanently deletes your account and associated ReadRealm data, including reviews, bookmarks, chat messages, and active sessions. This cannot be undone."
+                    )
+                }
             }
-            .navigationTitle("Profile") // Set the title for the navigation bar
-            .navigationBarTitleDisplayMode(.inline) // Set the display mode of the title
         }
     }
 }
