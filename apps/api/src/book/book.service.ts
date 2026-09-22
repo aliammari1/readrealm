@@ -5,7 +5,6 @@ import { HttpService } from '@nestjs/axios';
 import { map } from 'rxjs/operators';
 import { Book, BookDocument } from './entities/book.entity';
 import { firstValueFrom } from 'rxjs';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -21,8 +20,6 @@ export class BookService {
   private readonly OPEN_LIBRARY_COVER_ENDPOINT =
     'https://covers.openlibrary.org';
   private readonly GUTEDEX_API_ENDPOINT = 'https://gutendex.com';
-  private geminiApiKey: string;
-  private geminiModel: string;
 
   private bookCache = new Map<string, any>();
   private readonly CACHE_DURATION = 900000; // 15 minutes
@@ -36,10 +33,7 @@ export class BookService {
     private readonly epubService: EpubService,
     private readonly reviewService: ReviewService,
     private readonly bookmarkService: BookmarkService,
-  ) {
-    this.geminiApiKey = configService.get<string>('gemini.key');
-    this.geminiModel = configService.get<string>('gemini.model');
-  }
+  ) {}
 
   // 2. CRUD Operations
   async create(createBookDto: CreateBookDto): Promise<Book> {
@@ -357,24 +351,85 @@ export class BookService {
   }
 
   async getBookSummary(title: string) {
-    // data = new CreateBookDto();
-    if (title == '') {
-      return 'No text data provided';
+    if (!title.trim()) {
+      return 'No title provided';
     }
-    const book = await this.getBookByTitle(title);
-    if (!book || book.length == 0) {
-      return 'Book not found';
-    }
-    let textData = book[0].textData;
-    textData = textData.replace(/(\r\n|\n|\r)/gm, ' ');
-    textData = textData.replace(/ +(?= )/g, '');
-    const genAI = new GoogleGenerativeAI(this.geminiApiKey);
-    const model = genAI.getGenerativeModel({ model: this.geminiModel });
-    const prompt = 'summarize this book in 5 lines: ' + textData;
 
-    const result = await model.generateContent(prompt);
-    const response = result.response.text();
-    console.log(response);
-    return response;
+    const book = await this.getBookByTitle(title);
+    if (!book?.length || !book[0].textData?.trim()) {
+      return 'Book text is not available for summarization';
+    }
+
+    const ollamaUrl =
+      this.configService.get<string>('ollama.url') ?? 'http://localhost:11434';
+    const ollamaModel =
+      this.configService.get<string>('ollama.model') ?? 'qwen3:8b';
+
+    const normalizedText = book[0].textData
+      .replace(/(\r\n|\n|\r)/gm, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const sampleSize = 36000;
+    const sectionSize = 12000;
+    const sections: string[] = [];
+
+    if (normalizedText.length <= sampleSize) {
+      for (let i = 0; i < normalizedText.length; i += sectionSize) {
+        sections.push(normalizedText.slice(i, i + sectionSize));
+      }
+    } else {
+      const positions = [
+        0,
+        Math.max(0, Math.floor(normalizedText.length / 2) - sectionSize / 2),
+        Math.max(0, normalizedText.length - sectionSize),
+      ];
+      for (const position of positions) {
+        sections.push(normalizedText.slice(position, position + sectionSize));
+      }
+    }
+
+    const sectionSummaries: string[] = [];
+    for (const [index, section] of sections.entries()) {
+      const response = await firstValueFrom(
+        this.httpService.post(
+          `${ollamaUrl.replace(/\/$/, '')}/api/generate`,
+          {
+            model: ollamaModel,
+            stream: false,
+            prompt:
+              `Summarize section ${index + 1} of the book "${book[0].title}" ` +
+              'in 3 concise factual bullet points. Do not invent details.\n\n' +
+              section,
+          },
+          { timeout: 120000 },
+        ),
+      );
+
+      if (response.data?.response) {
+        sectionSummaries.push(response.data.response.trim());
+      }
+    }
+
+    if (sectionSummaries.length === 0) {
+      return 'Summary generation is unavailable';
+    }
+
+    const finalResponse = await firstValueFrom(
+      this.httpService.post(
+        `${ollamaUrl.replace(/\/$/, '')}/api/generate`,
+        {
+          model: ollamaModel,
+          stream: false,
+          prompt:
+            `Create a spoiler-conscious five-line overview of "${book[0].title}" ` +
+            'using only the section summaries below. Do not invent details.\n\n' +
+            sectionSummaries.join('\n\n'),
+        },
+        { timeout: 120000 },
+      ),
+    );
+
+    return finalResponse.data?.response?.trim() || sectionSummaries.join('\n');
   }
 }
