@@ -96,6 +96,27 @@ class AuthViewModel() : ViewModel() {
         }
     }
 
+    fun deleteAccount(
+        onDeleted: () -> Unit,
+        onError: (String) -> Unit,
+    ) {
+        viewModelScope.launch {
+            try {
+                val response = repository.deleteAccount()
+                if (response.isSuccessful) {
+                    TokenManagerProvider.getInstance().clearTokens()
+                    _userProfile.value = null
+                    onDeleted()
+                } else {
+                    onError("Unable to delete account. Please try again.")
+                }
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Error deleting account", e)
+                onError(e.message ?: "Unable to delete account")
+            }
+        }
+    }
+
     fun register(registerRequest: RegisterRequest) {
         viewModelScope.launch {
             try {

@@ -190,16 +190,6 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Mystical Divider
-            MysticalDivider()
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Social Login Runes
-            SocialLoginRunes()
-
-            Spacer(modifier = Modifier.height(28.dp))
-
             // Join the Realm Prompt
             JoinRealmPrompt(
                 glowIntensity = glowIntensity,

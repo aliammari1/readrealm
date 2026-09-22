@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
@@ -184,11 +185,20 @@ fun BookDetailsScreen(
             item {
                 QuestActionsSection(
                     onStartReading = {
-                        try {
-                            val encodedUrl = Uri.encode(book?.link)
-                            navController.navigate("read_book/$encodedUrl")
-                        } catch (e: Exception) {
-                            Log.e("BookDetailsScreen", "Error navigating: ${e.message}")
+                        val readingLink = book?.link
+                        if (readingLink.isNullOrBlank()) {
+                            Toast.makeText(
+                                context,
+                                "No EPUB edition is available for this book.",
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        } else {
+                            try {
+                                val encodedUrl = Uri.encode(readingLink)
+                                navController.navigate("read_book/$encodedUrl")
+                            } catch (e: Exception) {
+                                Log.e("BookDetailsScreen", "Error navigating: ${e.message}")
+                            }
                         }
                     }
                 )

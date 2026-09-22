@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>READREALM_API_BASE_URL</key>
+	<string>$(READREALM_API_BASE_URL)</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>ReadRealm uses the microphone when you start voice commands or voice conversations about a book.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>ReadRealm uses speech recognition to turn your voice commands into text for hands-free reading.</string>
+	<key>UIFileSharingEnabled</key>
+	<true/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
+	<key>UISupportsDocumentBrowser</key>
+	<true/>
+</dict>
+</plist>

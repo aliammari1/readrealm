@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -56,6 +57,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import tn.esprit.libraryapp.NavigationItem
+import tn.esprit.libraryapp.BuildConfig
 import tn.esprit.libraryapp.ui.theme.*
 import tn.esprit.libraryapp.viewModel.AuthViewModel
 import kotlin.math.PI
@@ -76,9 +78,59 @@ fun ProfileScreen(
     val viewModel: AuthViewModel = viewModel()
     val userProfile by viewModel.userProfile.collectAsState()
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
+    var showDeleteAccountDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.fetchUserProfile()
+    }
+
+    if (showDeleteAccountDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteAccountDialog = false },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.DeleteForever,
+                    contentDescription = null,
+                    tint = DragonsBlood,
+                )
+            },
+            title = { Text("Delete ReadRealm account?") },
+            text = {
+                Text(
+                    "This permanently deletes your account, reviews, bookmarks, chat messages, and active sessions. This cannot be undone.",
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteAccountDialog = false
+                        viewModel.deleteAccount(
+                            onDeleted = {
+                                navController.navigate(NavigationItem.Login.route) {
+                                    popUpTo(navController.graph.startDestinationId) {
+                                        inclusive = true
+                                    }
+                                }
+                            },
+                            onError = { message ->
+                                android.widget.Toast
+                                    .makeText(context, message, android.widget.Toast.LENGTH_LONG)
+                                    .show()
+                            },
+                        )
+                    },
+                ) {
+                    Text("Delete permanently", color = DragonsBlood)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteAccountDialog = false }) {
+                    Text("Cancel")
+                }
+            },
+        )
     }
 
     Box(
@@ -147,9 +199,12 @@ fun ProfileScreen(
             // ═══════════════════════════════════════════════════════════════
             MagicalScrollActions(
                 email = userProfile?.email ?: "unknown@realm.com",
-                onEditProfile = { /* Navigate to edit */ },
-                onChangePassword = { /* Navigate to change password */ },
-                onSettings = { /* Navigate to settings */ }
+                onPrivacyPolicy = {
+                    uriHandler.openUri(
+                        BuildConfig.API_BASE_URL.trimEnd('/') + "/privacy",
+                    )
+                },
+                onDeleteAccount = { showDeleteAccountDialog = true },
             )
 
             Spacer(modifier = Modifier.height(100.dp))
@@ -228,7 +283,7 @@ private fun WizardPortraitHeader(
         ),
         label = "ring"
     )
-    
+
     val glowPulse by infiniteTransition.animateFloat(
         initialValue = 0.4f,
         targetValue = 0.8f,
@@ -801,7 +856,7 @@ private fun FloatingStatOrb(
         ),
         label = "float"
     )
-    
+
     val glow by infiniteTransition.animateFloat(
         initialValue = 0.3f,
         targetValue = 0.6f,
@@ -883,9 +938,8 @@ private fun FloatingStatOrb(
 @Composable
 private fun MagicalScrollActions(
     email: String,
-    onEditProfile: () -> Unit,
-    onChangePassword: () -> Unit,
-    onSettings: () -> Unit
+    onPrivacyPolicy: () -> Unit,
+    onDeleteAccount: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -897,34 +951,25 @@ private fun MagicalScrollActions(
             icon = Icons.Default.Email,
             title = "Magical Address",
             subtitle = email,
-            onClick = { }
+            onClick = null,
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
         ScrollActionItem(
-            icon = Icons.Default.Edit,
-            title = "Edit Your Chronicle",
-            subtitle = "Modify your wizard profile",
-            onClick = onEditProfile
+            icon = Icons.Default.PrivacyTip,
+            title = "Privacy Policy",
+            subtitle = "How ReadRealm handles your data",
+            onClick = onPrivacyPolicy,
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
         ScrollActionItem(
-            icon = Icons.Default.Lock,
-            title = "Ward Your Secrets",
-            subtitle = "Change magical password",
-            onClick = onChangePassword
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        ScrollActionItem(
-            icon = Icons.Default.Settings,
-            title = "Arcane Settings",
-            subtitle = "Configure your realm",
-            onClick = onSettings
+            icon = Icons.Default.DeleteForever,
+            title = "Delete Account",
+            subtitle = "Permanently erase your ReadRealm account and data",
+            onClick = onDeleteAccount,
         )
     }
 }
@@ -934,7 +979,7 @@ private fun ScrollActionItem(
     icon: ImageVector,
     title: String,
     subtitle: String,
-    onClick: () -> Unit
+    onClick: (() -> Unit)?
 ) {
     Box(
         modifier = Modifier
@@ -954,7 +999,13 @@ private fun ScrollActionItem(
                 color = WarmLeather.copy(alpha = 0.3f),
                 shape = RoundedCornerShape(16.dp)
             )
-            .clickable { onClick() }
+            .then(
+                if (onClick != null) {
+                    Modifier.clickable { onClick() }
+                } else {
+                    Modifier
+                }
+            )
             .padding(16.dp)
     ) {
         Row(
@@ -1001,11 +1052,13 @@ private fun ScrollActionItem(
                 )
             }
 
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowRight,
-                contentDescription = null,
-                tint = GildedGold.copy(alpha = 0.6f)
-            )
+            if (onClick != null) {
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = GildedGold.copy(alpha = 0.6f)
+                )
+            }
         }
     }
 }

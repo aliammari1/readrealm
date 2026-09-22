@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_library_app/screens/bookmarked_books/bookmarked_books_screen.dart';
-import 'package:flutter_library_app/models/user_model.dart'; // Add this import
 
 class Header extends StatelessWidget {
   const Header({Key? key}) : super(key: key);

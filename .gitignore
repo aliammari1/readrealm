@@ -4,11 +4,20 @@ apps/api/dist/
 apps/api/.env
 
 # Android
+*.jks
+*.keystore
+apps/android/keystore/
 apps/android/.gradle/
 apps/android/**/build/
 
-# iOS
+# iOS / Xcode
 apps/ios/DerivedData/
+**/DerivedData/
+**/xcuserdata/
+*.xcuserstate
+# macOS archive-extraction junk (never commit this)
+__MACOSX/
+**/__MACOSX/
 
 # Flutter
 apps/dashboard/.dart_tool/
@@ -22,3 +31,11 @@ apps/dashboard/build/
 # OS
 .DS_Store
 Thumbs.db
+
+# Internal growth/marketing notes (not for public)
+GROWTH.md
+BANNER.md
+SUBMITTING_TO_AWESOME.md
+launch-kit.md
+star-strategy.md
+modernization-backlog.md

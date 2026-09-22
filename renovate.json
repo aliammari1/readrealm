@@ -1,0 +1,36 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 5,
+  "packageRules": [
+    {
+      "description": "Group NestJS packages",
+      "matchPackagePatterns": ["^@nestjs/"],
+      "groupName": "nestjs"
+    },
+    {
+      "description": "Group test tooling",
+      "matchPackageNames": ["jest", "ts-jest", "supertest", "@types/supertest", "mongodb-memory-server"],
+      "groupName": "test-tooling"
+    },
+    {
+      "description": "Automerge dev-dependency patch/minor updates",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true
+    },
+    {
+      "description": "rt-client is a raw GitHub-release tarball, not a registry package — Renovate cannot track it. Document, don't auto-bump.",
+      "matchPackageNames": ["rt-client"],
+      "enabled": false
+    }
+  ],
+  "gradle": { "enabled": true },
+  "flutter": { "enabled": true }
+}

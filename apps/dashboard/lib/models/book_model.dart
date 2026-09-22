@@ -4,7 +4,7 @@ class Book {
   final String author;
   final String? coverUrl;
   final bool isBookmarked;
-  final String genre; // Ensure genre is required
+  final String genre;
 
   Book({
     required this.id,
@@ -12,18 +12,17 @@ class Book {
     required this.author,
     this.coverUrl,
     this.isBookmarked = false,
-    required this.genre, // Ensure genre is required in the constructor
+    required this.genre,
   });
 
-  // Updated fromJson factory to include 'genre'
   factory Book.fromJson(Map<String, dynamic> json) {
     return Book(
-      id: json['id'],
-      title: json['title'],
-      author: json['author'],
-      coverUrl: json['coverUrl'],
-      isBookmarked: json['isBookmarked'] ?? false,
-      genre: json['genre'], // Ensure genre is passed here
+      id: (json['id'] as num).toInt(),
+      title: json['title']?.toString() ?? 'Untitled',
+      author: json['author']?.toString() ?? 'Unknown',
+      coverUrl: (json['coverUrl'] ?? json['coverImage'])?.toString(),
+      isBookmarked: json['isBookmarked'] == true,
+      genre: json['genre']?.toString() ?? 'Unknown',
     );
   }
 }

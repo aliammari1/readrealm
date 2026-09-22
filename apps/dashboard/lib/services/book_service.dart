@@ -1,42 +1,45 @@
-import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../constants.dart';
-import '../models/book_model.dart';
-import '../models/review_model.dart';
+
+import 'package:flutter_library_app/constants.dart';
+import 'package:flutter_library_app/models/book_model.dart';
+import 'package:flutter_library_app/models/review_model.dart';
+import 'package:http/http.dart' as http;
 
 class BookService {
-  static const String baseUrl = 'http://localhost:3000/book';
+  static const String baseUrl = '$apiBaseUrl/book';
 
   Future<List<Book>> getUserBookmarks(String userId) async {
     final response = await http.get(Uri.parse('$baseUrl/bookmarks/$userId'));
 
     if (response.statusCode == 200) {
-      List<dynamic> jsonData = json.decode(response.body);
-      return jsonData.map((json) => Book.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load bookmarks');
+      final jsonData = jsonDecode(response.body) as List<dynamic>;
+      return jsonData
+          .map((item) => Book.fromJson(item as Map<String, dynamic>))
+          .toList();
     }
+    throw Exception('Failed to load bookmarks');
   }
 
   Future<List<Review>> getBookReviews(int bookId) async {
     final response = await http.get(Uri.parse('$baseUrl/reviews/$bookId'));
 
     if (response.statusCode == 200) {
-      List<dynamic> jsonData = json.decode(response.body);
-      return jsonData.map((json) => Review.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load reviews');
+      final jsonData = jsonDecode(response.body) as List<dynamic>;
+      return jsonData
+          .map((item) => Review.fromJson(item as Map<String, dynamic>))
+          .toList();
     }
+    throw Exception('Failed to load reviews');
   }
 
   Future<void> toggleBookmark(int bookId, String userId) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/$bookId/toggle-bookmark'),
+    final response = await http.put(
+      Uri.parse('$baseUrl/$bookId/bookmark'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode({'userId': userId}),
+      body: jsonEncode({'userId': userId}),
     );
 
-    if (response.statusCode != 200) {
+    if (response.statusCode != 200 && response.statusCode != 201) {
       throw Exception('Failed to toggle bookmark');
     }
   }
@@ -45,10 +48,11 @@ class BookService {
     final response = await http.get(Uri.parse('$baseUrl/user-reviews/$userId'));
 
     if (response.statusCode == 200) {
-      List<dynamic> jsonData = json.decode(response.body);
-      return jsonData.map((json) => Review.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load user reviews');
+      final jsonData = jsonDecode(response.body) as List<dynamic>;
+      return jsonData
+          .map((item) => Review.fromJson(item as Map<String, dynamic>))
+          .toList();
     }
+    throw Exception('Failed to load user reviews');
   }
 }

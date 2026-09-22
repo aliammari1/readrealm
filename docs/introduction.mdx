@@ -1,0 +1,31 @@
+---
+title: ReadRealm
+description: "Where books meet intelligence — one NestJS backend serving Android, iOS and Flutter clients with real-time AI book chat."
+---
+
+ReadRealm is an intelligent, collaborative digital-library platform. A single
+**NestJS** API powers three native clients (Android / iOS / Flutter) with:
+
+- **Auth** — JWT, email verification, password reset.
+- **Books** — Open Library / Gutendex catalog, EPUB reading, AI summaries.
+- **Audiobooks** — Azure-backed text-to-speech streaming.
+- **Real-time book chat** — Socket.IO rooms per book, with an **AI participant**
+  (streaming Claude `claude-haiku-4-5` + tool use) you can `@`-mention.
+- **Multi-provider AI** — Google, OpenAI, HuggingFace, Azure and Anthropic
+  unified behind config.
+
+<Card title="API reference" icon="code" href="/api-reference">
+  Interactive playground generated from the live OpenAPI spec.
+</Card>
+
+## How the docs are generated
+
+The **API reference** tab is driven by `shared/api-spec/openapi.yaml`, which is
+generated from the running NestJS app:
+
+```bash
+pnpm --filter @readrealm/api run generate:openapi
+```
+
+CI fails if that file drifts from the code, so the playground always matches the
+deployed API.

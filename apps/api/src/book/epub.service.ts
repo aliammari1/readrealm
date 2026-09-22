@@ -35,14 +35,7 @@ export class EpubService {
         ) || books[0];
 
       // Check all possible EPUB format keys
-      const epubFormats = [
-        // 'application/epub+zip',
-        // 'application/x-mobipocket-ebook',
-        // 'text/html',
-        'text/plain; charset=us-ascii',
-        'text/plain; charset=utf-8',
-        'text/plain',
-      ];
+      const epubFormats = ['application/epub+zip'];
 
       for (const format of epubFormats) {
         if (matchedBook.formats[format]) {

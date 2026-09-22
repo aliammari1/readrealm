@@ -225,16 +225,6 @@ fun RegisterScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Mystical Divider
-            MysticalRegistrationDivider()
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Social Sign Up Runes
-            SocialSignUpRunes()
-
-            Spacer(modifier = Modifier.height(24.dp))
-
             // Already a member prompt
             AlreadyMemberPrompt(
                 glowIntensity = glowIntensity,

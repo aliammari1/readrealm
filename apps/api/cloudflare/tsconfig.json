@@ -1,0 +1,15 @@
+{
+  "//": "Standalone tsconfig for the Cloudflare Worker + Durable Object sources. These are deployed by wrangler with its own toolchain and use @cloudflare/workers-types, so they are excluded from the main apps/api tsconfig. Install types with: pnpm add -D @cloudflare/workers-types",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ES2022",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022"],
+    "types": ["@cloudflare/workers-types"],
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true
+  },
+  "include": ["*.ts"]
+}

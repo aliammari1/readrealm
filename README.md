@@ -1,10 +1,44 @@
+<!-- Banner: placeholder committed at assets/banner.svg. Final art is a TODO — see BANNER.md -->
+<p align="center">
+  <img src="assets/banner.svg" alt="ReadRealm — Where books meet intelligence" width="100%" />
+</p>
+
 # 📚 ReadRealm
 
-### *Where Books Meet Intelligence*
+### Open-source AI book-chat platform — one NestJS backend → Android, iOS & Flutter clients
 
-An **intelligent, collaborative digital library platform** that combines real-time conversations, AI-powered insights, and seamless cross-platform reading into one unified experience.
+[![CI](https://github.com/aliammari1/readrealm/actions/workflows/ci.yml/badge.svg)](https://github.com/aliammari1/readrealm/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/aliammari1/readrealm/branch/main/graph/badge.svg?flag=api)](https://codecov.io/gh/aliammari1/readrealm)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![API: Swagger](https://img.shields.io/badge/API-Swagger%20%2Fapi%2Fdocs-85EA2D?logo=swagger&logoColor=white)](shared/api-spec/openapi.yaml)
+[![NestJS](https://img.shields.io/badge/NestJS-10-E0234E?logo=nestjs&logoColor=white)](https://nestjs.com)
+[![pnpm](https://img.shields.io/badge/pnpm-managed-F69220?logo=pnpm&logoColor=white)](https://pnpm.io)
 
-> **ReadRealm** transforms how people discover, read, and discuss books. Whether you're on mobile, desktop, or web—your library, conversations, and reading progress sync instantly. Powered by advanced AI and built on cutting-edge cloud infrastructure, ReadRealm empowers readers to go beyond the page.
+**ReadRealm is a self-hostable, open-source alternative to Speechify / Blinkist-style
+book-AI apps.** One NestJS backend powers **chat-with-your-book** (streaming Claude),
+AI summaries, text-to-speech narration and real-time reading rooms — served to
+**native Android (Kotlin), native iOS (Swift) and a Flutter admin dashboard** from a
+single API. Bring your own AI keys, run it on your own box, own your data.
+
+```bash
+docker compose up    # full backend (API + MongoDB) → http://localhost:3000, docs at /api/docs
+```
+
+### Why self-host ReadRealm?
+
+| | Speechify / Blinkist-style apps | **ReadRealm (self-hosted)** |
+|---|---|---|
+| **Price** | $99–139/yr subscription | **$0** — run it yourself |
+| **Your data** | On their servers | **On your infrastructure** |
+| **AI provider** | Locked to theirs | **BYOK / multi-provider** (Google · OpenAI · HuggingFace · Azure · Anthropic) |
+| **Clients** | Their app only | **Native Android + iOS + Flutter** from one open API |
+| **Extensible** | Closed | **MIT-licensed**, fork & extend the whole stack |
+| **Realtime chat** | — | **Socket.IO + Cloudflare Durable Object** book rooms |
+
+> **The hook: one backend → three clients.** Instead of three siloed apps, ReadRealm
+> is a single NestJS API (REST + WebSocket, OpenAPI-documented) that the Kotlin, Swift
+> and Flutter clients all talk to. Read on Android in the morning, continue on iOS at
+> lunch — library, bookmarks and AI conversations sync instantly.
 
 ---
 
@@ -79,6 +113,46 @@ graph TB
     Chat -.->|Events| iOS
     Chat -.->|Events| Dashboard
 ```
+
+## 🎬 Demo
+
+ReadRealm is **one backend serving three clients**, so the demo has two halves —
+the API/realtime layer (runnable & inspectable) and the native apps (store
+artifacts + screenshots).
+
+### Backend & API (the runnable demo)
+
+| What | Where | Status |
+|------|-------|--------|
+| ▶️ **Try the API (interactive playground)** | [Mintlify docs](docs/docs.json) → *API reference* tab — fill params, hit **Send**, see live responses | Driven by the generated [`openapi.yaml`](shared/api-spec/openapi.yaml) |
+| **Swagger UI** | `http://localhost:3000/api/docs` | Live when the API runs |
+| 🚀 **Self-host in one command** | `docker compose up` (API + MongoDB) | r/selfhosted-friendly |
+| 💬 **Realtime book-chat (Durable Object)** | [`apps/api/cloudflare/chat-room.do.ts`](apps/api/cloudflare/README.md) — edge WebSocket rooms via the Hibernation API | DO realtime **implemented**; Workers HTTP bridge = good-first-issue |
+
+```bash
+# Run the whole backend locally (API + MongoDB) and open the docs:
+docker compose up
+# → REST API at http://localhost:3000, Swagger UI at /api/docs
+```
+
+> **Honest status:** the realtime **Durable Object** (`chat-room.do.ts`) is a full
+> implementation using the WebSocket Hibernation API. The **NestJS → Cloudflare
+> Workers** HTTP bridge is intentionally left as a clearly-scoped
+> [good-first-issue](apps/api/cloudflare/README.md#needs-port-remaining-work-before-a-deploy)
+> rather than shipping a half-working port — the NestJS app itself runs today on
+> Node, and nothing is deployed to Cloudflare.
+
+### Native clients (screenshots / build artifacts)
+
+The Android and iOS reader apps ship as **APK / TestFlight builds + screenshots**
+(see each client's README). The Flutter admin dashboard runs on web/desktop —
+preview at [`apps/dashboard/ui.png`](apps/dashboard/ui.png).
+
+| Client | Try it | README |
+|--------|--------|--------|
+| Android | Build an APK: `cd apps/android && ./gradlew assembleDebug` | [apps/android](apps/android/README.md) |
+| iOS | Open in Xcode (scheme **ReadRealm**) → simulator | [apps/ios](apps/ios/README.md) |
+| Flutter admin | `cd apps/dashboard && flutter run -d chrome` | [apps/dashboard](apps/dashboard/README.md) |
 
 ## 🚀 Core Features
 
@@ -180,8 +254,8 @@ nano apps/api/.env  # or open in your editor
 git clone https://github.com/aliammari1/readrealm.git
 cd readrealm
 
-# 2. Install backend dependencies
-cd apps/api && npm ci && cd ../..
+# 2. Install backend dependencies (pnpm)
+cd apps/api && pnpm install && cd ../..
 
 # 3. Install admin dashboard dependencies
 cd apps/dashboard && flutter pub get && cd ../..
@@ -195,9 +269,9 @@ cp apps/api/.env.example apps/api/.env
 
 | Layer | App | Command | Purpose |
 |-------|-----|---------|---------|
-| **Backend** 🟢 | API | `cd apps/api && npm run start:dev` | Core server on `http://localhost:3000` |
+| **Backend** 🟢 | API | `cd apps/api && pnpm run start:dev` | Core server on `http://localhost:3000` |
 | **Clients** 📱 | Android | `cd apps/android && ./gradlew installDebug` | Native Android reader app |
-| **Clients** 📱 | iOS | Open `apps/ios/Runner.xcworkspace` in Xcode | Native iOS reader app |
+| **Clients** 📱 | iOS | Open `apps/ios/ReadRealm/Application.xcodeproj` (scheme **ReadRealm**) | Native iOS reader app |
 | **Admin** 🖥️ | Flutter Dashboard | `cd apps/dashboard && flutter run -d chrome` | Admin dashboard (Web/Desktop) |
 
 For Taskfile users (recommended):
@@ -307,11 +381,15 @@ readrealm/
 | Document | Purpose |
 |----------|---------|
 | [Quick Start Guide](QUICKSTART.md) | 30-second setup to get running |
-| [API Docs](shared/api-spec/openapi.yaml) | REST API specification (OpenAPI/Swagger) |
+| Swagger UI | Interactive API explorer at `/api/docs` when the API is running |
+| [Mintlify docs](docs/docs.json) | Hosted docs + OpenAPI playground (driven by the generated spec) |
+| [API spec](shared/api-spec/openapi.yaml) | Generated OpenAPI 3 specification |
+| [API README](apps/api/README.md) | Backend architecture, scripts, AI providers, Cloudflare |
 | [Configuration Reference](shared/config/.env.example) | All environment variables explained |
-| [System Design](shared/docs/system-design.md) | Architecture, patterns, and design decisions |
-| [Setup Guide](shared/docs/setup.md) | Detailed environment configuration |
+| [Security policy](shared/docs/security.md) | How to report vulnerabilities |
+| [Cloudflare design](apps/api/cloudflare/README.md) | Workers + Durable Object edge plan |
 | [Contributing Guide](CONTRIBUTING.md) | Code contribution guidelines & architecture |
+| [Code of Conduct](CODE_OF_CONDUCT.md) | Community standards |
 
 ---
 
@@ -334,18 +412,74 @@ We love contributions! To get started:
 
 ---
 
+## 🧭 Engineering decisions
+
+A short, honest account of the non-obvious choices — recruiters reward
+demonstrated judgment, not just code volume.
+
+- **MIT license, monetize hosting.** The code is open (MIT); the offering is
+  running it for you. This unblocks self-hosted discovery and contributions.
+- **pnpm, not Bun.** `apps/api` standardizes on pnpm with a committed
+  `pnpm-lock.yaml` and `packageManager` pinned — reproducible installs in CI.
+- **OpenAPI is generated, not hand-written.** `shared/api-spec/openapi.yaml`
+  comes from the live NestJS app via `@nestjs/swagger`
+  (`pnpm --filter @readrealm/api generate:openapi`); CI fails on drift, and the
+  same spec powers Swagger UI (`/api/docs`) and the Mintlify docs.
+- **AI is multi-provider, unified behind config.** Google / OpenAI / HuggingFace
+  / Azure already power summaries, TTS and speech; the new **AI book-chat
+  participant** adds Anthropic (streaming Claude `claude-haiku-4-5` + tool use)
+  as the in-chat companion — additive, not a rewrite.
+- **Cloudflare: right primitive per workload.** The HTTP API targets **Workers**
+  (`nodejs_compat`) to lift the existing NestJS app without a rewrite; the
+  realtime chat targets a **Durable Object** because Socket.IO has no edge
+  runtime. Data stays on **MongoDB Atlas** to keep the Mongoose models (D1 would
+  mean a SQL rewrite). Config + scaffold live in
+  [`apps/api/cloudflare`](apps/api/cloudflare) — nothing is deployed.
+- **`rt-client` is a raw-tarball dependency.** The Azure realtime-audio SDK is
+  pulled from a GitHub-release `.tgz`, not a registry — a supply-chain surface
+  that Renovate/Trivy can't pin. It's flagged in CI and disabled in Renovate;
+  revisit when Azure publishes to npm.
+
+### Client strategy (flagged redundancy)
+
+ReadRealm ships **three** clients — Android (Kotlin/Compose), iOS (SwiftUI) and a
+Flutter dashboard — all against the same API. That's a lot of overlapping
+surface to maintain. Recommendation: treat **Flutter as the primary client**
+(one codebase → Android, iOS, web, desktop) and keep the native Kotlin/Swift
+apps as **reference implementations** of platform-idiomatic patterns rather than
+shipping all three in parallel.
+
+> Cleanup still open as good-first-issues: rename the iOS Xcode **target** off
+> `Application` (the dir/scheme/bundle-id are already rebranded — see
+> `apps/ios/README.md`), and the Android `tn.esprit.libraryapp` package id (an
+> 80+ file refactor) → a `readrealm` package.
+
 ## 📄 License
 
-ReadRealm is open-source software licensed under the **UNLICENSED** license. See [LICENSE](LICENSE) for details.
+ReadRealm is open-source software licensed under the **MIT** license
+(`SPDX-License-Identifier: MIT`). The code is open; commercial hosting of the
+platform remains the maintainer's offering. See [LICENSE](LICENSE) for details.
 
 ---
 
 ## 💬 Get Involved
 
+- ⭐ **Like the "one backend → 3 clients" idea?** [Star the repo](https://github.com/aliammari1/readrealm) — it's the #1 way to support the project.
 - 🐛 **Found a bug?** [Open an issue](https://github.com/aliammari1/readrealm/issues)
 - 💡 **Have an idea?** [Start a discussion](https://github.com/aliammari1/readrealm/discussions)
-- 📧 **Questions?** Reach out to the team
+- 🤝 **Want to contribute?** See [CONTRIBUTING.md](CONTRIBUTING.md) — there are clearly-scoped good-first-issues.
 
 ---
 
-**Made with ❤️ by the ReadRealm team**
+## 🔗 Related projects
+
+Part of a wider open-source portfolio by [@aliammari1](https://github.com/aliammari1):
+
+- 🤖 [**JobPrep**](https://github.com/aliammari1/JobPrep) — open-source, BYOK AI interview-prep platform
+- 🩻 [**pulmocare**](https://github.com/aliammari1/pulmocare) — self-hostable chest-X-ray AI agent
+- 📊 [**github-traffic-analytics**](https://github.com/aliammari1/github-traffic-analytics) — keep your repo traffic past GitHub's 14-day window
+- 🧰 [**awesome-ai-tools**](https://github.com/aliammari1/awesome-ai-tools) — a curated index of ~395 AI tools
+
+---
+
+**Made with ❤️ by the ReadRealm team** · [⭐ Star on GitHub](https://github.com/aliammari1/readrealm)

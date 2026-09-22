@@ -1,23 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_library_app/constants.dart';
 import 'package:flutter_library_app/models/auth_state.dart';
 import 'package:flutter_library_app/models/user_model.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
-import '../services/api_client.dart';
-import '../services/face_recognition_service.dart';
-import 'package:path_provider/path_provider.dart';
 
 class AuthProvider with ChangeNotifier {
-  final String _baseUrl = 'https://libraryapp-nest-back.vercel.app';
-  final _secureStorage = const FlutterSecureStorage();
-  late final ApiClient _apiClient;
-  final FaceRecognitionService _faceService = FaceRecognitionService();
+  final String _baseUrl = apiBaseUrl;
   AuthState _state = AuthState();
-
-  AuthProvider() {
-    _apiClient = ApiClient(_baseUrl);
-  }
 
   AuthState get state => _state;
   bool get isAuthenticated => _state.isAuthenticated;
@@ -35,20 +26,18 @@ class AuthProvider with ChangeNotifier {
       final response = await http.post(
         Uri.parse('$_baseUrl/auth/login'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'email': email, 'password': password}),
+        body: jsonEncode({'email': email, 'password': password}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final data = json.decode(response.body);
-        print('Login response: ${response.body}'); // Debug line
-
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
         if (data['accessToken'] != null && data['userId'] != null) {
           _setState(
             _state.copyWith(
               isAuthenticated: true,
-              userId: data['userId'],
-              accessToken: data['accessToken'],
-              refreshToken: data['refreshToken'],
+              userId: data['userId'] as String?,
+              accessToken: data['accessToken'] as String?,
+              refreshToken: data['refreshToken'] as String?,
               isLoading: false,
               error: null,
             ),
@@ -68,7 +57,7 @@ class AuthProvider with ChangeNotifier {
           isAuthenticated: false,
         ),
       );
-      throw e;
+      rethrow;
     }
   }
 
@@ -79,21 +68,21 @@ class AuthProvider with ChangeNotifier {
       final response = await http.post(
         Uri.parse('$_baseUrl/auth/register'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({
+        body: jsonEncode({
           'username': username,
           'email': email,
           'password': password,
         }),
       );
 
-      if (response.statusCode != 200) {
-        throw Exception('Registration failed');
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Registration failed: ${response.statusCode}');
       }
 
       _setState(_state.copyWith(isLoading: false));
     } catch (e) {
       _setState(_state.copyWith(isLoading: false, error: e.toString()));
-      throw e;
+      rethrow;
     }
   }
 
@@ -110,13 +99,16 @@ class AuthProvider with ChangeNotifier {
       );
 
       if (response.statusCode == 200) {
-        final dynamic userData = json.decode(response.body);
-        final user = User.fromJson(userData['user'] ?? userData);
+        final userData = jsonDecode(response.body) as Map<String, dynamic>;
+        final nestedUser = userData['user'];
+        final user = User.fromJson(
+          nestedUser is Map<String, dynamic> ? nestedUser : userData,
+        );
         _setState(_state.copyWith(currentUser: user));
       }
     } catch (e) {
       logout();
-      throw e;
+      rethrow;
     }
     await fetchUsers(); // Add this line
   }
@@ -139,8 +131,10 @@ class AuthProvider with ChangeNotifier {
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> usersJson = json.decode(response.body);
-        _users = usersJson.map((json) => User.fromJson(json)).toList();
+        final usersJson = jsonDecode(response.body) as List<dynamic>;
+        _users = usersJson
+            .map((item) => User.fromJson(item as Map<String, dynamic>))
+            .toList();
         notifyListeners();
       } else {
         throw Exception('Failed to load users');
@@ -158,7 +152,7 @@ class AuthProvider with ChangeNotifier {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${_state.accessToken}',
         },
-        body: json.encode({
+        body: jsonEncode({
           'username': username,
           'email': email,
           'password': password,
@@ -193,7 +187,7 @@ class AuthProvider with ChangeNotifier {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${_state.accessToken}',
         },
-        body: json.encode(body),
+        body: jsonEncode(body),
       );
 
       if (response.statusCode == 200) {
@@ -221,67 +215,5 @@ class AuthProvider with ChangeNotifier {
     } catch (e) {
       throw Exception('Error deleting user: $e');
     }
-  }
-
-  Future<void> signInWithFace() async {
-    try {
-      _setState(_state.copyWith(isLoading: true));
-
-      // Get stored credentials
-      final storedPersonId = await _secureStorage.read(key: 'azure_person_id');
-      final storedEmail = await _secureStorage.read(key: 'last_email');
-
-      if (storedPersonId == null || storedEmail == null) {
-        throw Exception(
-          'No stored face data found. Please login with password first',
-        );
-      }
-
-      // Capture and verify face
-      final tempDir = await getTemporaryDirectory();
-      final imagePath = '${tempDir.path}/face_auth.jpg';
-      final success = await _faceService.authenticate(
-        storedPersonId,
-        imagePath,
-      );
-
-      if (!success) {
-        throw Exception('Face authentication failed');
-      }
-
-      // Login with stored email
-      final response = await http.post(
-        Uri.parse('$_baseUrl/auth/face-login'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({'email': storedEmail, 'personId': storedPersonId}),
-      );
-
-      if (response.statusCode != 200) {
-        throw Exception('Authentication failed');
-      }
-
-      final data = json.decode(response.body);
-      final user = User.fromJson(data['user']);
-      final token = data['token'];
-
-      _setState(
-        _state.copyWith(
-          isAuthenticated: true,
-          currentUser: user,
-          accessToken: token,
-        ),
-      );
-    } catch (e) {
-      _setState(_state.copyWith(error: e.toString()));
-      throw e;
-    } finally {
-      _setState(_state.copyWith(isLoading: false));
-    }
-  }
-
-  // After successful password login, store credentials for Face ID
-  Future<void> _storeCredentialsForFaceId(String email, String personId) async {
-    await _secureStorage.write(key: 'last_email', value: email);
-    await _secureStorage.write(key: 'azure_person_id', value: personId);
   }
 }

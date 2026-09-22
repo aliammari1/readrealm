@@ -1,0 +1,41 @@
+name: Bug report
+description: Report a problem in ReadRealm
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: app
+    attributes:
+      label: Which part is affected?
+      options:
+        - apps/api (NestJS backend)
+        - apps/android (Kotlin/Compose)
+        - apps/ios (SwiftUI)
+        - apps/dashboard (Flutter admin)
+        - Docs / CI / tooling
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug, plus steps to reproduce.
+      placeholder: |
+        1. ...
+        2. ...
+        Expected: ...
+        Actual: ...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, device/emulator, Node/Flutter/Xcode/Gradle versions as relevant.
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots
+      render: shell

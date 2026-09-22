@@ -2,6 +2,7 @@ package tn.esprit.libraryapp.api
 
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
@@ -49,6 +50,9 @@ interface UserService {
     suspend fun forgotPassword(
         @Body forgotPasswordRequest: ForgotPasswordRequest,
     ): Response<ForgotPasswordResponse>
+
+    @DELETE("auth/account")
+    suspend fun deleteAccount(): Response<Unit>
 
     @GET("user/profile/{userId}")
     suspend fun getUserProfile(@Path("userId") userId: String): Response<User>

@@ -1,0 +1,42 @@
+---
+title: Architecture
+description: "One backend, three native clients, and an edge story on Cloudflare."
+---
+
+## Topology
+
+```mermaid
+graph TB
+  Android[Android · Kotlin/Compose] -->|REST + WS| API
+  iOS[iOS · SwiftUI] -->|REST + WS| API
+  Dashboard[Flutter dashboard] -->|REST + WS| API
+  API[NestJS API] --> Mongo[(MongoDB)]
+  API --> AI[Google · OpenAI · HF · Azure · Anthropic]
+  API -. Socket.IO .-> Android
+  API -. Socket.IO .-> iOS
+  API -. Socket.IO .-> Dashboard
+```
+
+## Backend modules
+
+| Module | Responsibility |
+|---|---|
+| `auth` | JWT auth, email verification, password reset |
+| `book` | Catalog, EPUB, reviews, bookmarks, AI summaries |
+| `chat` | Socket.IO rooms + the AI book-chat participant |
+| `user` | Profiles |
+| `speech-realtime` | Voice / TTS (FFmpeg, Azure) |
+| `verification` | OTP / email |
+
+## Cloudflare edge (design)
+
+The API has a Cloudflare deployment design (config + scaffold, not deployed):
+**Workers** with `nodejs_compat` for the HTTP API, and a **Durable Object** for
+the realtime chat (Socket.IO has no edge runtime). See
+[`apps/api/cloudflare/README.md`](https://github.com/aliammari1/readrealm/blob/main/apps/api/cloudflare/README.md).
+
+## Client strategy
+
+Android, iOS and Flutter are all maintained against the same API. They overlap
+heavily — see the root README "engineering decisions" for the recommendation to
+treat **Flutter as the primary client** and keep the native apps as reference.
