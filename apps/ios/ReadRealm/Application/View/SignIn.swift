@@ -1,3 +1,5 @@
+[Reading 211 lines from start (total: 211 lines, 0 remaining)]
+
 //
 //  SignIn.swift
 //  Application
@@ -60,15 +62,6 @@ struct SignIn: View {
                 Text(errorMessage)
                     .foregroundColor(.red)
                     .font(.caption)
-            }
-
-            OrView(title: "Or")
-
-            HStack(spacing: 65){
-                signAccount(icon: "apple.logo", width: 32, height: 32, action: {})
-                // signAccount(icon: "email.logo", width: 32, height: 32, action: {})
-                // signAccount(icon: "google.logo", width: 32, height: 32, action: {})
-                
             }
 
             Spacer()
@@ -218,3 +211,5 @@ struct signAccount: View {
         .tint(.white)
     }
 }
+
+[executed on device: thethirdone (5346b035-2835-4d41-8950-4054b200ff7b)]

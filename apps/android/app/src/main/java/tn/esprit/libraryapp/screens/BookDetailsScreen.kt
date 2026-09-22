@@ -1,9 +1,12 @@
+[Reading 1766 lines from start (total: 1766 lines, 0 remaining)]
+
 package tn.esprit.libraryapp.screens
 
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
@@ -184,11 +187,20 @@ fun BookDetailsScreen(
             item {
                 QuestActionsSection(
                     onStartReading = {
-                        try {
-                            val encodedUrl = Uri.encode(book?.link)
-                            navController.navigate("read_book/$encodedUrl")
-                        } catch (e: Exception) {
-                            Log.e("BookDetailsScreen", "Error navigating: ${e.message}")
+                        val readingLink = book?.link
+                        if (readingLink.isNullOrBlank()) {
+                            Toast.makeText(
+                                context,
+                                "No EPUB edition is available for this book.",
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        } else {
+                            try {
+                                val encodedUrl = Uri.encode(readingLink)
+                                navController.navigate("read_book/$encodedUrl")
+                            } catch (e: Exception) {
+                                Log.e("BookDetailsScreen", "Error navigating: ${e.message}")
+                            }
                         }
                     }
                 )
@@ -1754,3 +1766,5 @@ private fun ErrorState(message: String, onRetry: () -> Unit) {
         Button(onClick = onRetry) { Text("Retry") }
     }
 }
+
+[executed on device: thethirdone (5346b035-2835-4d41-8950-4054b200ff7b)]

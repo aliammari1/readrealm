@@ -1,3 +1,5 @@
+[Reading 965 lines from start (total: 965 lines, 0 remaining)]
+
 package tn.esprit.libraryapp.screens
 
 import android.graphics.Bitmap
@@ -224,16 +226,6 @@ fun RegisterScreen(
             )
 
             Spacer(modifier = Modifier.height(20.dp))
-
-            // Mystical Divider
-            MysticalRegistrationDivider()
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Social Sign Up Runes
-            SocialSignUpRunes()
-
-            Spacer(modifier = Modifier.height(24.dp))
 
             // Already a member prompt
             AlreadyMemberPrompt(
@@ -973,3 +965,5 @@ private fun AlreadyMemberPrompt(
         }
     }
 }
+
+[executed on device: thethirdone (5346b035-2835-4d41-8950-4054b200ff7b)]

@@ -1,3 +1,5 @@
+[Reading 55 lines from start (total: 55 lines, 0 remaining)]
+
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
@@ -35,14 +37,7 @@ export class EpubService {
         ) || books[0];
 
       // Check all possible EPUB format keys
-      const epubFormats = [
-        // 'application/epub+zip',
-        // 'application/x-mobipocket-ebook',
-        // 'text/html',
-        'text/plain; charset=us-ascii',
-        'text/plain; charset=utf-8',
-        'text/plain',
-      ];
+      const epubFormats = ['application/epub+zip'];
 
       for (const format of epubFormats) {
         if (matchedBook.formats[format]) {
@@ -60,3 +55,5 @@ export class EpubService {
     }
   }
 }
+
+[executed on device: thethirdone (5346b035-2835-4d41-8950-4054b200ff7b)]

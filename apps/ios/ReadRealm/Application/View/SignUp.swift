@@ -1,3 +1,5 @@
+[Reading 57 lines from start (total: 57 lines, 0 remaining)]
+
 //
 //  SignUp.swift
 //  Application
@@ -33,15 +35,6 @@ struct SignUp: View {
             }
             
             
-            OrView(title: "Or")
-            
-            HStack(spacing: 65){
-                signAccount(icon: "apple.logo", width: 32, height: 32, action: {})
-                signAccount(icon: "email.logo", width: 32, height: 32, action: {})
-                signAccount(icon: "google.logo", width: 32, height: 32, action: {})
-                
-            }
-            
             Button {
                 withAnimation{
                     showSignIn.toggle()
@@ -64,3 +57,5 @@ struct SignUp_Previews: PreviewProvider {
         ContentView()
    }
 }
+
+[executed on device: thethirdone (5346b035-2835-4d41-8950-4054b200ff7b)]

@@ -1,3 +1,5 @@
+[Reading 940 lines from start (total: 940 lines, 0 remaining)]
+
 package tn.esprit.libraryapp.screens
 
 import android.widget.Toast
@@ -189,16 +191,6 @@ fun LoginScreen(
             )
 
             Spacer(modifier = Modifier.height(24.dp))
-
-            // Mystical Divider
-            MysticalDivider()
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Social Login Runes
-            SocialLoginRunes()
-
-            Spacer(modifier = Modifier.height(28.dp))
 
             // Join the Realm Prompt
             JoinRealmPrompt(
@@ -948,3 +940,5 @@ private fun JoinRealmPrompt(
         }
     }
 }
+
+[executed on device: thethirdone (5346b035-2835-4d41-8950-4054b200ff7b)]
