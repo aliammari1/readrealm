@@ -1,18 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { UserService } from './user.service';
 
 describe('UserService', () => {
-  let service: UserService;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [UserService],
-    }).compile();
-
-    service = module.get<UserService>(UserService);
-  });
-
-  it('should be defined', () => {
+  it('should be defined with a mocked user model', () => {
+    const service = new UserService({} as any);
     expect(service).toBeDefined();
   });
 });
