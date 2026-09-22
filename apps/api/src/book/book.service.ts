@@ -1,4 +1,3 @@
-import 'openai/shims/node';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateBookDto } from './dto/create-book.dto';
 import { UpdateBookDto } from './dto/update-book.dto';
@@ -22,14 +21,11 @@ export class BookService {
   private readonly OPEN_LIBRARY_COVER_ENDPOINT =
     'https://covers.openlibrary.org';
   private readonly GUTEDEX_API_ENDPOINT = 'https://gutendex.com';
-  private azureTtsKey: string;
-  private azureTtsEndpoint: string;
-  private azureTtsModel: string;
   private geminiApiKey: string;
   private geminiModel: string;
 
   private bookCache = new Map<string, any>();
-  private readonly CACHE_DURATION = 900000000; // 15 minutes
+  private readonly CACHE_DURATION = 900000; // 15 minutes
   private readonly BATCH_SIZE = 20;
 
   constructor(
@@ -41,9 +37,6 @@ export class BookService {
     private readonly reviewService: ReviewService,
     private readonly bookmarkService: BookmarkService,
   ) {
-    this.azureTtsKey = configService.get<string>('azure.tts.key');
-    this.azureTtsEndpoint = configService.get<string>('azure.tts.endpoint');
-    this.azureTtsModel = configService.get<string>('azure.tts.model');
     this.geminiApiKey = configService.get<string>('gemini.key');
     this.geminiModel = configService.get<string>('gemini.model');
   }
