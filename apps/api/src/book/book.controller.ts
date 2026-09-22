@@ -131,41 +131,33 @@ export class BookController {
     @Param('genre') genre: string,
     @Query('offset') offset = '0',
     @Query('limit') limit = '10',
-    @Res() res: Response,
   ) {
-    const parsedOffset = parseInt(offset, 10);
-    const parsedLimit = Math.min(parseInt(limit, 10), 50); // Cap at 50 items
+    const parsedOffset = Math.max(parseInt(offset, 10) || 0, 0);
+    const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 10, 1), 50);
+    const books = [];
 
-    // Set performance-oriented headers
-    res.setHeader('Cache-Control', 'public, max-age=900'); // 15 minutes
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Connection', 'keep-alive');
-    // res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
-    // res.setHeader('Content-Encoding', 'gzip'); // Enable compression
-
-    const now = new Date();
-    res.setHeader('Last-Modified', now.toUTCString());
-    res.setHeader('Expires', new Date(now.getTime() + 900000).toUTCString());
-
-    try {
-      let count = 0;
-      for await (const book of this.bookService.findBooksByGenre(
-        genre,
-        parsedOffset,
-        parsedLimit,
-      )) {
-        if (count >= parsedLimit) break;
-        res.write(`data: ${JSON.stringify(book)}\n\n`);
-        count++;
-      }
-    } catch (error) {
-      console.error(`Error streaming books: ${error.message}`);
-      if (!res.headersSent) {
-        res.status(500).json({ error: 'Failed to fetch books' });
-      }
-    } finally {
-      res.end();
+    for await (const book of this.bookService.findBooksByGenre(
+      genre,
+      parsedOffset,
+      parsedLimit,
+    )) {
+      books.push(book);
+      if (books.length >= parsedLimit) break;
     }
+
+    return books;
+  }
+
+  @Put(':bookId/bookmark')
+  async toggleBookmarkById(
+    @Param('bookId') bookId: number,
+    @Body() body: { userId: string },
+  ) {
+    if (!body.userId) {
+      throw new BadRequestException('userId is required');
+    }
+
+    return this.bookmarkService.toggleBookmark(Number(bookId), body.userId);
   }
 
   @Get(':id')
@@ -203,6 +195,23 @@ export class BookController {
   @Get('reviews/:id')
   getBookReviews(@Param('id') bookId: number) {
     return this.reviewService.getBookReviews(bookId);
+  }
+
+  @Delete(':bookId/reviews/:reviewId')
+  deleteReview(
+    @Param('bookId') bookId: number,
+    @Param('reviewId') reviewId: string,
+    @Body() body: { userId: string },
+  ) {
+    if (!body.userId) {
+      throw new BadRequestException('userId is required');
+    }
+
+    return this.reviewService.deleteReview(
+      Number(bookId),
+      reviewId,
+      body.userId,
+    );
   }
 
   @Get('user-reviews/:userId')
