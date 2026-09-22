@@ -17,12 +17,9 @@ export default () => ({
     modelId: process.env.ELEVENLABS_MODEL_ID ?? 'eleven_multilingual_v2',
     agentId: process.env.ELEVENLABS_AGENT_ID,
   },
-  gemini: {
-    key: process.env.GEMINI_API_KEY ?? process.env.GOOGLE_AI_KEY,
-    model:
-      process.env.GEMINI_API_MODEL ??
-      process.env.GOOGLE_AI_MODEL ??
-      'gemini-2.0-flash',
+  ollama: {
+    url: process.env.OLLAMA_URL ?? 'http://localhost:11434',
+    model: process.env.OLLAMA_MODEL ?? 'qwen3:8b',
   },
   cors: {
     origin: process.env.CORS_ORIGIN ?? 'http://localhost:3000',
