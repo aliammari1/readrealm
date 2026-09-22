@@ -36,10 +36,8 @@ import { ChatModule } from './chat/chat.module';
           'req.body.oldPassword',
           'req.body.newPassword',
         ],
-        transport:
-          (process.env.NODE_ENV ?? 'development') !== 'production'
-            ? { target: 'pino-pretty', options: { singleLine: true } }
-            : undefined,
+        // Keep logs as structured JSON in every environment. This also keeps
+        // OpenAPI generation and CI independent of an optional pretty printer.
       },
     }),
     // Rate limiting. Applied globally via ThrottlerGuard below; auth and
