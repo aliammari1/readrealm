@@ -8,7 +8,7 @@ struct ProfilView: View {
 
     var body: some View {
         if accountDeleted {
-            SignIn()
+            ContentView()
         } else {
             NavigationView {
                 ScrollView {
