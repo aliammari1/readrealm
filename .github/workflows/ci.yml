@@ -43,10 +43,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Prettier (format diagnostic)
-        run: |
-          pnpm run format
-          git --no-pager diff -- src test scripts
+      - name: Prettier (check)
+        run: pnpm run format:check
 
       - name: ESLint (check)
         run: pnpm run lint:check
@@ -192,7 +190,15 @@ jobs:
         with:
           languages: ${{ matrix.language }}
 
+      - name: Build Android for CodeQL
+        if: matrix.language == 'java-kotlin'
+        working-directory: apps/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
       - name: Autobuild
+        if: matrix.language != 'java-kotlin'
         uses: github/codeql-action/autobuild@f09c1c0a94de965c15400f5634aa42fac8fb8f88 # v3.27.5
 
       - name: Analyze
