@@ -1,91 +1,66 @@
-import 'openai/shims/node';
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateBookDto } from './dto/create-book.dto';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
-import { Book, BookDocument } from './entities/book.entity';
-import { AzureOpenAI } from 'openai';
 import { ConfigService } from '@nestjs/config';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { Review } from './entities/review.entity';
+import { firstValueFrom } from 'rxjs';
+import { PassThrough } from 'stream';
+import { CreateBookDto } from './dto/create-book.dto';
 import { BookService } from './book.service';
 
 @Injectable()
 export class TTSService {
-  // 1. Constants and Configurations
-  private readonly OPEN_LIBRARY_API_ENDPOINT = 'https://openlibrary.org';
-  private readonly OPEN_LIBRARY_COVER_ENDPOINT =
-    'https://covers.openlibrary.org';
-  private readonly GUTEDEX_API_ENDPOINT = 'https://gutendex.com';
-  private azureTtsKey: string;
-  private azureTtsEndpoint: string;
-  private azureTtsModel: string;
-  private geminiApiKey: string;
-  private geminiModel: string;
+  private readonly elevenLabsBaseUrl = 'https://api.elevenlabs.io/v1';
+  private readonly chunkSize = 4500;
 
   constructor(
-    @InjectModel(Book.name) private bookModel: Model<BookDocument>,
-    @InjectModel(Review.name) private reviewModel: Model<Review>,
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
     private readonly bookService: BookService,
-  ) {
-    this.azureTtsKey = configService.get<string>('azure.tts.key');
-    this.azureTtsEndpoint = configService.get<string>('azure.tts.endpoint');
-    this.azureTtsModel = configService.get<string>('azure.tts.model');
-    this.geminiApiKey = configService.get<string>('gemini.key');
-    this.geminiModel = configService.get<string>('gemini.model');
-  }
+  ) {}
 
   async getBookTTS(data: CreateBookDto) {
-    if (!data.textData) {
+    if (!data.textData?.trim()) {
       throw new NotFoundException('No text data provided');
     }
 
-    // Clean up text
-    data.textData = data.textData
-      .replace(/(\r\n|\n|\r)/gm, ' ')
-      .replace(/ +(?= )/g, '');
+    const apiKey = this.configService.get<string>('elevenlabs.apiKey');
+    const voiceId = this.configService.get<string>('elevenlabs.voiceId');
+    const modelId =
+      this.configService.get<string>('elevenlabs.modelId') ??
+      'eleven_multilingual_v2';
 
-    const endpoint = this.azureTtsEndpoint || '';
-    const apiKey = this.azureTtsKey || '';
-    const deploymentName = this.azureTtsModel;
-    const apiVersion = '2024-08-01-preview';
-
-    const client = new AzureOpenAI({
-      endpoint,
-      apiKey,
-      apiVersion,
-      deployment: deploymentName,
-    });
-
-    const maxLength = 4096;
-    const chunks = [];
-    for (let i = 0; i < data.textData.length; i += maxLength) {
-      chunks.push(data.textData.substring(i, i + maxLength));
-    }
-
-    // TODO: Implement handling of multiple chunks
-    const response = await client.audio.speech.create({
-      model: deploymentName,
-      voice: 'alloy',
-      input: chunks[0],
-      response_format: 'mp3',
-    });
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to generate audio stream: ${response.statusText}`,
+    if (!apiKey || !voiceId) {
+      throw new ServiceUnavailableException(
+        'ElevenLabs is not configured. Set ELEVENLABS_API_KEY and ELEVENLABS_VOICE_ID.',
       );
     }
 
-    return response.body;
+    const cleanedText = data.textData
+      .replace(/(\r\n|\n|\r)/gm, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (!cleanedText) {
+      throw new BadRequestException('Text is empty after normalization');
+    }
+
+    const chunks = this.chunkText(cleanedText);
+    const output = new PassThrough();
+
+    void this.streamChunks(chunks, output, apiKey, voiceId, modelId).catch(
+      (error) => output.destroy(error),
+    );
+
+    return output;
   }
 
   async getBookTTSByTitle(title: string) {
     const decodedTitle = decodeURIComponent(title);
-    console.log(`Getting TTS for book: ${decodedTitle}`);
-    const bookData = (await this.bookService.getBookByTitle(title)) as any;
+    const bookData = (await this.bookService.getBookByTitle(decodedTitle)) as any;
 
     if (!bookData || !Array.isArray(bookData) || bookData.length === 0) {
       throw new NotFoundException('Book not found');
@@ -100,5 +75,67 @@ export class TTSService {
     createBookDto.textData = bookText;
 
     return this.getBookTTS(createBookDto);
+  }
+
+  private chunkText(text: string): string[] {
+    const chunks: string[] = [];
+    let remaining = text;
+
+    while (remaining.length > this.chunkSize) {
+      let splitAt = remaining.lastIndexOf('. ', this.chunkSize);
+      if (splitAt < this.chunkSize * 0.6) {
+        splitAt = remaining.lastIndexOf(' ', this.chunkSize);
+      }
+      if (splitAt <= 0) {
+        splitAt = this.chunkSize;
+      }
+
+      chunks.push(remaining.slice(0, splitAt + 1).trim());
+      remaining = remaining.slice(splitAt + 1).trim();
+    }
+
+    if (remaining) {
+      chunks.push(remaining);
+    }
+
+    return chunks;
+  }
+
+  private async streamChunks(
+    chunks: string[],
+    output: PassThrough,
+    apiKey: string,
+    voiceId: string,
+    modelId: string,
+  ) {
+    for (const text of chunks) {
+      const response = await firstValueFrom(
+        this.httpService.post(
+          `${this.elevenLabsBaseUrl}/text-to-speech/${voiceId}/stream`,
+          {
+            text,
+            model_id: modelId,
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'xi-api-key': apiKey,
+            },
+            params: {
+              output_format: 'mp3_44100_128',
+            },
+            responseType: 'stream',
+          },
+        ),
+      );
+
+      await new Promise<void>((resolve, reject) => {
+        response.data.once('error', reject);
+        response.data.once('end', resolve);
+        response.data.pipe(output, { end: false });
+      });
+    }
+
+    output.end();
   }
 }
