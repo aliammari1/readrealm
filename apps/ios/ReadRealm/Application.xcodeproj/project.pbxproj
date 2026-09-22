@@ -480,6 +480,7 @@
 				MARKETING_VERSION = 1.0.0;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aliammari.readrealm;
+				READREALM_API_BASE_URL = "https://libraryapp-nest-back.vercel.app";
 				INFOPLIST_KEY_CFBundleDisplayName = ReadRealm;
 				PRODUCT_NAME = ReadRealm;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -515,6 +516,7 @@
 				MARKETING_VERSION = 1.0.0;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.aliammari.readrealm;
+				READREALM_API_BASE_URL = "https://libraryapp-nest-back.vercel.app";
 				INFOPLIST_KEY_CFBundleDisplayName = ReadRealm;
 				PRODUCT_NAME = ReadRealm;
 				SWIFT_EMIT_LOC_STRINGS = YES;
