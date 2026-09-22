@@ -46,6 +46,30 @@ export class AuthController {
     );
   }
 
+  @ApiOperation({ summary: 'Request an email OTP for account deletion' })
+  @ApiBody({ schema: { properties: { email: { type: 'string' } } } })
+  @Post('account-deletion/request')
+  async requestAccountDeletion(@Body('email') email: string) {
+    return this.authService.requestAccountDeletion(email);
+  }
+
+  @ApiOperation({ summary: 'Confirm account deletion with an email OTP' })
+  @ApiBody({
+    schema: {
+      properties: {
+        email: { type: 'string' },
+        otp: { type: 'string' },
+      },
+    },
+  })
+  @Post('account-deletion/confirm')
+  async confirmAccountDeletion(
+    @Body('email') email: string,
+    @Body('otp') otp: string,
+  ) {
+    return this.authService.confirmAccountDeletion(email, otp);
+  }
+
   @ApiOperation({ summary: 'Delete the authenticated account and associated user data' })
   @ApiBearerAuth('access-token')
   @UseGuards(AuthGaurd)
