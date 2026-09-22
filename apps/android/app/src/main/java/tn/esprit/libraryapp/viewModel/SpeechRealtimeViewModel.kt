@@ -1,5 +1,7 @@
 package tn.esprit.libraryapp.viewModel
 
+import tn.esprit.libraryapp.BuildConfig
+
 import android.annotation.SuppressLint
 import android.media.AudioFormat
 import android.media.AudioRecord
@@ -70,7 +72,7 @@ class SpeechViewModel : ViewModel() {
                         reconnection = true
                         forceNew = true
                     }
-            mSocket = IO.socket("https://libraryapp-nest-back.vercel.app", options)
+            mSocket = IO.socket(BuildConfig.SOCKET_BASE_URL, options)
             mSocket?.apply {
                 connect()
 
