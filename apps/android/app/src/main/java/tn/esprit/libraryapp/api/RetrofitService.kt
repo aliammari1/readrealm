@@ -4,24 +4,32 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import tn.esprit.libraryapp.BuildConfig
 
 object RetrofitService {
-    private const val BASE_URL = "https://libraryapp-nest-back.vercel.app/"
-
     private val loggingInterceptor =
-        HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
+        HttpLoggingInterceptor().apply {
+            level =
+                if (BuildConfig.DEBUG) {
+                    HttpLoggingInterceptor.Level.BASIC
+                } else {
+                    HttpLoggingInterceptor.Level.NONE
+                }
+        }
 
-    private val okHttpClient = OkHttpClient.Builder().addInterceptor(loggingInterceptor).build()
+    private val okHttpClient =
+        OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .build()
 
     private val retrofit: Retrofit by lazy {
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(BuildConfig.API_BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
 
     val userService: UserService by lazy { retrofit.create(UserService::class.java) }
-
     val bookService: BookService by lazy { retrofit.create(BookService::class.java) }
 }
