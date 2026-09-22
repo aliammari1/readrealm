@@ -1,3 +1,4 @@
+import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
@@ -11,6 +12,7 @@ import { BookModule } from '../book/book.module';
   imports: [
     MongooseModule.forFeature([{ name: Message.name, schema: MessageSchema }]),
     ConfigModule,
+    HttpModule,
     BookModule,
   ],
   providers: [ChatGateway, ChatService, ChatAiService],
